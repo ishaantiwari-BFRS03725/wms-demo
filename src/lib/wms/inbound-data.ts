@@ -29,6 +29,8 @@ export interface ExpectedReturnItem {
   color?: string;
   size?: string;
   weight?: string;
+  lot?: string;
+  expiry?: string;
 }
 
 export interface ReturnAwbProfile {
@@ -81,6 +83,8 @@ export const HARDCODED_RETURN_AWBS: Record<string, ReturnAwbProfile> = {
         mrp: "₹899",
         size: "30 ml",
         weight: "45 g",
+        lot: "LOT-2024-089",
+        expiry: "30 Jun 2026",
       },
       {
         sku: "VB-CRM-50",
@@ -90,6 +94,8 @@ export const HARDCODED_RETURN_AWBS: Record<string, ReturnAwbProfile> = {
         mrp: "₹1,299",
         size: "50 ml",
         weight: "80 g",
+        lot: "LOT-2024-091",
+        expiry: "31 Dec 2026",
       },
       {
         sku: "VB-SUN-50",
@@ -99,6 +105,8 @@ export const HARDCODED_RETURN_AWBS: Record<string, ReturnAwbProfile> = {
         mrp: "₹699",
         size: "50 ml",
         weight: "75 g",
+        lot: "LOT-2024-095",
+        expiry: "28 Feb 2027",
       },
     ],
   },

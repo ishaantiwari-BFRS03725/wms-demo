@@ -517,7 +517,7 @@ function Grn() {
                       <div
                         key={it.sku}
                         className={cn(
-                          "flex items-center justify-between gap-3 rounded-md border px-2.5 py-1.5",
+                          "space-y-1 rounded-md border px-2.5 py-1.5",
                           done
                             ? "border-status-picked/30 bg-status-picked/5"
                             : isCurrent
@@ -525,25 +525,89 @@ function Grn() {
                               : "border-border bg-background",
                         )}
                       >
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-sm font-semibold leading-tight">
-                            {it.name}
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-sm font-semibold leading-tight">
+                              {it.name}
+                            </div>
+                            <div className="font-mono text-[10px] text-muted-foreground">
+                              {it.sku}
+                            </div>
                           </div>
-                          <div className="font-mono text-[10px] text-muted-foreground">
-                            {it.sku}
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={cn(
+                                "font-mono text-sm font-bold tabular-nums leading-none",
+                                done && "text-status-picked",
+                              )}
+                            >
+                              {count}/{it.qty}
+                            </span>
+                            {done && (
+                              <CheckCircle2 className="h-4 w-4 text-status-picked" />
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={cn(
-                              "font-mono text-sm font-bold tabular-nums leading-none",
-                              done && "text-status-picked",
-                            )}
-                          >
-                            {count}/{it.qty}
-                          </span>
-                          {done && (
-                            <CheckCircle2 className="h-4 w-4 text-status-picked" />
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-0 text-[10px] text-muted-foreground">
+                          {it.mrp && (
+                            <span>
+                              <span className="text-muted-foreground/70">
+                                MRP:
+                              </span>{" "}
+                              <span className="font-medium text-foreground">
+                                {it.mrp}
+                              </span>
+                            </span>
+                          )}
+                          {it.color && (
+                            <span>
+                              <span className="text-muted-foreground/70">
+                                Colour:
+                              </span>{" "}
+                              <span className="font-medium text-foreground">
+                                {it.color}
+                              </span>
+                            </span>
+                          )}
+                          {it.size && (
+                            <span>
+                              <span className="text-muted-foreground/70">
+                                Size:
+                              </span>{" "}
+                              <span className="font-medium text-foreground">
+                                {it.size}
+                              </span>
+                            </span>
+                          )}
+                          {it.weight && (
+                            <span>
+                              <span className="text-muted-foreground/70">
+                                Wt:
+                              </span>{" "}
+                              <span className="font-medium text-foreground">
+                                {it.weight}
+                              </span>
+                            </span>
+                          )}
+                          {it.lot && (
+                            <span>
+                              <span className="text-muted-foreground/70">
+                                Lot:
+                              </span>{" "}
+                              <span className="font-mono font-medium text-foreground">
+                                {it.lot}
+                              </span>
+                            </span>
+                          )}
+                          {it.expiry && (
+                            <span>
+                              <span className="text-muted-foreground/70">
+                                Exp:
+                              </span>{" "}
+                              <span className="font-medium text-foreground">
+                                {it.expiry}
+                              </span>
+                            </span>
                           )}
                         </div>
                       </div>
