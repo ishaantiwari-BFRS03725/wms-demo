@@ -859,21 +859,11 @@ function Unloading() {
 }
 
 function DockTag({ dockId }: { dockId: string }) {
-  const bars = useMemo(() => gateBarcodePattern(dockId).slice(0, 24), [dockId]);
   return (
     <div className="flex items-center gap-1.5">
       <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
         Dock
       </span>
-      <div className="flex items-end gap-px" aria-hidden>
-        {bars.map((w, i) => (
-          <div
-            key={i}
-            style={{ width: `${w}px` }}
-            className={cn("h-3.5", i % 2 === 0 ? "bg-foreground" : "bg-transparent")}
-          />
-        ))}
-      </div>
       <span className="font-mono text-xs font-semibold text-foreground">
         {dockId}
       </span>
