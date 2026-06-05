@@ -65,10 +65,12 @@ function SortProcess() {
   });
   const [putwallError, setPutwallError] = useState<string | null>(null);
   const [transferred, setTransferred] = useState<Set<string>>(new Set());
-  // transfer-to-tote dialog state
+  // separate transfer process: scan putwall -> scan tote -> transfer
   const [transferOpen, setTransferOpen] = useState(false);
-  const [transferPutwall, setTransferPutwall] = useState<string | null>(null);
-  const [transferLpn, setTransferLpn] = useState("");
+  const [tStep, setTStep] = useState<"putwall" | "tote">("putwall");
+  const [tPutwall, setTPutwall] = useState("");
+  const [tTote, setTTote] = useState("");
+  const [tError, setTError] = useState<string | null>(null);
 
   const remaining = useMemo(
     () => task.items.filter((it) => !placed[it.sku]),
@@ -97,6 +99,36 @@ function SortProcess() {
 
   const allSorted =
     task.items.length > 0 && task.items.every((it) => placed[it.sku]);
+
+  // Completed putwalls still awaiting transfer to a tote.
+  const readyPutwalls = putwallEntries.filter(
+    (e) => e.done && !transferred.has(e.pw),
+  );
+
+  const openTransfer = () => {
+    setTStep("putwall");
+    setTPutwall("");
+    setTTote("");
+    setTError(null);
+    setTransferOpen(true);
+  };
+
+  const onTransferPutwallScan = (val: string) => {
+    const pw = val.trim().toUpperCase();
+    if (!readyPutwalls.some((e) => e.pw === pw)) {
+      setTError(`${pw} is not a completed putwall ready for transfer.`);
+      return;
+    }
+    setTPutwall(pw);
+    setTError(null);
+    setTStep("tote");
+  };
+
+  const confirmTransfer = () => {
+    if (!tPutwall || !tTote.trim()) return;
+    setTransferred((prev) => new Set(prev).add(tPutwall));
+    setTransferOpen(false);
+  };
 
   // Derive suggestion fresh every render — avoids stale-closure issues
   const currentItem = scan.sku
@@ -277,42 +309,38 @@ function SortProcess() {
           )}
         </Card>
 
-        {/* Completed putwalls awaiting transfer */}
-        {putwallEntries.filter((e) => e.done && !transferred.has(e.pw)).length > 0 ? (
+        {/* Completed putwalls awaiting transfer — display only. Transfer is a
+            separate scan-driven process started from the button below. */}
+        {readyPutwalls.length > 0 ? (
           <Card className="space-y-2 p-4">
-            <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              <Inbox className="h-3.5 w-3.5" />
-              Ready to transfer
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <Inbox className="h-3.5 w-3.5" />
+                Ready to transfer ({readyPutwalls.length})
+              </div>
             </div>
             <div className="space-y-2">
-              {putwallEntries
-                .filter((e) => e.done && !transferred.has(e.pw))
-                .map((e) => (
-                  <div
-                    key={e.pw}
-                    className="flex items-center justify-between gap-2 rounded-md border border-status-picked/40 bg-status-picked/5 p-2.5 text-sm"
-                  >
-                    <div className="min-w-0">
-                      <div className="font-mono text-sm font-semibold">{e.pw}</div>
-                      <div className="truncate text-[11px] text-muted-foreground">
-                        {e.orderId} · sorted
-                      </div>
+              {readyPutwalls.map((e) => (
+                <div
+                  key={e.pw}
+                  className="flex items-center justify-between gap-2 rounded-md border border-status-picked/40 bg-status-picked/5 p-2.5 text-sm"
+                >
+                  <div className="min-w-0">
+                    <div className="font-mono text-sm font-semibold">{e.pw}</div>
+                    <div className="truncate text-[11px] text-muted-foreground">
+                      {e.orderId} · sorted
                     </div>
-                    <Button
-                      size="sm"
-                      className="h-8"
-                      onClick={() => {
-                        setTransferPutwall(e.pw);
-                        setTransferLpn("");
-                        setTransferOpen(true);
-                      }}
-                    >
-                      <PackageCheck className="h-3.5 w-3.5" />
-                      Transfer to Tote
-                    </Button>
                   </div>
-                ))}
+                  <span className="shrink-0 rounded-full bg-status-picked/15 px-2 py-0.5 text-[10px] font-medium text-status-picked">
+                    Sorting done
+                  </span>
+                </div>
+              ))}
             </div>
+            <Button className="h-11 w-full" onClick={openTransfer}>
+              <PackageCheck className="h-4 w-4" />
+              Transfer putwall to tote
+            </Button>
           </Card>
         ) : null}
 
@@ -326,36 +354,64 @@ function SortProcess() {
       <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Transfer {transferPutwall} to tote</DialogTitle>
+            <DialogTitle>Transfer putwall to tote</DialogTitle>
             <DialogDescription>
-              Scan a pick LPN to empty the contents of{" "}
-              <span className="font-mono">{transferPutwall}</span> into a tote.
+              {tStep === "putwall"
+                ? "Scan a completed putwall to begin the transfer."
+                : "Scan the pick tote, then confirm the transfer."}
             </DialogDescription>
           </DialogHeader>
-          <div>
-            <label className="text-xs font-medium uppercase text-muted-foreground">
-              Pick LPN
-            </label>
-            <Input
-              autoFocus
-              className="mt-1 h-11"
-              placeholder="Scan pick LPN…"
-              value={transferLpn}
-              onChange={(e) => setTransferLpn(e.target.value)}
-            />
-          </div>
+
+          {/* Step 1 — scan completed putwall */}
+          {tStep === "putwall" ? (
+            <div className="space-y-3">
+              {tError ? (
+                <div className="flex items-center gap-2 rounded-md border border-destructive/50 bg-destructive/10 p-2.5 text-sm font-medium text-destructive">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  {tError}
+                </div>
+              ) : null}
+              <ScanRow
+                key="t-putwall"
+                label="Scan completed putwall"
+                placeholder="e.g. PW-1"
+                onScan={onTransferPutwallScan}
+                autoFocus
+              />
+            </div>
+          ) : (
+            /* Step 2 — scan pick tote */
+            <div className="space-y-3">
+              <div className="rounded-md border border-status-picked/40 bg-status-picked/5 p-2.5">
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  Putwall
+                </div>
+                <div className="font-mono text-sm font-semibold text-status-picked">
+                  {tPutwall}
+                </div>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Scan pick tote
+                </label>
+                <Input
+                  autoFocus
+                  className="h-11 font-mono text-sm"
+                  placeholder="Scan pick tote…"
+                  value={tTote}
+                  onChange={(e) => setTTote(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setTransferOpen(false)}>
               Cancel
             </Button>
-            <Button
-              disabled={!transferLpn.trim()}
-              onClick={() => {
-                setTransferred((prev) => new Set(prev).add(transferPutwall!));
-                setTransferOpen(false);
-              }}
-            >
-              Confirm
+            <Button disabled={tStep !== "tote" || !tTote.trim()} onClick={confirmTransfer}>
+              <PackageCheck className="h-4 w-4" />
+              Transfer
             </Button>
           </DialogFooter>
         </DialogContent>

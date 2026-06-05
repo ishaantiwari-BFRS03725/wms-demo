@@ -3,7 +3,9 @@ import {
   Boxes,
   ClipboardCheck,
   ClipboardList,
+  DoorOpen,
   Hand,
+  LayoutGrid,
   MoveDown,
   Package,
   PackageOpen,
@@ -27,12 +29,14 @@ const outboundItems = [
   { title: "Order", url: "/orders", icon: Package },
   { title: "Pick", url: "/pick", icon: Hand },
   { title: "Sort", url: "/sort", icon: ShuffleIcon },
+  { title: "Putwall", url: "/putwall", icon: LayoutGrid },
   { title: "Pack", url: "/pack", icon: Boxes },
   { title: "Manifest", url: "/manifest", icon: ClipboardList },
   { title: "Dispatch", url: "/dispatch", icon: Truck },
 ] as const;
 
 const inboundItems = [
+  { title: "Gate Entry", url: "/gate-entry", icon: DoorOpen },
   { title: "Unloading", url: "/unloading", icon: PackageOpen },
   { title: "GRN", url: "/grn", icon: ClipboardCheck },
   { title: "Putaway", url: "/putaway", icon: MoveDown },

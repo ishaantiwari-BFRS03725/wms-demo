@@ -12,10 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WmsRouteImport } from './routes/_wms'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WmsUnloadingRouteImport } from './routes/_wms.unloading'
+import { Route as WmsPutwallRouteImport } from './routes/_wms.putwall'
 import { Route as WmsPutawayRouteImport } from './routes/_wms.putaway'
 import { Route as WmsPackRouteImport } from './routes/_wms.pack'
 import { Route as WmsManifestRouteImport } from './routes/_wms.manifest'
 import { Route as WmsGrnRouteImport } from './routes/_wms.grn'
+import { Route as WmsGateEntryRouteImport } from './routes/_wms.gate-entry'
 import { Route as WmsDispatchRouteImport } from './routes/_wms.dispatch'
 import { Route as WmsSortIndexRouteImport } from './routes/_wms.sort.index'
 import { Route as WmsPickIndexRouteImport } from './routes/_wms.pick.index'
@@ -38,6 +40,11 @@ const WmsUnloadingRoute = WmsUnloadingRouteImport.update({
   path: '/unloading',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsPutwallRoute = WmsPutwallRouteImport.update({
+  id: '/putwall',
+  path: '/putwall',
+  getParentRoute: () => WmsRoute,
+} as any)
 const WmsPutawayRoute = WmsPutawayRouteImport.update({
   id: '/putaway',
   path: '/putaway',
@@ -56,6 +63,11 @@ const WmsManifestRoute = WmsManifestRouteImport.update({
 const WmsGrnRoute = WmsGrnRouteImport.update({
   id: '/grn',
   path: '/grn',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsGateEntryRoute = WmsGateEntryRouteImport.update({
+  id: '/gate-entry',
+  path: '/gate-entry',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsDispatchRoute = WmsDispatchRouteImport.update({
@@ -97,10 +109,12 @@ const WmsOrdersOrderNoRoute = WmsOrdersOrderNoRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dispatch': typeof WmsDispatchRoute
+  '/gate-entry': typeof WmsGateEntryRoute
   '/grn': typeof WmsGrnRoute
   '/manifest': typeof WmsManifestRoute
   '/pack': typeof WmsPackRoute
   '/putaway': typeof WmsPutawayRoute
+  '/putwall': typeof WmsPutwallRoute
   '/unloading': typeof WmsUnloadingRoute
   '/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/pick/$picklistId': typeof WmsPickPicklistIdRoute
@@ -112,10 +126,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dispatch': typeof WmsDispatchRoute
+  '/gate-entry': typeof WmsGateEntryRoute
   '/grn': typeof WmsGrnRoute
   '/manifest': typeof WmsManifestRoute
   '/pack': typeof WmsPackRoute
   '/putaway': typeof WmsPutawayRoute
+  '/putwall': typeof WmsPutwallRoute
   '/unloading': typeof WmsUnloadingRoute
   '/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/pick/$picklistId': typeof WmsPickPicklistIdRoute
@@ -129,10 +145,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_wms': typeof WmsRouteWithChildren
   '/_wms/dispatch': typeof WmsDispatchRoute
+  '/_wms/gate-entry': typeof WmsGateEntryRoute
   '/_wms/grn': typeof WmsGrnRoute
   '/_wms/manifest': typeof WmsManifestRoute
   '/_wms/pack': typeof WmsPackRoute
   '/_wms/putaway': typeof WmsPutawayRoute
+  '/_wms/putwall': typeof WmsPutwallRoute
   '/_wms/unloading': typeof WmsUnloadingRoute
   '/_wms/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/_wms/pick/$picklistId': typeof WmsPickPicklistIdRoute
@@ -146,10 +164,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dispatch'
+    | '/gate-entry'
     | '/grn'
     | '/manifest'
     | '/pack'
     | '/putaway'
+    | '/putwall'
     | '/unloading'
     | '/orders/$orderNo'
     | '/pick/$picklistId'
@@ -161,10 +181,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dispatch'
+    | '/gate-entry'
     | '/grn'
     | '/manifest'
     | '/pack'
     | '/putaway'
+    | '/putwall'
     | '/unloading'
     | '/orders/$orderNo'
     | '/pick/$picklistId'
@@ -177,10 +199,12 @@ export interface FileRouteTypes {
     | '/'
     | '/_wms'
     | '/_wms/dispatch'
+    | '/_wms/gate-entry'
     | '/_wms/grn'
     | '/_wms/manifest'
     | '/_wms/pack'
     | '/_wms/putaway'
+    | '/_wms/putwall'
     | '/_wms/unloading'
     | '/_wms/orders/$orderNo'
     | '/_wms/pick/$picklistId'
@@ -218,6 +242,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsUnloadingRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/putwall': {
+      id: '/_wms/putwall'
+      path: '/putwall'
+      fullPath: '/putwall'
+      preLoaderRoute: typeof WmsPutwallRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/putaway': {
       id: '/_wms/putaway'
       path: '/putaway'
@@ -244,6 +275,13 @@ declare module '@tanstack/react-router' {
       path: '/grn'
       fullPath: '/grn'
       preLoaderRoute: typeof WmsGrnRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/gate-entry': {
+      id: '/_wms/gate-entry'
+      path: '/gate-entry'
+      fullPath: '/gate-entry'
+      preLoaderRoute: typeof WmsGateEntryRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/dispatch': {
@@ -300,10 +338,12 @@ declare module '@tanstack/react-router' {
 
 interface WmsRouteChildren {
   WmsDispatchRoute: typeof WmsDispatchRoute
+  WmsGateEntryRoute: typeof WmsGateEntryRoute
   WmsGrnRoute: typeof WmsGrnRoute
   WmsManifestRoute: typeof WmsManifestRoute
   WmsPackRoute: typeof WmsPackRoute
   WmsPutawayRoute: typeof WmsPutawayRoute
+  WmsPutwallRoute: typeof WmsPutwallRoute
   WmsUnloadingRoute: typeof WmsUnloadingRoute
   WmsOrdersOrderNoRoute: typeof WmsOrdersOrderNoRoute
   WmsPickPicklistIdRoute: typeof WmsPickPicklistIdRoute
@@ -315,10 +355,12 @@ interface WmsRouteChildren {
 
 const WmsRouteChildren: WmsRouteChildren = {
   WmsDispatchRoute: WmsDispatchRoute,
+  WmsGateEntryRoute: WmsGateEntryRoute,
   WmsGrnRoute: WmsGrnRoute,
   WmsManifestRoute: WmsManifestRoute,
   WmsPackRoute: WmsPackRoute,
   WmsPutawayRoute: WmsPutawayRoute,
+  WmsPutwallRoute: WmsPutwallRoute,
   WmsUnloadingRoute: WmsUnloadingRoute,
   WmsOrdersOrderNoRoute: WmsOrdersOrderNoRoute,
   WmsPickPicklistIdRoute: WmsPickPicklistIdRoute,
