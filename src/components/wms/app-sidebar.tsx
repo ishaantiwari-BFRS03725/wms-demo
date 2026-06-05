@@ -4,6 +4,7 @@ import {
   ClipboardCheck,
   ClipboardList,
   DoorOpen,
+  FileBarChart,
   Hand,
   LayoutGrid,
   MoveDown,
@@ -39,7 +40,12 @@ const inboundItems = [
   { title: "Gate Entry", url: "/gate-entry", icon: DoorOpen },
   { title: "Unloading", url: "/unloading", icon: PackageOpen },
   { title: "GRN", url: "/grn", icon: ClipboardCheck },
+  { title: "Sales Return GRN", url: "/sales-return-grn", icon: ClipboardCheck },
   { title: "Putaway", url: "/putaway", icon: MoveDown },
+] as const;
+
+const toolItems = [
+  { title: "Reports", url: "/reports", icon: FileBarChart },
 ] as const;
 
 export function AppSidebar() {
@@ -87,6 +93,27 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {inboundItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.url)}
+                    tooltip={item.title}
+                  >
+                    <Link to={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Reports</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {toolItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild

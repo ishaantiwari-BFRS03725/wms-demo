@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WmsRouteImport } from './routes/_wms'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WmsUnloadingRouteImport } from './routes/_wms.unloading'
+import { Route as WmsSalesReturnGrnRouteImport } from './routes/_wms.sales-return-grn'
+import { Route as WmsReportsRouteImport } from './routes/_wms.reports'
 import { Route as WmsPutwallRouteImport } from './routes/_wms.putwall'
 import { Route as WmsPutawayRouteImport } from './routes/_wms.putaway'
 import { Route as WmsPackRouteImport } from './routes/_wms.pack'
@@ -38,6 +40,16 @@ const IndexRoute = IndexRouteImport.update({
 const WmsUnloadingRoute = WmsUnloadingRouteImport.update({
   id: '/unloading',
   path: '/unloading',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsSalesReturnGrnRoute = WmsSalesReturnGrnRouteImport.update({
+  id: '/sales-return-grn',
+  path: '/sales-return-grn',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsReportsRoute = WmsReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsPutwallRoute = WmsPutwallRouteImport.update({
@@ -115,6 +127,8 @@ export interface FileRoutesByFullPath {
   '/pack': typeof WmsPackRoute
   '/putaway': typeof WmsPutawayRoute
   '/putwall': typeof WmsPutwallRoute
+  '/reports': typeof WmsReportsRoute
+  '/sales-return-grn': typeof WmsSalesReturnGrnRoute
   '/unloading': typeof WmsUnloadingRoute
   '/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/pick/$picklistId': typeof WmsPickPicklistIdRoute
@@ -132,6 +146,8 @@ export interface FileRoutesByTo {
   '/pack': typeof WmsPackRoute
   '/putaway': typeof WmsPutawayRoute
   '/putwall': typeof WmsPutwallRoute
+  '/reports': typeof WmsReportsRoute
+  '/sales-return-grn': typeof WmsSalesReturnGrnRoute
   '/unloading': typeof WmsUnloadingRoute
   '/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/pick/$picklistId': typeof WmsPickPicklistIdRoute
@@ -151,6 +167,8 @@ export interface FileRoutesById {
   '/_wms/pack': typeof WmsPackRoute
   '/_wms/putaway': typeof WmsPutawayRoute
   '/_wms/putwall': typeof WmsPutwallRoute
+  '/_wms/reports': typeof WmsReportsRoute
+  '/_wms/sales-return-grn': typeof WmsSalesReturnGrnRoute
   '/_wms/unloading': typeof WmsUnloadingRoute
   '/_wms/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/_wms/pick/$picklistId': typeof WmsPickPicklistIdRoute
@@ -170,6 +188,8 @@ export interface FileRouteTypes {
     | '/pack'
     | '/putaway'
     | '/putwall'
+    | '/reports'
+    | '/sales-return-grn'
     | '/unloading'
     | '/orders/$orderNo'
     | '/pick/$picklistId'
@@ -187,6 +207,8 @@ export interface FileRouteTypes {
     | '/pack'
     | '/putaway'
     | '/putwall'
+    | '/reports'
+    | '/sales-return-grn'
     | '/unloading'
     | '/orders/$orderNo'
     | '/pick/$picklistId'
@@ -205,6 +227,8 @@ export interface FileRouteTypes {
     | '/_wms/pack'
     | '/_wms/putaway'
     | '/_wms/putwall'
+    | '/_wms/reports'
+    | '/_wms/sales-return-grn'
     | '/_wms/unloading'
     | '/_wms/orders/$orderNo'
     | '/_wms/pick/$picklistId'
@@ -240,6 +264,20 @@ declare module '@tanstack/react-router' {
       path: '/unloading'
       fullPath: '/unloading'
       preLoaderRoute: typeof WmsUnloadingRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/sales-return-grn': {
+      id: '/_wms/sales-return-grn'
+      path: '/sales-return-grn'
+      fullPath: '/sales-return-grn'
+      preLoaderRoute: typeof WmsSalesReturnGrnRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/reports': {
+      id: '/_wms/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof WmsReportsRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/putwall': {
@@ -344,6 +382,8 @@ interface WmsRouteChildren {
   WmsPackRoute: typeof WmsPackRoute
   WmsPutawayRoute: typeof WmsPutawayRoute
   WmsPutwallRoute: typeof WmsPutwallRoute
+  WmsReportsRoute: typeof WmsReportsRoute
+  WmsSalesReturnGrnRoute: typeof WmsSalesReturnGrnRoute
   WmsUnloadingRoute: typeof WmsUnloadingRoute
   WmsOrdersOrderNoRoute: typeof WmsOrdersOrderNoRoute
   WmsPickPicklistIdRoute: typeof WmsPickPicklistIdRoute
@@ -361,6 +401,8 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsPackRoute: WmsPackRoute,
   WmsPutawayRoute: WmsPutawayRoute,
   WmsPutwallRoute: WmsPutwallRoute,
+  WmsReportsRoute: WmsReportsRoute,
+  WmsSalesReturnGrnRoute: WmsSalesReturnGrnRoute,
   WmsUnloadingRoute: WmsUnloadingRoute,
   WmsOrdersOrderNoRoute: WmsOrdersOrderNoRoute,
   WmsPickPicklistIdRoute: WmsPickPicklistIdRoute,
