@@ -119,6 +119,7 @@ function ItemMovement() {
   const [doneIds, setDoneIds] = useState<string[]>([]);
 
   const activeTask = TASKS.find((t) => t.id === activeTaskId) ?? null;
+  const openTasks = TASKS.filter((t) => !doneIds.includes(t.id));
 
   if (activeTask) {
     return (
@@ -151,32 +152,27 @@ function ItemMovement() {
             </div>
           </div>
           <div className="divide-y divide-border">
-            {TASKS.map((t) => {
-              const done = doneIds.includes(t.id);
-              return (
+            {openTasks.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
+                <CheckCircle2 className="h-7 w-7 text-status-picked" />
+                <div className="text-sm font-medium">All tasks completed</div>
+                <div className="text-[11px] text-muted-foreground">
+                  No pending movement tasks.
+                </div>
+              </div>
+            ) : (
+              openTasks.map((t) => (
                 <button
                   key={t.id}
                   type="button"
-                  disabled={done}
                   onClick={() => setActiveTaskId(t.id)}
-                  className={cn(
-                    "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors",
-                    done
-                      ? "cursor-default opacity-60"
-                      : "hover:bg-muted/50",
-                  )}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-mono text-sm font-semibold">
                         {t.id}
                       </span>
-                      {done ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-status-picked/15 px-1.5 py-0.5 text-[10px] font-medium text-status-picked">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Moved
-                        </span>
-                      ) : null}
                     </div>
                     <div className="mt-0.5 truncate text-xs text-muted-foreground">
                       {t.reason}
@@ -187,12 +183,10 @@ function ItemMovement() {
                       <span className="font-mono font-medium">{t.toBin}</span>
                     </div>
                   </div>
-                  {!done ? (
-                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  ) : null}
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                 </button>
-              );
-            })}
+              ))
+            )}
           </div>
         </div>
       </div>
