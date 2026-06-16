@@ -6,8 +6,10 @@ import {
   ClipboardCheck,
   HelpCircle,
   Layers,
+  Mail,
   Plus,
   Printer,
+  Save,
   ScanBarcode,
   ThumbsDown,
   ThumbsUp,
@@ -62,7 +64,22 @@ type Step =
   | "scan-bad-lpn"
   | "scan-awb"
   | "scan-items"
+  | "unidentified"
   | "done";
+
+// Suggested remarks for unidentified return parcels (operator can pick one).
+const UNIDENTIFIED_REMARKS = [
+  "No AWB / label match found",
+  "Shipping label damaged or unreadable",
+  "Empty parcel received",
+  "Wrong item returned",
+  "Parcel belongs to a different seller",
+  "Missing return authorisation (RAN)",
+  "Packaging tampered / opened in transit",
+  "Counterfeit or non-original product",
+  "Partial / incomplete return",
+  "Customer details not traceable",
+];
 
 type QcMode = "good" | "bad";
 
@@ -105,6 +122,8 @@ function SalesReturnGrn() {
   const [rejectReason, setRejectReason] = useState("");
   const [usn, setUsn] = useState("");
   const [scanKey, setScanKey] = useState(0);
+  const [unidReason, setUnidReason] = useState("");
+  const [unidNote, setUnidNote] = useState("");
 
   const totals = useMemo(() => {
     let good = 0;
@@ -186,10 +205,17 @@ function SalesReturnGrn() {
     const v = val.trim().toUpperCase();
     if (!v) return;
     setRan(v);
-    setProfile(getReturnRanProfile(v));
+    const prof = getReturnRanProfile(v);
+    setProfile(prof);
     setRecordingStart(new Date());
-    // After RAN, scan the two session bins (Good + Bad) once
-    setStep("scan-good-lpn");
+    // Unidentified returns are not QC'd — skip the Good/Bad bin setup and go
+    // straight to the AWB scan.
+    if (prof?.type === "unidentified") {
+      setStep("scan-awb");
+    } else {
+      // Identified — scan the two session bins (Good + Bad) once
+      setStep("scan-good-lpn");
+    }
     setScanKey((k) => k + 1);
   };
 
@@ -226,8 +252,17 @@ function SalesReturnGrn() {
     if (!v) return;
     setAwb(v);
     setOrderNumber(orderNumberFromAwb(v));
-    setStep("scan-items");
+    // Unidentified parcel — no QC, just capture the AWB & notify the seller.
+    if (profile?.type === "unidentified") {
+      setStep("unidentified");
+    } else {
+      setStep("scan-items");
+    }
     setScanKey((k) => k + 1);
+  };
+
+  const saveUnidentified = () => {
+    setStep("done");
   };
 
   // Commits the current pending item to the Good LPN bin
@@ -350,6 +385,8 @@ function SalesReturnGrn() {
     setQcMode("good");
     setRejectReason("");
     setUsn("");
+    setUnidReason("");
+    setUnidNote("");
     setScanError(null);
     setScanKey((k) => k + 1);
   };
@@ -483,6 +520,77 @@ function SalesReturnGrn() {
                 autoFocus
               />
             </Card>
+          )}
+
+          {/* Unidentified parcel — no QC, capture AWB + remarks, notify seller */}
+          {step === "unidentified" && awb && (
+            <>
+              <Card className="space-y-2 border-orange-300 bg-orange-50 p-4">
+                <div className="flex items-center gap-2 text-sm font-semibold text-orange-700">
+                  <HelpCircle className="h-4 w-4" />
+                  Unidentified parcel — do not QC
+                </div>
+                <p className="text-xs text-orange-700/90">
+                  This parcel could not be matched to a return. QC is not required.
+                  Save the AWB number and notify the seller for further
+                  instructions. No items are scanned and no USN is printed.
+                </p>
+              </Card>
+
+              {/* AWB captured */}
+              <Card className="flex items-center justify-between gap-3 p-3">
+                <div className="min-w-0">
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    AWB to be saved
+                  </div>
+                  <div className="font-mono text-base font-bold">{awb}</div>
+                </div>
+                <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-medium text-orange-700">
+                  Unidentified
+                </span>
+              </Card>
+
+              {/* Remarks */}
+              <Card className="space-y-3 p-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Remarks
+                  </label>
+                  <Select value={unidReason} onValueChange={setUnidReason}>
+                    <SelectTrigger className="h-11">
+                      <SelectValue placeholder="Select a reason…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {UNIDENTIFIED_REMARKS.map((r) => (
+                        <SelectItem key={r} value={r}>
+                          {r}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Additional note (optional)
+                  </label>
+                  <Input
+                    value={unidNote}
+                    onChange={(e) => setUnidNote(e.target.value)}
+                    placeholder="Add any extra detail for the seller…"
+                    className="h-11 text-sm"
+                  />
+                </div>
+              </Card>
+
+              <Button
+                className="h-11 w-full"
+                disabled={!unidReason}
+                onClick={saveUnidentified}
+              >
+                <Save className="mr-2 h-4 w-4" />
+                Save AWB &amp; notify seller
+              </Button>
+            </>
           )}
 
           {/* Expected items — prominent list shown from AWB scan onwards */}
@@ -908,8 +1016,39 @@ function SalesReturnGrn() {
             </>
           )}
 
-          {/* Step 5 — Done */}
-          {step === "done" && awb && (
+          {/* Step 5 — Done (identified: USN; unidentified: seller notified) */}
+          {step === "done" && awb && isUnidentified && (
+            <>
+              <Card className="space-y-2 p-4 text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-orange-600">
+                  <Mail className="h-6 w-6" />
+                </div>
+                <div>
+                  <div className="text-base font-semibold">
+                    AWB saved · Seller notified
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    No QC performed for this unidentified parcel.
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4">
+                <dl className="space-y-1 text-xs">
+                  <Row label="AWB" value={awb} mono />
+                  <Row label="Type" value="Unidentified" />
+                  <Row label="Remarks" value={unidReason || "—"} />
+                  {unidNote && <Row label="Note" value={unidNote} />}
+                </dl>
+              </Card>
+
+              <Button className="h-11 w-full" onClick={reset}>
+                Start next AWB
+              </Button>
+            </>
+          )}
+
+          {step === "done" && awb && !isUnidentified && (
             <>
               <Card className="space-y-2 p-4 text-center">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-status-picked/15 text-status-picked">

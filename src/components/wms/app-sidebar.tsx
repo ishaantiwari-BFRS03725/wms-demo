@@ -37,6 +37,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 
 interface NavItem {
@@ -45,9 +48,20 @@ interface NavItem {
   icon: LucideIcon;
 }
 
+// A submodule groups several leaf items under a collapsible heading
+interface NavModule {
+  title: string;
+  icon: LucideIcon;
+  children: NavItem[];
+}
+
+type NavEntry = NavItem | NavModule;
+
+const isModule = (e: NavEntry): e is NavModule => "children" in e;
+
 interface NavSection {
   label: string;
-  items: NavItem[];
+  items: NavEntry[];
 }
 
 const sections: NavSection[] = [
@@ -55,12 +69,48 @@ const sections: NavSection[] = [
     label: "Outbound",
     items: [
       { title: "Order", url: "/orders", icon: Package },
-      { title: "Pick", url: "/pick", icon: Hand },
+      {
+        title: "Picking",
+        icon: Hand,
+        children: [
+          { title: "Pick", url: "/pick", icon: Hand },
+          {
+            title: "View Picklists",
+            url: "/view-picklist",
+            icon: ClipboardList,
+          },
+        ],
+      },
       { title: "Sort", url: "/sort", icon: ShuffleIcon },
       { title: "Putwall", url: "/putwall", icon: LayoutGrid },
-      { title: "Pack", url: "/pack", icon: Boxes },
-      { title: "Manifest", url: "/manifest", icon: ClipboardList },
-      { title: "Dispatch", url: "/dispatch", icon: Truck },
+      {
+        title: "Packing",
+        icon: Boxes,
+        children: [
+          { title: "Pack", url: "/pack", icon: Boxes },
+          {
+            title: "View Packlists",
+            url: "/view-pack",
+            icon: ClipboardList,
+          },
+        ],
+      },
+      {
+        title: "Manifest",
+        icon: ClipboardList,
+        children: [
+          { title: "Create Manifest", url: "/manifest", icon: ClipboardList },
+          { title: "View Manifests", url: "/view-manifest", icon: FileBarChart },
+        ],
+      },
+      {
+        title: "Dispatch",
+        icon: Truck,
+        children: [
+          { title: "Dispatch", url: "/dispatch", icon: Truck },
+          { title: "View Shiplists", url: "/view-dispatch", icon: ClipboardList },
+        ],
+      },
     ],
   },
   {
@@ -144,20 +194,24 @@ export function AppSidebar() {
                 <CollapsibleContent>
                   <SidebarGroupContent>
                     <SidebarMenu>
-                      {section.items.map((item) => (
-                        <SidebarMenuItem key={item.title}>
-                          <SidebarMenuButton
-                            asChild
-                            isActive={isActive(item.url)}
-                            tooltip={item.title}
-                          >
-                            <Link to={item.url}>
-                              <item.icon className="h-4 w-4" />
-                              <span>{item.title}</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
+                      {section.items.map((item) =>
+                        isModule(item) ? (
+                          <ModuleMenu key={item.title} module={item} />
+                        ) : (
+                          <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={isActive(item.url)}
+                              tooltip={item.title}
+                            >
+                              <Link to={item.url}>
+                                <item.icon className="h-4 w-4" />
+                                <span>{item.title}</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ),
+                      )}
                     </SidebarMenu>
                   </SidebarGroupContent>
                 </CollapsibleContent>
@@ -167,5 +221,40 @@ export function AppSidebar() {
         })}
       </SidebarContent>
     </Sidebar>
+  );
+}
+
+function ModuleMenu({ module }: { module: NavModule }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isActive = (url: string) =>
+    url === "/orders" ? pathname.startsWith("/orders") : pathname === url;
+  const childActive = module.children.some((c) => isActive(c.url));
+
+  return (
+    <Collapsible defaultOpen={childActive} className="group/submodule">
+      <SidebarMenuItem>
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton tooltip={module.title}>
+            <module.icon className="h-4 w-4" />
+            <span>{module.title}</span>
+            <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/submodule:rotate-90" />
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarMenuSub>
+            {module.children.map((child) => (
+              <SidebarMenuSubItem key={child.title}>
+                <SidebarMenuSubButton asChild isActive={isActive(child.url)}>
+                  <Link to={child.url}>
+                    <child.icon className="h-4 w-4" />
+                    <span>{child.title}</span>
+                  </Link>
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            ))}
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </SidebarMenuItem>
+    </Collapsible>
   );
 }
