@@ -32,3 +32,17 @@ dist-ssr
 *.sw?
 # Added by code-review-graph
 .code-review-graph/
+
+# AI assistant tooling (local, per-developer)
+.gemini/
+.lovable/
+.claude/
+.qoder/
+.kiro/
+.opencode.json
+.mcp.json
+.windsurfrules
+.github/code-review-graph.instruction.md
+AGENTS.md
+GEMINI.md
+QODER.md
