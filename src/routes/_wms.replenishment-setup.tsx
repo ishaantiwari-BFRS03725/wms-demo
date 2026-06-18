@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/wms/page-header";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_wms/replenishment-setup")({
@@ -158,23 +159,20 @@ function ReplenishmentSetup() {
   };
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Page header */}
-      <div>
-        <Link
-          to="/replenishment"
-          className="mb-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Replenishment
-        </Link>
-        <h1 className="text-xl font-semibold">Replenishment Setup</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">
-          Min-Max Replenishment Policy Upload — configure the stock thresholds the
-          replenishment engine uses to refill pick-face locations from reserve /
-          bulk storage.
-        </p>
-      </div>
+    <div>
+      <PageHeader
+        title="Replenishment Setup"
+        subtitle="Min-Max Replenishment Policy Upload — stock thresholds the replenishment engine uses to refill pick-face from reserve / bulk storage."
+      />
+
+      <div className="space-y-6 p-6">
+      <Link
+        to="/replenishment"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Replenishment
+      </Link>
 
       {/* ── Upload Min-Max Policy ──────────────────────────────────────────── */}
       <Card className="overflow-hidden">
@@ -200,9 +198,9 @@ function ReplenishmentSetup() {
             }}
           />
           {fileName ? (
-            <div className="flex min-w-0 flex-1 items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2">
+            <div className="flex min-w-0 flex-1 items-center justify-between gap-3 rounded-md border border-border bg-muted/30 px-3 py-2">
               <div className="flex min-w-0 items-center gap-2.5">
-                <FileSpreadsheet className="h-4 w-4 shrink-0 text-green-600" />
+                <FileSpreadsheet className="h-4 w-4 shrink-0 text-ok" />
                 <span className="truncate text-sm font-medium">{fileName}</span>
               </div>
               <button
@@ -217,7 +215,7 @@ function ReplenishmentSetup() {
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border px-4 py-2.5 text-center transition-colors hover:border-primary/50 hover:bg-muted/30"
+              className="flex flex-1 items-center justify-center gap-2 rounded-md border-2 border-dashed border-border px-4 py-2.5 text-center transition-colors hover:border-primary/50 hover:bg-muted/30"
             >
               <Upload className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium">
@@ -354,7 +352,7 @@ function ReplenishmentSetup() {
 
           <div className="space-y-5 p-5">
             {/* Banner */}
-            <div className="flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-4 text-green-800">
+            <div className="flex items-start gap-3 rounded-md border border-ok/30 bg-ok-bg p-4 text-ok">
               <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
               <div>
                 <div className="text-sm font-semibold">
@@ -378,10 +376,10 @@ function ReplenishmentSetup() {
 
             {/* Error report */}
             {summary.failed > 0 && (
-              <div className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+              <div className="flex items-center justify-between rounded-md border border-warn/30 bg-warn-bg px-4 py-3">
                 <div className="flex items-center gap-2.5">
-                  <AlertTriangle className="h-5 w-5 text-amber-600" />
-                  <div className="text-sm text-amber-800">
+                  <AlertTriangle className="h-5 w-5 text-warn" />
+                  <div className="text-sm text-warn">
                     <span className="font-semibold">{summary.failed} records failed</span>{" "}
                     validation — download the report to review and fix them.
                   </div>
@@ -399,6 +397,7 @@ function ReplenishmentSetup() {
           </div>
         </Card>
       )}
+      </div>
     </div>
   );
 }
@@ -432,13 +431,13 @@ function Toggle({
   onNo: () => void;
 }) {
   return (
-    <div className="flex w-32 rounded-lg border border-border bg-muted/40 p-1">
+    <div className="flex w-32 rounded-md border border-border bg-muted/40 p-1">
       <button
         type="button"
         onClick={onYes}
         className={cn(
-          "flex-1 rounded-md py-1.5 text-sm font-medium transition-colors",
-          value ? "bg-background text-foreground shadow-sm" : "text-muted-foreground",
+          "flex-1 rounded-[2px] py-1.5 text-sm font-medium transition-colors",
+          value ? "bg-background text-foreground" : "text-muted-foreground",
         )}
       >
         Yes
@@ -447,8 +446,8 @@ function Toggle({
         type="button"
         onClick={onNo}
         className={cn(
-          "flex-1 rounded-md py-1.5 text-sm font-medium transition-colors",
-          !value ? "bg-background text-foreground shadow-sm" : "text-muted-foreground",
+          "flex-1 rounded-[2px] py-1.5 text-sm font-medium transition-colors",
+          !value ? "bg-background text-foreground" : "text-muted-foreground",
         )}
       >
         No
@@ -468,14 +467,14 @@ function Stat({
 }) {
   const color =
     tone === "green"
-      ? "text-green-600"
+      ? "text-ok"
       : tone === "red"
-        ? "text-red-600"
+        ? "text-risk"
         : tone === "amber"
-          ? "text-amber-600"
+          ? "text-warn"
           : "text-foreground";
   return (
-    <div className="rounded-lg border border-border p-3">
+    <div className="rounded-md border border-border p-3">
       <div className={cn("text-2xl font-bold tabular-nums", color)}>{value}</div>
       <div className="mt-0.5 text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
         {label}

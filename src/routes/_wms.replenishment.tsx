@@ -22,6 +22,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/wms/page-header";
 import {
   Popover,
   PopoverContent,
@@ -246,10 +247,10 @@ const ROWS: RepRow[] = [
 ];
 
 const STATUS_STYLES: Record<RepStatus, string> = {
-  Open: "bg-amber-50 text-amber-700 ring-amber-200",
-  "Job Assigned": "bg-blue-50 text-blue-700 ring-blue-200",
-  Completed: "bg-green-50 text-green-700 ring-green-200",
-  Cancelled: "bg-red-50 text-red-700 ring-red-200",
+  Open: "bg-warn-bg text-warn border-warn/30",
+  "Job Assigned": "bg-sys-bg text-sys border-sys/30",
+  Completed: "bg-ok-bg text-ok border-ok/30",
+  Cancelled: "bg-risk-bg text-risk border-risk/30",
 };
 
 // ─── Filters ─────────────────────────────────────────────────────────────────
@@ -434,54 +435,43 @@ function Replenishment() {
   const clearSearch = () => setField("search", "");
 
   return (
-    <div className="p-6">
-      {/* Page header */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">Replenishment</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            {visible.length} of {rows.length} replenishment jobs shown
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search RO no, SKU, bin…"
-              value={filters.search}
-              onChange={(e) => setField("search", e.target.value)}
-              className="h-9 w-64 pl-8 pr-8"
-            />
-            {filters.search && (
-              <button
-                type="button"
-                onClick={clearSearch}
-                className="absolute right-2 top-2.5 text-muted-foreground hover:text-foreground"
-                aria-label="Clear search"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  activeFilterCount > 0 &&
-                    "border-primary/40 bg-primary/5 text-primary",
-                )}
-              >
-                <Filter className="h-4 w-4" />
-                Filters
-                {activeFilterCount > 0 && (
-                  <span className="ml-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </Button>
-            </PopoverTrigger>
+    <div>
+      <PageHeader
+        title="Replenishment"
+        subtitle={`${visible.length} of ${rows.length} replenishment jobs shown`}
+        actions={
+          <>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search RO no, SKU, bin…"
+                value={filters.search}
+                onChange={(e) => setField("search", e.target.value)}
+                className="h-9 w-64 pl-8 pr-8"
+              />
+              {filters.search && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label="Clear search"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-9 gap-2">
+                  <Filter className="h-3.5 w-3.5" />
+                  Filters
+                  {activeFilterCount > 0 && (
+                    <span className="rounded-[3px] bg-primary px-1.5 py-0.5 font-mono text-[10px] font-medium leading-none text-primary-foreground">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
             <PopoverContent className="w-[360px] p-0" align="end" sideOffset={8}>
               <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
                 <div className="text-sm font-semibold">
@@ -610,32 +600,34 @@ function Replenishment() {
                   Apply
                 </Button>
               </div>
-            </PopoverContent>
-          </Popover>
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/replenishment-setup">
-              <Settings className="mr-1.5 h-4 w-4" />
-              Setup
-            </Link>
-          </Button>
-        </div>
-      </div>
+              </PopoverContent>
+            </Popover>
+            <Button variant="outline" size="sm" className="h-9" asChild>
+              <Link to="/replenishment-setup">
+                <Settings className="mr-1.5 h-4 w-4" />
+                Setup
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
+      <div className="p-6">
       {/* Summary cards */}
-      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <TrendCard
           label="Pending Jobs"
           value={pendingJobs.length}
           delta={-7.4}
           series={PENDING_JOBS_SERIES}
-          tone="amber"
+          tone="warn"
         />
         <TrendCard
           label="Pending Orders"
           value={pendingOrders}
           delta={6.2}
           series={PENDING_ORDERS_SERIES}
-          tone="blue"
+          tone="sys"
         />
         <TrendCard
           label="Pending Quantity"
@@ -643,13 +635,13 @@ function Replenishment() {
           suffix="units"
           delta={5.1}
           series={PENDING_QTY_SERIES}
-          tone="violet"
+          tone="ok"
         />
       </div>
 
       {/* Assignment toolbar — appears when one or more open jobs are selected */}
       {selectedCount > 0 && (
-        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-2.5">
+        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-md border border-primary/30 bg-primary/5 px-4 py-2.5">
           <span className="text-sm font-medium">
             {selectedCount} job{selectedCount > 1 ? "s" : ""} selected
           </span>
@@ -683,7 +675,7 @@ function Replenishment() {
 
       {/* Table */}
       <TooltipProvider delayDuration={150}>
-        <div className="mt-5 overflow-hidden rounded-lg border border-border bg-card shadow-sm [&>div]:max-h-[calc(100vh-12rem)] [&>div]:overflow-auto">
+        <div className="mt-5 overflow-hidden rounded-md border border-border bg-card [&>div]:max-h-[calc(100vh-12rem)] [&>div]:overflow-auto">
           <Table className="table-fixed">
             <TableHeader>
               <TableRow className="bg-muted [&>th]:sticky [&>th]:top-0 [&>th]:z-20 [&>th]:bg-muted [&>th]:align-middle [&>th]:shadow-[inset_0_-1px_0_hsl(var(--border))]">
@@ -767,7 +759,7 @@ function Replenishment() {
                     <TableCell>
                       <span
                         className={cn(
-                          "inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset",
+                          "inline-flex items-center whitespace-nowrap rounded-[2px] border px-1.5 py-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.06em]",
                           STATUS_STYLES[r.status],
                         )}
                       >
@@ -808,6 +800,7 @@ function Replenishment() {
           </Table>
         </div>
       </TooltipProvider>
+      </div>
     </div>
   );
 }
@@ -815,9 +808,9 @@ function Replenishment() {
 // ─── Small building blocks ───────────────────────────────────────────────────
 
 const TONES: Record<string, { stroke: string; fill: string }> = {
-  blue: { stroke: "#2563eb", fill: "#2563eb" },
-  violet: { stroke: "#7c3aed", fill: "#7c3aed" },
-  amber: { stroke: "#d97706", fill: "#d97706" },
+  sys: { stroke: "#2d5aa8", fill: "#2d5aa8" },
+  ok: { stroke: "#2e7a4e", fill: "#2e7a4e" },
+  warn: { stroke: "#a86b1a", fill: "#a86b1a" },
 };
 
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Today"];
@@ -935,7 +928,7 @@ function TrendCard({
   const up = delta >= 0;
   const color = TONES[tone].stroke;
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-4 shadow-sm">
+    <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-card p-4">
       <div className="min-w-0">
         <div className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
           {label}
@@ -949,7 +942,7 @@ function TrendCard({
         <div
           className={cn(
             "mt-1 inline-flex items-center gap-0.5 text-xs font-medium",
-            up ? "text-green-600" : "text-red-600",
+            up ? "text-ok" : "text-risk",
           )}
         >
           {up ? "▲" : "▼"} {Math.abs(delta)}%

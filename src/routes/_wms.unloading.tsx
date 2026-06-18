@@ -231,7 +231,7 @@ function Unloading() {
 
   return (
     <div className="min-h-[calc(100vh-3rem)] bg-muted/40 py-4">
-      <div className="mx-auto w-full max-w-[420px] overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+      <div className="mx-auto w-full max-w-[420px] overflow-hidden rounded-md border border-border bg-background">
         {/* Top bar */}
         <div className="flex items-center justify-between gap-2 border-b border-border bg-background px-4 py-3">
           <div className="flex items-center gap-1.5 text-sm font-semibold">
@@ -362,8 +362,8 @@ function Unloading() {
                   </Button>
                 </div>
                 {exceptionRaised && (
-                  <div className="flex items-start gap-2 rounded-md border border-orange-300 bg-orange-50 p-3 text-xs text-orange-800">
-                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
+                  <div className="flex items-start gap-2 rounded-md border border-warn/30 bg-warn-bg p-3 text-xs text-warn">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warn" />
                     <span>
                       Shortage of <b>{shortfall}</b> box
                       {shortfall === 1 ? "" : "es"} flagged. An exception will be
@@ -543,7 +543,7 @@ function Unloading() {
                 <button
                   onClick={() => setPodCaptured((v) => !v)}
                   className={cn(
-                    "flex w-full flex-col items-center gap-2 rounded-lg border-2 border-dashed px-4 py-8 text-center transition-colors",
+                    "flex w-full flex-col items-center gap-2 rounded-md border-2 border-dashed px-4 py-8 text-center transition-colors",
                     podCaptured
                       ? "border-status-dispatched/40 bg-status-dispatched/5"
                       : "border-border hover:border-primary/40 hover:bg-muted/40",
@@ -588,16 +588,16 @@ function Unloading() {
                 <button
                   onClick={() => setDamagedCaptured((v) => !v)}
                   className={cn(
-                    "flex w-full flex-col items-center gap-2 rounded-lg border-2 border-dashed px-4 py-8 text-center transition-colors",
+                    "flex w-full flex-col items-center gap-2 rounded-md border-2 border-dashed px-4 py-8 text-center transition-colors",
                     damagedCaptured
-                      ? "border-orange-300 bg-orange-50"
+                      ? "border-warn/40 bg-warn-bg"
                       : "border-border hover:border-primary/40 hover:bg-muted/40",
                   )}
                 >
                   {damagedCaptured ? (
                     <>
-                      <CheckCircle2 className="h-8 w-8 text-orange-600" />
-                      <span className="text-xs font-medium text-orange-700">
+                      <CheckCircle2 className="h-8 w-8 text-warn" />
+                      <span className="text-xs font-medium text-warn">
                         damaged-boxes.jpg captured
                       </span>
                       <span className="text-[11px] text-muted-foreground">
@@ -648,8 +648,8 @@ function Unloading() {
                 </div>
               </Card>
               {exceptionRaised && (
-                <div className="flex items-start gap-2 rounded-md border border-orange-300 bg-orange-50 p-3 text-xs text-orange-800">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
+                <div className="flex items-start gap-2 rounded-md border border-warn/30 bg-warn-bg p-3 text-xs text-warn">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warn" />
                   <span>
                     Shortage exception ({shortfall} box
                     {shortfall === 1 ? "" : "es"}) sent to supervisor for review.
@@ -724,7 +724,7 @@ function Unloading() {
               {unidentified.length > 0 && (
                 <Card className="space-y-1.5 p-3">
                   <div className="flex items-center gap-1.5 text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                    <HelpCircle className="h-3.5 w-3.5 text-orange-600" />
+                    <HelpCircle className="h-3.5 w-3.5 text-warn" />
                     Unidentified pile ({unidentified.length})
                   </div>
                   {unidentified.map((r) => (
@@ -877,7 +877,7 @@ function ConsignmentCard({ c }: { c: GatePassConsignment }) {
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold">{c.seller.name}</span>
         {c.community && (
-          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold font-mono uppercase tracking-[0.06em] text-primary">
+          <span className="rounded-[3px] border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-semibold font-mono uppercase tracking-[0.06em] text-primary">
             {c.community}
           </span>
         )}
@@ -922,12 +922,12 @@ function BoxSticker({
 }) {
   const bars = useMemo(() => gateBarcodePattern(boxId), [boxId]);
   return (
-    <div className="rounded-lg border-2 border-dashed border-border bg-background p-4">
+    <div className="rounded-md border-2 border-dashed border-border bg-background p-4">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-[10px] font-semibold font-mono uppercase tracking-[0.08em] text-muted-foreground">
           Inbound Box
         </span>
-        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+        <span className="rounded-[3px] bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
           {date}
         </span>
       </div>
@@ -961,14 +961,14 @@ function RanSticker({ ack }: { ack: ReturnAck }) {
   const bars = useMemo(() => inboundBarcodePattern(ack.ran), [ack.ran]);
   const isIdentified = ack.bucket === "identified";
   return (
-    <div className="rounded-lg border-2 border-dashed border-border bg-background p-4">
+    <div className="rounded-md border-2 border-dashed border-border bg-background p-4">
       <div className="mb-2 flex items-center justify-between">
         <span
           className={cn(
-            "rounded-full px-2 py-0.5 text-[10px] font-bold font-mono uppercase tracking-[0.06em]",
+            "rounded-[3px] px-2 py-0.5 text-[10px] font-bold font-mono uppercase tracking-[0.06em]",
             isIdentified
               ? "bg-status-picked/15 text-status-picked"
-              : "bg-orange-100 text-orange-700",
+              : "bg-warn-bg text-warn",
           )}
         >
           {isIdentified ? "Identified" : "Unidentified"}
@@ -999,7 +999,7 @@ function RanSticker({ ack }: { ack: ReturnAck }) {
       <div className="my-3 border-t border-dashed border-border" />
 
       <div className="flex flex-col items-center">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
           Shipments
         </span>
         <span className="font-mono text-5xl font-black leading-none">
@@ -1049,16 +1049,16 @@ function AwbRow({
         "flex items-center justify-between gap-2 rounded-md border px-2 py-1.5 text-xs",
         tone === "ok"
           ? "border-status-picked/30 bg-status-picked/5"
-          : "border-orange-300 bg-orange-50",
+          : "border-warn/30 bg-warn-bg",
       )}
     >
       <span className="font-mono font-semibold">{awb}</span>
       <span
         className={cn(
-          "shrink-0 truncate rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+          "shrink-0 truncate rounded-[3px] px-1.5 py-0.5 text-[10px] font-medium",
           tone === "ok"
             ? "bg-status-picked/15 text-status-picked"
-            : "bg-orange-100 text-orange-700",
+            : "bg-warn-bg text-warn",
         )}
         title={seller}
       >
@@ -1085,12 +1085,12 @@ function BucketTile({
         "flex items-center justify-between gap-2 p-3",
         tone === "ok"
           ? "border-status-picked/30 bg-status-picked/5"
-          : "border-orange-300 bg-orange-50",
+          : "border-warn/30 bg-warn-bg",
       )}
     >
       <div className="flex items-center gap-1.5 text-[11px] font-medium font-mono uppercase tracking-[0.06em]">
         <span
-          className={tone === "ok" ? "text-status-picked" : "text-orange-600"}
+          className={tone === "ok" ? "text-status-picked" : "text-warn"}
         >
           {icon}
         </span>

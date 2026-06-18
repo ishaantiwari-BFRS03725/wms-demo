@@ -200,9 +200,9 @@ const PICKED_SKUS: PickedSkuRow[] = [
 ];
 
 const LINE_BADGE: Record<LineStatus, string> = {
-  Picked: "bg-emerald-500/15 text-emerald-600 ring-emerald-500/30",
-  "Part Picked": "bg-amber-500/15 text-amber-600 ring-amber-500/30",
-  Pending: "bg-status-created/15 text-status-created ring-status-created/30",
+  Picked: "bg-ok-bg text-ok border-ok/30",
+  "Part Picked": "bg-warn-bg text-warn border-warn/30",
+  Pending: "bg-status-created/15 text-status-created border-status-created/30",
 };
 
 const TABS = [
@@ -298,7 +298,7 @@ function ViewPicklistTable() {
         onChange={setQuery}
         placeholder="Search product, code, location, LPN…"
       />
-      <div className="rounded-lg border border-border bg-card shadow-sm">
+      <div className="rounded-md border border-border bg-card">
         <Table>
         <TableHeader>
           <TableRow className="bg-muted [&>th]:sticky [&>th]:top-0 [&>th]:z-20 [&>th]:bg-muted [&>th]:shadow-[inset_0_-1px_0_hsl(var(--border))]">
@@ -330,7 +330,7 @@ function ViewPicklistTable() {
               <TableCell>
                 <span
                   className={cn(
-                    "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium font-mono uppercase tracking-[0.06em] ring-1 ring-inset",
+                    "inline-flex items-center rounded-[3px] border px-2 py-0.5 text-[9.5px] font-medium font-mono uppercase tracking-[0.06em]",
                     LINE_BADGE[l.status],
                   )}
                 >
@@ -387,7 +387,7 @@ function PickedSkuTable() {
         onChange={setQuery}
         placeholder="Search pick, order, product, picker…"
       />
-      <div className="rounded-lg border border-border bg-card shadow-sm">
+      <div className="rounded-md border border-border bg-card">
         <Table>
         <TableHeader>
           <TableRow className="bg-muted [&>th]:sticky [&>th]:top-0 [&>th]:z-20 [&>th]:bg-muted [&>th]:shadow-[inset_0_-1px_0_hsl(var(--border))]">
@@ -437,12 +437,12 @@ function PickedSkuTable() {
               <TableCell className="text-right tabular-nums">{s.mrp}</TableCell>
               <TableCell className="whitespace-nowrap">{s.mfg}</TableCell>
               <TableCell className="whitespace-nowrap">{s.expiry}</TableCell>
-              <TableCell className="text-right tabular-nums font-medium text-emerald-600">
+              <TableCell className="text-right tabular-nums font-medium text-ok">
                 {s.pickedQty}
               </TableCell>
               <TableCell className="text-right tabular-nums">
                 {s.pnaQty > 0 ? (
-                  <span className="text-amber-600">{s.pnaQty}</span>
+                  <span className="text-warn">{s.pnaQty}</span>
                 ) : (
                   <span className="text-muted-foreground">0</span>
                 )}

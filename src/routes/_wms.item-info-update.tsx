@@ -103,10 +103,10 @@ function ItemInfoUpdate() {
   if (!scannedBin) {
     return (
       <div className="min-h-[calc(100vh-3rem)] bg-muted/40 py-4">
-        <div className="mx-auto w-full max-w-[420px] overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+        <div className="mx-auto w-full max-w-[420px] overflow-hidden rounded-md border border-border bg-background">
           {/* Header */}
           <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted">
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-muted">
               <SquarePen className="h-4 w-4" />
             </div>
             <div>
@@ -156,10 +156,10 @@ function ItemInfoUpdate() {
 
   return (
     <div className="min-h-[calc(100vh-3rem)] bg-muted/40 py-4">
-      <div className="mx-auto w-full max-w-[420px] overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+      <div className="mx-auto w-full max-w-[420px] overflow-hidden rounded-md border border-border bg-background">
         {/* Header */}
         <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted">
+          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-muted">
             <SquarePen className="h-4 w-4" />
           </div>
           <div>
@@ -188,7 +188,7 @@ function ItemInfoUpdate() {
             </div>
             <div className="flex items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-2.5">
               <span className="font-mono text-sm font-semibold">{scannedBin}</span>
-              <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground">
+              <span className="rounded-[3px] border border-border bg-secondary px-2 py-0.5 font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-secondary-foreground">
                 {BIN_ITEMS.length} Items
               </span>
             </div>
@@ -221,7 +221,7 @@ function ItemInfoUpdate() {
                       </div>
                     </div>
                     {isPending ? (
-                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-status-packed/15 px-2 py-1 text-[10px] font-medium text-status-packed">
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-[3px] border border-status-packed/30 bg-status-packed/15 px-2 py-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.06em] text-status-packed">
                         <Clock className="h-3 w-3" />
                         Pending approval
                       </span>
@@ -374,7 +374,7 @@ function EditForm({
 
   return (
     <div className="min-h-[calc(100vh-3rem)] bg-muted/40 py-4">
-      <div className="mx-auto w-full max-w-[420px] overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+      <div className="mx-auto w-full max-w-[420px] overflow-hidden rounded-md border border-border bg-background">
         {/* Header */}
         <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
           <button
@@ -470,7 +470,7 @@ function EditForm({
                     setPhoto(null);
                     if (fileRef.current) fileRef.current.value = "";
                   }}
-                  className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm"
+                  className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-background/90 text-foreground"
                 >
                   <X className="h-4 w-4" />
                 </button>

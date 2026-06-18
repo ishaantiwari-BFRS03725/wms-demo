@@ -288,7 +288,7 @@ function ViewPackPage() {
                   <Filter className="h-3.5 w-3.5" />
                   Filters
                   {activeFilterCount > 0 && (
-                    <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-medium leading-none text-primary-foreground">
+                    <span className="rounded-[3px] bg-primary px-1.5 py-0.5 font-mono text-[10px] font-medium leading-none text-primary-foreground">
                       {activeFilterCount}
                     </span>
                   )}
@@ -422,7 +422,7 @@ function ViewPackPage() {
                 {t.label}
                 <span
                   className={cn(
-                    "rounded-full px-2 py-0.5 text-[11px] font-medium",
+                    "rounded-[3px] px-1.5 py-0.5 font-mono text-[10px] font-medium",
                     active
                       ? "bg-primary/10 text-primary"
                       : "bg-muted text-muted-foreground",
@@ -436,7 +436,7 @@ function ViewPackPage() {
         </div>
 
         {/* Table */}
-        <div className="rounded-lg border border-border bg-card shadow-sm">
+        <div className="rounded-md border border-border bg-card">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted [&>th]:sticky [&>th]:top-0 [&>th]:z-20 [&>th]:bg-muted [&>th]:shadow-[inset_0_-1px_0_hsl(var(--border))]">

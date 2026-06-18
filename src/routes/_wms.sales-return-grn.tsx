@@ -419,7 +419,7 @@ function SalesReturnGrn() {
             </div>
           )}
           {recordingStart && (
-            <div className="flex items-center gap-1.5 rounded-full border border-destructive/40 bg-destructive/10 px-2 py-0.5 text-destructive">
+            <div className="flex items-center gap-1.5 rounded-[3px] border border-destructive/40 bg-destructive/10 px-2 py-0.5 text-destructive">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-destructive" />
@@ -444,7 +444,7 @@ function SalesReturnGrn() {
               className={cn(
                 "flex items-center justify-between gap-2 rounded-md border px-2.5 py-1 text-[11px]",
                 isUnidentified
-                  ? "border-orange-300 bg-orange-50 text-orange-700"
+                  ? "border-warn/30 bg-warn-bg text-warn"
                   : "border-status-picked/30 bg-status-picked/5 text-status-picked",
               )}
             >
@@ -525,12 +525,12 @@ function SalesReturnGrn() {
           {/* Unidentified parcel — no QC, capture AWB + remarks, notify seller */}
           {step === "unidentified" && awb && (
             <>
-              <Card className="space-y-2 border-orange-300 bg-orange-50 p-4">
-                <div className="flex items-center gap-2 text-sm font-semibold text-orange-700">
+              <Card className="space-y-2 border-warn/30 bg-warn-bg p-4">
+                <div className="flex items-center gap-2 text-sm font-semibold text-warn">
                   <HelpCircle className="h-4 w-4" />
                   Unidentified parcel — do not QC
                 </div>
-                <p className="text-xs text-orange-700/90">
+                <p className="text-xs text-warn/90">
                   This parcel could not be matched to a return. QC is not required.
                   Save the AWB number and notify the seller for further
                   instructions. No items are scanned and no USN is printed.
@@ -545,7 +545,7 @@ function SalesReturnGrn() {
                   </div>
                   <div className="font-mono text-base font-bold">{awb}</div>
                 </div>
-                <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-medium text-orange-700">
+                <span className="rounded-[3px] border border-warn/30 bg-warn-bg px-2 py-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.06em] text-warn">
                   Unidentified
                 </span>
               </Card>
@@ -985,10 +985,10 @@ function SalesReturnGrn() {
                             <TableCell>
                               <span
                                 className={cn(
-                                  "rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+                                  "rounded-[3px] border px-1.5 py-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.06em]",
                                   r.mode === "good"
-                                    ? "bg-status-picked/15 text-status-picked"
-                                    : "bg-destructive/15 text-destructive",
+                                    ? "border-ok/30 bg-ok-bg text-ok"
+                                    : "border-risk/30 bg-risk-bg text-risk",
                                 )}
                               >
                                 {r.mode === "good" ? "Good" : "Bad"}
@@ -1020,7 +1020,7 @@ function SalesReturnGrn() {
           {step === "done" && awb && isUnidentified && (
             <>
               <Card className="space-y-2 p-4 text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-orange-600">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-warn-bg text-warn">
                   <Mail className="h-6 w-6" />
                 </div>
                 <div>
@@ -1176,7 +1176,7 @@ function UsnSticker({
 }) {
   const bars = useMemo(() => inboundBarcodePattern(usn), [usn]);
   return (
-    <div className="rounded-lg border-2 border-dashed border-border bg-background p-4">
+    <div className="rounded-md border-2 border-dashed border-border bg-background p-4">
       <div className="flex flex-col items-center">
         <div className="flex items-end gap-px">
           {bars.map((w, i) => (
@@ -1250,7 +1250,7 @@ function CameraPanel({
 
   return (
     <div className="sticky top-4 space-y-1.5">
-      <div className="overflow-hidden rounded-lg border border-border bg-black shadow-sm">
+      <div className="overflow-hidden rounded-md border border-border bg-black">
         <div className="relative aspect-square bg-black">
           <img
             src="https://picsum.photos/seed/qc-bench-cam/400/400"
@@ -1261,8 +1261,8 @@ function CameraPanel({
           {/* REC indicator */}
           <div className="absolute left-1.5 top-1.5 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] text-white backdrop-blur">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-red-500" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-risk opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-risk" />
             </span>
             <span className="font-bold font-mono uppercase tracking-[0.08em]">Rec</span>
             <span className="font-mono">

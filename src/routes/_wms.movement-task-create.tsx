@@ -227,7 +227,7 @@ function MovementTaskCreate() {
           <div className="flex items-center justify-between border-b border-border px-5 py-3">
             <div className="text-sm font-semibold">
               Created Tasks{" "}
-              <span className="ml-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+              <span className="ml-1.5 rounded-[3px] bg-primary px-1.5 py-0.5 font-mono text-[10px] font-medium leading-none text-primary-foreground">
                 {tasks.length}
               </span>
             </div>
@@ -354,7 +354,7 @@ function TaskForm({ onAdd }: { onAdd: (data: FormData) => void }) {
         <label className="text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
           Task type
         </label>
-        <div className="flex overflow-hidden rounded-lg border border-border w-fit">
+        <div className="flex overflow-hidden rounded-md border border-border w-fit">
           {(["item", "bin"] as const).map((t) => (
             <button
               key={t}
@@ -505,10 +505,10 @@ function UploadTab({
       {/* Drop zone */}
       {!preview ? (
         <div
-          className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 border-dashed border-border px-6 py-12 transition-colors hover:border-primary/40 hover:bg-muted/20"
+          className="flex cursor-pointer flex-col items-center gap-3 rounded-md border-2 border-dashed border-border px-6 py-12 transition-colors hover:border-primary/40 hover:bg-muted/20"
           onClick={() => fileInputRef.current?.click()}
         >
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
+          <div className="flex h-12 w-12 items-center justify-center rounded-md bg-muted">
             <FileSpreadsheet className="h-6 w-6 text-muted-foreground" />
           </div>
           <div className="text-center">
@@ -535,7 +535,7 @@ function UploadTab({
 
       {/* Template download */}
       {!preview && (
-        <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 px-4 py-3">
+        <div className="flex items-center justify-between rounded-md border border-border bg-muted/20 px-4 py-3">
           <div>
             <p className="text-sm font-medium">Download template</p>
             <p className="text-xs text-muted-foreground">
@@ -583,7 +583,7 @@ function UploadTab({
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-lg border border-border">
+          <div className="overflow-hidden rounded-md border border-border">
             <div className="grid grid-cols-[5rem_5rem_1fr_1fr_6rem_6rem] gap-3 border-b border-border bg-muted/30 px-4 py-2.5 text-[10px] font-semibold font-mono uppercase tracking-[0.08em] text-muted-foreground">
               <span>Task ID</span>
               <span>Type</span>

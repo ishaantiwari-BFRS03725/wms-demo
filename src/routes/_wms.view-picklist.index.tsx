@@ -190,12 +190,12 @@ const TABS: Array<{ key: PicklistState; label: string }> = [
 ];
 
 const STATUS_BADGE: Record<PickStatus, string> = {
-  Open: "bg-status-created/15 text-status-created ring-status-created/30",
-  Assigned: "bg-sky-500/15 text-sky-600 ring-sky-500/30",
-  "In Progress": "bg-status-picked/15 text-status-picked ring-status-picked/30",
-  "Part Picked": "bg-violet-500/15 text-violet-600 ring-violet-500/30",
-  Picked: "bg-emerald-500/15 text-emerald-600 ring-emerald-500/30",
-  Cancelled: "bg-destructive/15 text-destructive ring-destructive/30",
+  Open: "bg-status-created/15 text-status-created border-status-created/30",
+  Assigned: "bg-sys-bg text-sys border-sys/30",
+  "In Progress": "bg-status-picked/15 text-status-picked border-status-picked/30",
+  "Part Picked": "bg-ai-bg text-ai border-ai/30",
+  Picked: "bg-ok-bg text-ok border-ok/30",
+  Cancelled: "bg-risk-bg text-risk border-risk/30",
 };
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
@@ -353,7 +353,7 @@ function ViewPicklistPage() {
                   <Filter className="h-3.5 w-3.5" />
                   Filters
                   {activeFilterCount > 0 && (
-                    <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-medium leading-none text-primary-foreground">
+                    <span className="rounded-[3px] bg-primary px-1.5 py-0.5 font-mono text-[10px] font-medium leading-none text-primary-foreground">
                       {activeFilterCount}
                     </span>
                   )}
@@ -536,7 +536,7 @@ function ViewPicklistPage() {
                 {t.label}
                 <span
                   className={cn(
-                    "rounded-full px-2 py-0.5 text-[11px] font-medium",
+                    "rounded-[3px] px-1.5 py-0.5 font-mono text-[10px] font-medium",
                     active
                       ? "bg-primary/10 text-primary"
                       : "bg-muted text-muted-foreground",
@@ -550,7 +550,7 @@ function ViewPicklistPage() {
         </div>
 
         {/* Table */}
-        <div className="rounded-lg border border-border bg-card shadow-sm">
+        <div className="rounded-md border border-border bg-card">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted [&>th]:sticky [&>th]:top-0 [&>th]:z-20 [&>th]:bg-muted [&>th]:shadow-[inset_0_-1px_0_hsl(var(--border))]">
@@ -585,7 +585,7 @@ function ViewPicklistPage() {
                     <TableCell>
                       <span
                         className={cn(
-                          "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium font-mono uppercase tracking-[0.06em] ring-1 ring-inset",
+                          "inline-flex items-center rounded-[3px] border px-2 py-0.5 text-[9.5px] font-medium font-mono uppercase tracking-[0.06em]",
                           STATUS_BADGE[r.status],
                         )}
                       >

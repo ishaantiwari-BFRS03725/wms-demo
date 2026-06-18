@@ -264,7 +264,7 @@ function SortProcess() {
                 </div>
               </div>
               {suggestion ? (
-                <div className="flex items-center gap-3 rounded-md border-2 border-status-picked/50 bg-status-picked/10 p-3 ring-1 ring-status-picked/30">
+                <div className="flex items-center gap-3 rounded-md border border-status-picked/40 bg-status-picked/10 p-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-status-picked/20 text-lg font-bold text-status-picked">
                     →
                   </div>
@@ -331,7 +331,7 @@ function SortProcess() {
                       {e.orderId} · sorted
                     </div>
                   </div>
-                  <span className="shrink-0 rounded-full bg-status-picked/15 px-2 py-0.5 text-[10px] font-medium text-status-picked">
+                  <span className="shrink-0 rounded-[3px] border border-status-picked/30 bg-status-picked/15 px-2 py-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.06em] text-status-picked">
                     Sorting done
                   </span>
                 </div>

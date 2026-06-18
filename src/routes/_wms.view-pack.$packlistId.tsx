@@ -234,7 +234,7 @@ function PackDetailPage() {
 
       <div className="space-y-4 p-6">
         {/* Summary card */}
-        <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
+        <div className="rounded-md border border-border bg-card p-5">
           {/* Channel & courier — prominent */}
           <div className="flex flex-wrap items-center gap-3">
             <span className="inline-flex items-center rounded-md bg-primary/10 px-3 py-1.5 text-base font-semibold text-primary">
@@ -289,7 +289,7 @@ function PackDetailPage() {
 
 function ItemViewTable() {
   return (
-    <div className="rounded-lg border border-border bg-card shadow-sm">
+    <div className="rounded-md border border-border bg-card">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted [&>th]:sticky [&>th]:top-0 [&>th]:z-20 [&>th]:bg-muted [&>th]:shadow-[inset_0_-1px_0_hsl(var(--border))]">
@@ -330,7 +330,7 @@ function BoxViewTable() {
   const [labelBox, setLabelBox] = useState<BoxRow | null>(null);
 
   return (
-    <div className="rounded-lg border border-border bg-card shadow-sm">
+    <div className="rounded-md border border-border bg-card">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted [&>th]:sticky [&>th]:top-0 [&>th]:z-20 [&>th]:bg-muted [&>th]:shadow-[inset_0_-1px_0_hsl(var(--border))]">

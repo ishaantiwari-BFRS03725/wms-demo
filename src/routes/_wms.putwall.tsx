@@ -131,7 +131,7 @@ function PutwallManagement() {
                   <div className="pw-order">{c.order}</div>
                   <div
                     className="pw-count"
-                    style={c.status === "blocked" ? { color: "#A32D2D" } : undefined}
+                    style={c.status === "blocked" ? { color: "#b5321f" } : undefined}
                   >
                     {c.count}
                   </div>
@@ -210,63 +210,63 @@ function PutwallManagement() {
 // Scoped styles — every rule is prefixed with `.pw-screen` so the generic
 // selectors (table/th/td/buttons) never leak into other screens.
 const css = `
-.pw-screen{--c-bg:#ffffff;--c-bg2:#f7f6f1;--c-border:#e6e4dc;--c-border2:#d8d6cd;--c-t1:#1c1b18;--c-t2:#4a4843;--c-t3:#88857d;--c-info-t:#1e40af;--c-info-b:#bcd0f5;--c-info-bg:#eaf0fb;--c-success:#3B6D11;--c-warning:#854F0B;
-  background:var(--c-bg);border:0.5px solid var(--c-border);border-radius:12px;overflow:hidden;font-family:inherit;max-width:1100px;margin:0 auto}
+.pw-screen{--c-bg:#ffffff;--c-bg2:#f5f3ee;--c-border:#e2dfd5;--c-border2:#d0ccbf;--c-t1:#1a1a1a;--c-t2:#555555;--c-t3:#8a8a85;--c-info-t:#2d5aa8;--c-info-b:#bcd0f5;--c-info-bg:#e6eef9;--c-success:#2e7a4e;--c-warning:#a86b1a;--c-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  background:var(--c-bg);border:1px solid var(--c-border);border-radius:4px;overflow:hidden;font-family:inherit;max-width:1100px;margin:0 auto}
 .pw-screen .pw-ico{width:15px;height:15px;vertical-align:-2px;margin-right:6px;display:inline-block}
 .pw-screen .pw-ico-sm{width:14px;height:14px}
-.pw-topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:0.5px solid var(--c-border)}
+.pw-topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--c-border)}
 .pw-topbar-title{font-size:14px;font-weight:600;color:var(--c-t1);display:flex;align-items:center}
 .pw-topbar-sub{font-size:12px;color:var(--c-t3);margin-top:2px}
 .pw-actions{display:flex;gap:8px}
-.pw-screen .pw-btn{font-size:12px;padding:6px 12px;border:0.5px solid var(--c-border2);border-radius:8px;background:transparent;color:var(--c-t2);cursor:pointer;display:inline-flex;align-items:center;gap:6px;line-height:1}
+.pw-screen .pw-btn{font-size:12px;padding:6px 12px;border:1px solid var(--c-border2);border-radius:4px;background:transparent;color:var(--c-t2);cursor:pointer;display:inline-flex;align-items:center;gap:6px;line-height:1}
 .pw-screen .pw-btn-primary{background:var(--c-info-bg);border-color:var(--c-info-b);color:var(--c-info-t)}
-.pw-screen .pw-btn-danger{border-color:#A32D2D;color:#791F1F}
+.pw-screen .pw-btn-danger{border-color:#b5321f;color:#b5321f}
 .pw-screen .pw-btn-sm{font-size:11px;padding:4px 8px}
-.pw-filters{display:flex;gap:8px;padding:10px 16px;border-bottom:0.5px solid var(--c-border);flex-wrap:wrap;align-items:center}
-.pw-filter-label{font-size:11px;color:var(--c-t3);margin-right:4px}
+.pw-filters{display:flex;gap:8px;padding:10px 16px;border-bottom:1px solid var(--c-border);flex-wrap:wrap;align-items:center}
+.pw-filter-label{font-family:var(--c-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--c-t3);margin-right:4px}
 .pw-filters-right{margin-left:auto;display:flex;gap:8px;align-items:center}
-.pw-chip{font-size:11px;padding:4px 10px;border:0.5px solid var(--c-border);border-radius:20px;color:var(--c-t2);background:var(--c-bg2)}
+.pw-chip{font-size:11px;padding:4px 10px;border:1px solid var(--c-border);border-radius:4px;color:var(--c-t2);background:var(--c-bg2)}
 .pw-chip.active{border-color:var(--c-info-b);color:var(--c-info-t);background:var(--c-info-bg)}
-.pw-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;border-bottom:0.5px solid var(--c-border);background:var(--c-border)}
+.pw-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;border-bottom:1px solid var(--c-border);background:var(--c-border)}
 .pw-metric{padding:12px 16px;background:var(--c-bg2)}
-.pw-metric-label{font-size:11px;color:var(--c-t3);margin-bottom:4px}
+.pw-metric-label{font-family:var(--c-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--c-t3);margin-bottom:4px}
 .pw-metric-val{font-size:20px;font-weight:600;color:var(--c-t1)}
 .pw-metric-val.green{color:var(--c-success)}
 .pw-metric-val.amber{color:var(--c-warning)}
 .pw-metric-val.info{color:var(--c-info-t)}
-.pw-section-label{font-size:11px;font-weight:600;color:var(--c-t3);padding:10px 16px 6px;letter-spacing:0.06em;text-transform:uppercase}
+.pw-section-label{font-family:var(--c-mono);font-size:10.5px;font-weight:500;color:var(--c-t3);padding:10px 16px 6px;letter-spacing:0.08em;text-transform:uppercase}
 .pw-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:0 16px 16px}
-.pw-cell{border:0.5px solid var(--c-border);border-radius:8px;padding:8px 10px;min-height:72px}
+.pw-cell{border:1px solid var(--c-border);border-radius:4px;padding:8px 10px;min-height:72px}
 .pw-cell.free{background:var(--c-bg2)}
-.pw-cell.in-progress{background:#FAEEDA;border-color:#854F0B}
-.pw-cell.done{background:#EAF3DE;border-color:#3B6D11}
-.pw-cell.blocked{background:#FCEBEB;border-color:#A32D2D}
+.pw-cell.in-progress{background:#fbeeda;border-color:#a86b1a}
+.pw-cell.done{background:#dff0e4;border-color:#2e7a4e}
+.pw-cell.blocked{background:#fae5e0;border-color:#b5321f}
 .pw-id{font-size:12px;font-weight:600;color:var(--c-t1);display:flex;align-items:center}
-.pw-cell.in-progress .pw-id{color:#633806}
-.pw-cell.done .pw-id{color:#27500A}
-.pw-cell.blocked .pw-id{color:#791F1F}
+.pw-cell.in-progress .pw-id{color:#a86b1a}
+.pw-cell.done .pw-id{color:#2e7a4e}
+.pw-cell.blocked .pw-id{color:#b5321f}
 .pw-order{font-size:10px;color:var(--c-t2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pw-free-label{color:var(--c-t3);font-size:10px;margin-top:6px}
-.pw-cell.in-progress .pw-order{color:#854F0B}
-.pw-cell.done .pw-order{color:#3B6D11}
+.pw-cell.in-progress .pw-order{color:#a86b1a}
+.pw-cell.done .pw-order{color:#2e7a4e}
 .pw-count{font-size:10px;margin-top:6px;color:var(--c-t3)}
-.pw-cell.in-progress .pw-count{color:#854F0B}
-.pw-cell.done .pw-count{color:#3B6D11}
+.pw-cell.in-progress .pw-count{color:#a86b1a}
+.pw-cell.done .pw-count{color:#2e7a4e}
 .pw-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px}
-.dot-free{background:#888780}
-.dot-in-progress{background:#854F0B}
-.dot-done{background:#3B6D11}
-.dot-blocked{background:#A32D2D}
+.dot-free{background:#8a8a85}
+.dot-in-progress{background:#a86b1a}
+.dot-done{background:#2e7a4e}
+.dot-blocked{background:#b5321f}
 .pw-table-wrap{padding:0 16px 16px;overflow-x:auto}
 .pw-screen table{width:100%;border-collapse:collapse;font-size:12px}
-.pw-screen th{text-align:left;font-weight:600;font-size:11px;color:var(--c-t3);padding:6px 8px;border-bottom:0.5px solid var(--c-border);white-space:nowrap}
-.pw-screen td{padding:7px 8px;border-bottom:0.5px solid var(--c-border);color:var(--c-t1);vertical-align:top}
+.pw-screen th{text-align:left;font-family:var(--c-mono);font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:0.06em;color:var(--c-t3);padding:6px 8px;border-bottom:1px solid var(--c-border);white-space:nowrap}
+.pw-screen td{padding:7px 8px;border-bottom:1px solid var(--c-border);color:var(--c-t1);vertical-align:top}
 .pw-screen tr:last-child td{border-bottom:none}
 .pw-td-strong{font-weight:600}
-.pw-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
-.badge-in-progress{background:#FAEEDA;color:#633806}
-.badge-done{background:#EAF3DE;color:#27500A}
-.badge-blocked{background:#FCEBEB;color:#791F1F}
+.pw-badge{display:inline-block;font-family:var(--c-mono);font-size:9.5px;padding:2px 8px;border-radius:2px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em}
+.badge-in-progress{background:#fbeeda;color:#a86b1a}
+.badge-done{background:#dff0e4;color:#2e7a4e}
+.badge-blocked{background:#fae5e0;color:#b5321f}
 .pw-col-note{font-size:10px;color:var(--c-t3);margin-top:2px}
 .pw-legend{padding:8px 16px 12px;display:flex;gap:16px;font-size:11px;color:var(--c-t3);flex-wrap:wrap}
 .pw-legend span{display:inline-flex;align-items:center}

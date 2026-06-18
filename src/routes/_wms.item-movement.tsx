@@ -230,9 +230,9 @@ function ItemMovement() {
   return (
     <div className="min-h-[calc(100vh-3rem)] bg-muted/40 py-4">
       <div className="mx-auto w-full max-w-[420px] space-y-3">
-        <div className="overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+        <div className="overflow-hidden rounded-md border border-border bg-background">
           <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
               <ArrowLeftRight className="h-4 w-4" />
             </div>
             <div>
@@ -359,7 +359,7 @@ function AdHocMovementFlow({ onExit }: { onExit: () => void }) {
   return (
     <div className="min-h-[calc(100vh-3rem)] bg-muted/40 py-4">
       <div className="mx-auto w-full max-w-[420px]">
-        <div className="overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+        <div className="overflow-hidden rounded-md border border-border bg-background">
           {/* Header */}
           <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
             <button
@@ -375,7 +375,7 @@ function AdHocMovementFlow({ onExit }: { onExit: () => void }) {
 
           {/* Type toggle */}
           <div className="border-b border-border p-3">
-            <div className="flex overflow-hidden rounded-lg border border-border">
+            <div className="flex overflow-hidden rounded-md border border-border">
               <button
                 type="button"
                 onClick={() => switchType("item")}
@@ -510,7 +510,7 @@ function AdHocItemFlow({ onComplete }: { onComplete: () => void }) {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2.5 text-xs text-amber-800">
+                <div className="flex items-center gap-2 rounded-md border border-warn/30 bg-warn-bg px-3 py-2.5 text-xs text-warn">
                   <span className="font-mono font-semibold">{scannedSku}</span>
                   <span className="ml-1">— unrecognised SKU</span>
                   <button
@@ -845,7 +845,7 @@ function MovementFlow({
 
   return (
     <div className="min-h-[calc(100vh-3rem)] bg-muted/40 py-4">
-      <div className="mx-auto w-full max-w-[420px] overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+      <div className="mx-auto w-full max-w-[420px] overflow-hidden rounded-md border border-border bg-background">
         <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
           <button
             type="button"
@@ -1064,7 +1064,7 @@ function BinMovementFlow({
 
   return (
     <div className="min-h-[calc(100vh-3rem)] bg-muted/40 py-4">
-      <div className="mx-auto w-full max-w-[420px] overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+      <div className="mx-auto w-full max-w-[420px] overflow-hidden rounded-md border border-border bg-background">
         <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
           <button
             type="button"
