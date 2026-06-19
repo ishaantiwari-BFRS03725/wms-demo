@@ -259,6 +259,12 @@ const sections: NavSection[] = [
     ],
   },
   {
+    label: "Configuration",
+    items: [
+      { title: "Warehouse Settings", url: "/warehouse-settings", icon: Settings2 },
+    ],
+  },
+  {
     label: "Reports",
     items: [{ title: "Reports", url: "/reports", icon: FileBarChart }],
   },

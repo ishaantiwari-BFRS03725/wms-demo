@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WmsRouteImport } from './routes/_wms'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WmsWaveCreationRouteImport } from './routes/_wms.wave-creation'
+import { Route as WmsWarehouseSettingsRouteImport } from './routes/_wms.warehouse-settings'
 import { Route as WmsViewManifestRouteImport } from './routes/_wms.view-manifest'
 import { Route as WmsViewDispatchRouteImport } from './routes/_wms.view-dispatch'
 import { Route as WmsVendorScorecardsRouteImport } from './routes/_wms.vendor-scorecards'
@@ -91,6 +92,11 @@ const IndexRoute = IndexRouteImport.update({
 const WmsWaveCreationRoute = WmsWaveCreationRouteImport.update({
   id: '/wave-creation',
   path: '/wave-creation',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsWarehouseSettingsRoute = WmsWarehouseSettingsRouteImport.update({
+  id: '/warehouse-settings',
+  path: '/warehouse-settings',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsViewManifestRoute = WmsViewManifestRouteImport.update({
@@ -484,6 +490,7 @@ export interface FileRoutesByFullPath {
   '/vendor-scorecards': typeof WmsVendorScorecardsRoute
   '/view-dispatch': typeof WmsViewDispatchRoute
   '/view-manifest': typeof WmsViewManifestRoute
+  '/warehouse-settings': typeof WmsWarehouseSettingsRoute
   '/wave-creation': typeof WmsWaveCreationRoute
   '/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/pick/$picklistId': typeof WmsPickPicklistIdRoute
@@ -554,6 +561,7 @@ export interface FileRoutesByTo {
   '/vendor-scorecards': typeof WmsVendorScorecardsRoute
   '/view-dispatch': typeof WmsViewDispatchRoute
   '/view-manifest': typeof WmsViewManifestRoute
+  '/warehouse-settings': typeof WmsWarehouseSettingsRoute
   '/wave-creation': typeof WmsWaveCreationRoute
   '/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/pick/$picklistId': typeof WmsPickPicklistIdRoute
@@ -626,6 +634,7 @@ export interface FileRoutesById {
   '/_wms/vendor-scorecards': typeof WmsVendorScorecardsRoute
   '/_wms/view-dispatch': typeof WmsViewDispatchRoute
   '/_wms/view-manifest': typeof WmsViewManifestRoute
+  '/_wms/warehouse-settings': typeof WmsWarehouseSettingsRoute
   '/_wms/wave-creation': typeof WmsWaveCreationRoute
   '/_wms/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/_wms/pick/$picklistId': typeof WmsPickPicklistIdRoute
@@ -698,6 +707,7 @@ export interface FileRouteTypes {
     | '/vendor-scorecards'
     | '/view-dispatch'
     | '/view-manifest'
+    | '/warehouse-settings'
     | '/wave-creation'
     | '/orders/$orderNo'
     | '/pick/$picklistId'
@@ -768,6 +778,7 @@ export interface FileRouteTypes {
     | '/vendor-scorecards'
     | '/view-dispatch'
     | '/view-manifest'
+    | '/warehouse-settings'
     | '/wave-creation'
     | '/orders/$orderNo'
     | '/pick/$picklistId'
@@ -839,6 +850,7 @@ export interface FileRouteTypes {
     | '/_wms/vendor-scorecards'
     | '/_wms/view-dispatch'
     | '/_wms/view-manifest'
+    | '/_wms/warehouse-settings'
     | '/_wms/wave-creation'
     | '/_wms/orders/$orderNo'
     | '/_wms/pick/$picklistId'
@@ -878,6 +890,13 @@ declare module '@tanstack/react-router' {
       path: '/wave-creation'
       fullPath: '/wave-creation'
       preLoaderRoute: typeof WmsWaveCreationRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/warehouse-settings': {
+      id: '/_wms/warehouse-settings'
+      path: '/warehouse-settings'
+      fullPath: '/warehouse-settings'
+      preLoaderRoute: typeof WmsWarehouseSettingsRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/view-manifest': {
@@ -1402,6 +1421,7 @@ interface WmsRouteChildren {
   WmsVendorScorecardsRoute: typeof WmsVendorScorecardsRoute
   WmsViewDispatchRoute: typeof WmsViewDispatchRoute
   WmsViewManifestRoute: typeof WmsViewManifestRoute
+  WmsWarehouseSettingsRoute: typeof WmsWarehouseSettingsRoute
   WmsWaveCreationRoute: typeof WmsWaveCreationRoute
   WmsOrdersOrderNoRoute: typeof WmsOrdersOrderNoRoute
   WmsPickPicklistIdRoute: typeof WmsPickPicklistIdRoute
@@ -1472,6 +1492,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsVendorScorecardsRoute: WmsVendorScorecardsRoute,
   WmsViewDispatchRoute: WmsViewDispatchRoute,
   WmsViewManifestRoute: WmsViewManifestRoute,
+  WmsWarehouseSettingsRoute: WmsWarehouseSettingsRoute,
   WmsWaveCreationRoute: WmsWaveCreationRoute,
   WmsOrdersOrderNoRoute: WmsOrdersOrderNoRoute,
   WmsPickPicklistIdRoute: WmsPickPicklistIdRoute,

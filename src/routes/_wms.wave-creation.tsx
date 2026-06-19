@@ -50,8 +50,17 @@ export const Route = createFileRoute("/_wms/wave-creation")({
 
 type OrderType   = "B2B" | "B2C" | "Kit Order" | "RTV" | "STO";
 type PaymentMode = "COD" | "Prepaid";
-type DayKey      = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
-type ReleaseMode = "order-wise" | "batch" | "cluster";
+type DayKey       = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
+type ReleaseMode  = "order-wise" | "batch" | "cluster";
+type ScheduleMode = "once" | "recurring";
+
+const INTERVAL_OPTIONS = [
+  { value: "15",  label: "15 min" },
+  { value: "30",  label: "30 min" },
+  { value: "60",  label: "1 hr" },
+  { value: "120", label: "2 hrs" },
+  { value: "240", label: "4 hrs" },
+];
 
 const ORDER_TYPES: OrderType[]     = ["B2B", "B2C", "Kit Order", "RTV", "STO"];
 const PAYMENT_MODES: PaymentMode[] = ["COD", "Prepaid"];
@@ -82,7 +91,7 @@ const SELLER_OPTIONS = [
 const RELEASE_MODES: { value: ReleaseMode; label: string; desc: string }[] = [
   { value: "order-wise", label: "Order-wise", desc: "Each order gets its own picklist — best for low-volume, high-accuracy needs." },
   { value: "batch",      label: "Batch",      desc: "Multiple orders combined into one picklist — best for high-volume same-SKU orders." },
-  { value: "cluster",    label: "Cluster",    desc: "Orders grouped by warehouse zone — best for minimising picker travel distance." },
+  { value: "cluster",    label: "Cluster",    desc: "Batch-pick in one pass, dropping each order into its own tote up front — skips sortation entirely." },
 ];
 
 const RELEASE_MODE_BADGE: Record<ReleaseMode, string> = {
@@ -104,13 +113,15 @@ interface WaveSchedule {
   // quantity / amount filters
   orderQtyType: "" | "single" | "multi";  // single- vs multi-quantity orders
   saleAmountMin: string;
-  skuCountMin: string;
-  skuCountMax: string;
   // fulfillment filters
   couriers: string[];
   channels: string[];
   // schedule
-  time: string;
+  scheduleMode: ScheduleMode;
+  time: string;               // "once" mode: fixed run time
+  intervalMins: string;       // "recurring": minutes between runs
+  windowStart: string;        // "recurring": active-window start HH:MM
+  windowEnd: string;          // "recurring": active-window end HH:MM
   days: DayKey[];
   // release
   releaseMode: ReleaseMode;
@@ -132,11 +143,13 @@ const SEED: WaveSchedule[] = [
     slaWindow: "1-2",
     orderQtyType: "",
     saleAmountMin: "",
-    skuCountMin: "",
-    skuCountMax: "5",
     couriers: ["Bluedart", "Delhivery"],
     channels: ["Amazon", "Flipkart"],
+    scheduleMode: "recurring",
     time: "09:00",
+    intervalMins: "30",
+    windowStart: "08:00",
+    windowEnd: "18:00",
     days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     releaseMode: "cluster",
     active: true,
@@ -152,11 +165,13 @@ const SEED: WaveSchedule[] = [
     slaWindow: "3-5",
     orderQtyType: "multi",
     saleAmountMin: "500",
-    skuCountMin: "",
-    skuCountMax: "",
     couriers: [],
     channels: [],
+    scheduleMode: "once",
     time: "14:30",
+    intervalMins: "60",
+    windowStart: "09:00",
+    windowEnd: "18:00",
     days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
     releaseMode: "batch",
     active: false,
@@ -178,11 +193,13 @@ const EMPTY_FORM: WaveForm = {
   slaWindow: "",
   orderQtyType: "",
   saleAmountMin: "",
-  skuCountMin: "",
-  skuCountMax: "",
   couriers: [],
   channels: [],
+  scheduleMode: "once",
   time: "09:00",
+  intervalMins: "30",
+  windowStart: "08:00",
+  windowEnd: "18:00",
   days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
   releaseMode: "",
 };
@@ -205,9 +222,22 @@ function validateForm(f: WaveForm): string | null {
   if (!f.name.trim())    return "Wave name is required.";
   if (!f.orderType)      return "Select an order type.";
   if (f.days.length === 0) return "Select at least one day.";
-  if (!f.time)           return "Schedule time is required.";
+  if (f.scheduleMode === "once" && !f.time) return "Schedule time is required.";
+  if (f.scheduleMode === "recurring") {
+    if (!f.intervalMins)              return "Select a repeat interval.";
+    if (!f.windowStart || !f.windowEnd) return "Set the active window.";
+    if (f.windowEnd <= f.windowStart) return "Window end must be after start.";
+  }
   if (!f.releaseMode)    return "Select a picklist type before saving.";
   return null;
+}
+
+function formatSchedule(w: WaveSchedule): string {
+  if (w.scheduleMode === "recurring") {
+    const lbl = INTERVAL_OPTIONS.find((o) => o.value === w.intervalMins)?.label ?? `${w.intervalMins} min`;
+    return `Every ${lbl} · ${w.windowStart}–${w.windowEnd}`;
+  }
+  return w.time;
 }
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
@@ -230,11 +260,13 @@ function WaveCreation() {
       slaWindow: w.slaWindow,
       orderQtyType: w.orderQtyType,
       saleAmountMin: w.saleAmountMin,
-      skuCountMin: w.skuCountMin,
-      skuCountMax: w.skuCountMax,
       couriers: w.couriers,
       channels: w.channels,
+      scheduleMode: w.scheduleMode,
       time: w.time,
+      intervalMins: w.intervalMins,
+      windowStart: w.windowStart,
+      windowEnd: w.windowEnd,
       days: w.days,
       releaseMode: w.releaseMode,
     });
@@ -379,11 +411,34 @@ function WaveCreation() {
 
               {/* Seller — searchable multi-select */}
               <Section label="Seller" hint="Leave empty to include all sellers.">
-                <SellerMultiSelect
+                <MultiSelect
+                  noun="seller"
                   options={SELLER_OPTIONS}
                   selected={f.sellers}
                   onToggle={(v) => set({ sellers: toggleItem(f.sellers, v) })}
                   onClear={() => set({ sellers: [] })}
+                />
+              </Section>
+
+              {/* Courier — searchable multi-select */}
+              <Section label="Courier" hint="Leave empty to include all couriers.">
+                <MultiSelect
+                  noun="courier"
+                  options={COURIER_OPTIONS}
+                  selected={f.couriers}
+                  onToggle={(v) => set({ couriers: toggleItem(f.couriers, v) })}
+                  onClear={() => set({ couriers: [] })}
+                />
+              </Section>
+
+              {/* Channel — searchable multi-select */}
+              <Section label="Channel" hint="Leave empty to include all channels.">
+                <MultiSelect
+                  noun="channel"
+                  options={CHANNEL_OPTIONS}
+                  selected={f.channels}
+                  onToggle={(v) => set({ channels: toggleItem(f.channels, v) })}
+                  onClear={() => set({ channels: [] })}
                 />
               </Section>
 
@@ -459,37 +514,6 @@ function WaveCreation() {
                   />
                 </div>
               </Section>
-
-              {/* Number of SKUs */}
-              <Section label="Number of SKUs" hint="Filter by distinct SKU count per order.">
-                <div className="grid grid-cols-2 gap-3">
-                  <NumberInput prefix="At least" placeholder="—" value={f.skuCountMin} onChange={(v) => set({ skuCountMin: v })} />
-                  <NumberInput prefix="At most"  placeholder="—" value={f.skuCountMax} onChange={(v) => set({ skuCountMax: v })} />
-                </div>
-              </Section>
-            </div>
-
-            {/* ── FULFILLMENT FILTERS ── */}
-            <div className="px-6 py-5 space-y-5">
-              <p className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground/70">
-                Fulfillment Filters
-              </p>
-
-              <Section label="Courier" hint="Leave empty to include all couriers.">
-                <div className="flex flex-wrap gap-2">
-                  {COURIER_OPTIONS.map((c) => (
-                    <FilterChip key={c} label={c} active={f.couriers.includes(c)} onClick={() => set({ couriers: toggleItem(f.couriers, c) })} />
-                  ))}
-                </div>
-              </Section>
-
-              <Section label="Channel" hint="Leave empty to include all channels.">
-                <div className="flex flex-wrap gap-2">
-                  {CHANNEL_OPTIONS.map((ch) => (
-                    <FilterChip key={ch} label={ch} active={f.channels.includes(ch)} onClick={() => set({ channels: toggleItem(f.channels, ch) })} />
-                  ))}
-                </div>
-              </Section>
             </div>
 
             {/* ── SCHEDULE ── */}
@@ -498,12 +522,45 @@ function WaveCreation() {
                 Schedule
               </p>
 
-              <Section label="Run Time" hint="Wave triggers automatically at this time each selected day.">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                  <Input type="time" value={f.time} onChange={(e) => set({ time: e.target.value })} className="h-9 w-32" />
+              <Section label="Frequency" hint="Run once at a fixed time, or repeat on an interval within a daily window.">
+                <div className="flex flex-wrap gap-2">
+                  <RadioChip label="Fixed time" active={f.scheduleMode === "once"} onClick={() => set({ scheduleMode: "once" })} />
+                  <RadioChip label="Repeat at interval" active={f.scheduleMode === "recurring"} onClick={() => set({ scheduleMode: "recurring" })} />
                 </div>
               </Section>
+
+              {f.scheduleMode === "once" ? (
+                <Section label="Run Time" hint="Wave triggers automatically at this time each selected day.">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                    <Input type="time" value={f.time} onChange={(e) => set({ time: e.target.value })} className="h-9 w-32" />
+                  </div>
+                </Section>
+              ) : (
+                <>
+                  <Section label="Repeat Every" hint="A new wave is generated this often within the active window.">
+                    <Select value={f.intervalMins} onValueChange={(v) => set({ intervalMins: v })}>
+                      <SelectTrigger className="h-9 w-44">
+                        <SelectValue placeholder="Select interval" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {INTERVAL_OPTIONS.map((o) => (
+                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Section>
+
+                  <Section label="Active Window" hint="Waves are produced between these times on each selected day.">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                      <Input type="time" value={f.windowStart} onChange={(e) => set({ windowStart: e.target.value })} className="h-9 w-32" />
+                      <span className="text-sm text-muted-foreground">to</span>
+                      <Input type="time" value={f.windowEnd} onChange={(e) => set({ windowEnd: e.target.value })} className="h-9 w-32" />
+                    </div>
+                  </Section>
+                </>
+              )}
 
               <Section label="Repeat On" hint="Days this wave will run.">
                 <div className="flex flex-wrap gap-2">
@@ -609,10 +666,6 @@ function WaveCard({
     tags.push({ label: wave.orderQtyType === "single" ? "Single qty" : "Multi qty", cls: "bg-orange-50 text-orange-700 border-orange-200" });
   }
   if (wave.saleAmountMin) tags.push({ label: `Sale ≥ ₹${wave.saleAmountMin}`, cls: "bg-teal-50 text-teal-700 border-teal-200" });
-  if (wave.skuCountMin || wave.skuCountMax) {
-    const parts = [wave.skuCountMin ? `≥ ${wave.skuCountMin}` : "", wave.skuCountMax ? `≤ ${wave.skuCountMax}` : ""].filter(Boolean);
-    tags.push({ label: `SKUs ${parts.join(", ")}`, cls: "bg-indigo-50 text-indigo-700 border-indigo-200" });
-  }
 
   wave.couriers.forEach((c)  => tags.push({ label: c,  cls: "bg-slate-100 text-slate-700 border-slate-200" }));
   wave.channels.forEach((ch) => tags.push({ label: ch, cls: "bg-emerald-50 text-emerald-700 border-emerald-200" }));
@@ -636,7 +689,7 @@ function WaveCard({
               </span>
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
-              <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{wave.time}</span>
+              <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{formatSchedule(wave)}</span>
               <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{formatDays(wave.days)}</span>
               {wave.lastRun && <span>Last run: {wave.lastRun}</span>}
               <span>Created {wave.createdAt}</span>
@@ -692,11 +745,12 @@ function WaveCard({
   );
 }
 
-// ─── SellerMultiSelect ────────────────────────────────────────────────────────
+// ─── MultiSelect ──────────────────────────────────────────────────────────────
 
-function SellerMultiSelect({
-  options, selected, onToggle, onClear,
+function MultiSelect({
+  noun, options, selected, onToggle, onClear,
 }: {
+  noun: string;          // singular, e.g. "seller", "courier", "channel"
   options: string[];
   selected: string[];
   onToggle: (v: string) => void;
@@ -704,6 +758,8 @@ function SellerMultiSelect({
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+
+  const plural = `${noun}s`;
 
   const filtered = options.filter((o) =>
     o.toLowerCase().includes(search.toLowerCase())
@@ -719,10 +775,10 @@ function SellerMultiSelect({
           >
             <span className={selected.length === 0 ? "text-muted-foreground" : ""}>
               {selected.length === 0
-                ? "All sellers"
+                ? `All ${plural}`
                 : selected.length === 1
                 ? selected[0]
-                : `${selected.length} sellers selected`}
+                : `${selected.length} ${plural} selected`}
             </span>
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </button>
@@ -734,7 +790,7 @@ function SellerMultiSelect({
             <Search className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
             <input
               autoFocus
-              placeholder="Search sellers…"
+              placeholder={`Search ${plural}…`}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
@@ -744,7 +800,7 @@ function SellerMultiSelect({
           {/* Options list */}
           <div className="max-h-52 overflow-y-auto py-1">
             {filtered.length === 0 ? (
-              <p className="px-3 py-4 text-center text-xs text-muted-foreground">No sellers found</p>
+              <p className="px-3 py-4 text-center text-xs text-muted-foreground">No {plural} found</p>
             ) : (
               filtered.map((o) => {
                 const checked = selected.includes(o);
@@ -858,11 +914,3 @@ function FilterChip({ label, active, onClick, compact = false }: { label: string
   );
 }
 
-function NumberInput({ prefix, placeholder, value, onChange }: { prefix: string; placeholder: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <div className="space-y-1">
-      <label className="text-[10px] text-muted-foreground">{prefix}</label>
-      <Input type="number" min={0} placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} className="h-9" />
-    </div>
-  );
-}

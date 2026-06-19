@@ -1,5 +1,21 @@
 # Changelog
 
+- 2026-06-19: Warehouse Settings — added a new screen (`/warehouse-settings`) ported from the Claude Design handoff `Warehouse Settings.dc.html`, recreated pixel-perfectly via scoped `.wh-settings` CSS + design markup (`dangerouslySetInnerHTML`) and a `useEffect` reimplementing the original vanilla interactivity (keyword search/highlight, conditional sub-rows, dirty save bar/toast, scroll-spy "On this page" nav); Google Fonts injected via route `head()`. New sidebar section "Configuration" → "Warehouse Settings". tsc clean (only pre-existing orders.$orderNo errors remain)
+
+- 2026-06-19: Picking workflow — removed the "Step N of 3" prefixes from the on-screen step subtitles ("Assign pick tote" / "Picking" / "Drop at drop-zone") and cleared placeholder text that echoed the current location/SKU in the scan inputs. tsc clean
+
+- 2026-06-19: Wave Creation — added configurable recurring schedules: a "Frequency" section toggles between Fixed time and Repeat-at-interval (e.g. every 30 min between 08:00–18:00), with interval + active-window fields, validation, and a `formatSchedule` summary on each WaveCard so a wave can self-produce on a cadence rather than a single set time. tsc clean
+
+- 2026-06-19: Wave Creation — rewrote the Cluster picklist-type description to "Batch-pick in one pass, dropping each order into its own tote up front — skips sortation entirely" (was "Orders grouped by warehouse zone…")
+
+- 2026-06-19: Wave Creation — Courier & Channel converted from chip toggles to searchable multi-select dropdowns placed directly below the Seller dropdown (generalized `SellerMultiSelect` → reusable `MultiSelect` with a `noun` prop, shared by Seller/Courier/Channel); "Number of SKUs" filter removed entirely (UI section, `skuCountMin`/`skuCountMax` form+model fields, seed data, WaveCard tag, unused `NumberInput` helper); dropped the now-empty "Fulfillment Filters" section. tsc clean (no new errors)
+
+- 2026-06-19: Wave Creation — moved Channel and Courier directly below Seller (in the Order Filters group) and converted both from selection chips to multi-select dropdowns; generalized SellerMultiSelect into a reusable `MultiSelectDropdown` (noun prop) now shared by Seller/Channel/Courier; removed the now-empty Fulfillment Filters section
+- 2026-06-19: Wave Creation — replaced the Number of SKUs min/max number inputs with a Single SKU / Multi SKU radio toggle (mirrors Order Quantity) and moved the section directly below Order Quantity; updated seed data, edit-load, and summary chips; removed now-unused NumberInput helper
+- 2026-06-19: Orders table — City and State columns now hidden by default (moved to optional columns)
+- 2026-06-19: Orders table — moved the decolorized B2C/B2B tag inline into the Order No cell (was Ext Order No) so it stays visible in the default view
+- 2026-06-19: Orders table — Ext Order No column now hidden by default (moved to optional columns); removed the standalone Order Type column and instead show a decolorized (neutral border/muted) B2C/B2B tag inline inside the Ext Order No cell to save horizontal space; Order Type filter unchanged so users can still filter/sort by type
+
 - 2026-06-19: Imported SRF 2.0 Tier-4 screens (Users & Roles, Policies, Master Data, Audit Log, Platform Health, Billing Leakage, Carrier/Vendor Scorecards, Gatepass Log, Floor Handhelds) as static mockups — 8 reuse already-bundled design components; `GatepassScreen` (core-ops-screens.jsx) + full handheld suite (`PhoneFrame`/`HHHeader`/`ScanBox`/`HHBtn` + `HHDockUnload`/`HHPicker`/`HHPacker`/`HHQCInspect` + `FloorScreens`, handheld-screens.jsx) copy-pasted verbatim into `src/srf/srf-screens.tsx`; 10 route wrappers added; sidebar gains "Admin & Governance" + "Devices" sections. Completes the SRF 2.0 missing-screens import (30 screens, all 4 tiers). tsc clean
 
 - 2026-06-19: Imported SRF 2.0 Tier-3 screens (Returns Intake, Returns Evaluation, RTO/RTV/CIR flows, QC Station, Cycle Count & Audit) as static mockups — `returns-flows.jsx` (RTO/RTV/CIR + ReturnFlowHeader) and `CycleCountScreen` copy-pasted verbatim into `src/srf/srf-screens.tsx`; 7 route wrappers added; sidebar gains "Reverse & QC" section. tsc clean

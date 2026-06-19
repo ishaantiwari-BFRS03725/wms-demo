@@ -95,7 +95,7 @@ function PickingScreen() {
     return (
       <ScreenShell
         picklistId={picklist.id}
-        subtitle="Step 1 of 3 · Assign pick tote"
+        subtitle="Assign pick tote"
       >
         <Card className="space-y-4 p-4">
           <SectionTitle icon={ScanBarcode} title="Scan pick tote LPN" />
@@ -130,7 +130,7 @@ function PickingScreen() {
     return (
       <ScreenShell
         picklistId={picklist.id}
-        subtitle="Step 3 of 3 · Drop at drop-zone"
+        subtitle="Drop at drop-zone"
       >
         <Card className="space-y-4 p-4">
           <div className="rounded-md bg-status-picked/10 p-3 text-sm text-status-picked ring-1 ring-status-picked/30">
@@ -235,7 +235,7 @@ function PickingScreen() {
   return (
     <ScreenShell
       picklistId={picklist.id}
-      subtitle="Step 2 of 3 · Picking"
+      subtitle="Picking"
       onChangeTote={() => setChangeToteOpen(true)}
     >
       <div className="space-y-3">
@@ -288,7 +288,7 @@ function PickingScreen() {
           {!activeProg?.locationScanned ? (
             <ScanRow
               label="Scan location"
-              placeholder={targetLocation}
+              placeholder=""
               done={false}
               expected={targetLocation}
               onScan={(val) => {
@@ -332,7 +332,7 @@ function PickingScreen() {
 
               <ScanRow
                 label="Scan item"
-                placeholder={activeItem.sku}
+                placeholder=""
                 done={(activeProg?.picked ?? 0) >= activeItem.quantity}
                 expected={activeItem.sku}
                 onScan={(val) => {
