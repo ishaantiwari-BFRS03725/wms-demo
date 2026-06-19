@@ -1,5 +1,7 @@
 # Changelog
 
+- 2026-06-19: Orders table — moved Ext Order No, City, and State to optional (default-hidden) columns, and removed the standalone Order Type column in favour of an inline B2C/B2B tag rendered next to the Order No link so order type stays visible in the default view. Order Type filter unchanged.
+
 - 2026-06-19: Zone Insights — extended the lane heatmap (`/lane-congestion`) into a multi-lens screen via a single "View" switcher (one metric at a time to avoid overload): Congestion, Pending Lines (unpicked allocated lines, green→red), SKU Hits (A-mover pick-request density), Replen Risk (faces near zero-scan / below the 25% min, inverted ramp), and Pickers (per-zone operator count, neutral blue ramp). Refactored cell/legend/KPI/filter-chip/detail-panel rendering to read from a `VIEWS` registry so the same zone×lane grid powers every view; tier filter chips, zone summaries, and recommendations relabel per view. Renamed sidebar entry "Lane Congestion" → "Zone Insights". Mock data only. tsc clean
 
 - 2026-06-19: Lane Congestion — added a new zone-wise pick-traffic heatmap (`/lane-congestion`, Outbound → Picking) that visualises live picker footfall per lane across Zones A/B/C, colour-banded clear→busy→congested→blocked, with KPI bar (active pickers, likely-blocked/congested lanes, peak dwell), band filter chips, cross-aisle chokepoint markers, per-zone summaries, and a click-through lane detail panel (pickers in lane, throughput, dwell, re-route recommendation). Mock data only. New "Lane Congestion" sidebar entry (Footprints icon). tsc clean
