@@ -62,6 +62,14 @@ const INTERVAL_OPTIONS = [
   { value: "240", label: "4 hrs" },
 ];
 
+const INTERVAL_OPTIONS = [
+  { value: "15",  label: "15 min" },
+  { value: "30",  label: "30 min" },
+  { value: "60",  label: "1 hr" },
+  { value: "120", label: "2 hrs" },
+  { value: "240", label: "4 hrs" },
+];
+
 const ORDER_TYPES: OrderType[]     = ["B2B", "B2C", "RTV", "STO"];
 const PAYMENT_MODES: PaymentMode[] = ["COD", "Prepaid"];
 const DAYS: DayKey[]               = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];

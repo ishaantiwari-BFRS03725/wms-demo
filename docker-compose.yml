@@ -6,7 +6,7 @@ services:
     image: wms-demo:latest
     container_name: wms-demo
     ports:
-      - "3000:3000"
+      - "3003:80"
     environment:
       NODE_ENV: production
     restart: unless-stopped
@@ -19,7 +19,7 @@ services:
           cpus: "0.1"
           memory: 128M
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
       interval: 30s
       timeout: 5s
       start_period: 10s

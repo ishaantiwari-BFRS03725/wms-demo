@@ -1,11 +1,5 @@
 # Changelog
 
-- 2026-06-19: Wave Creation — removed "Kit Order" from the Order Type filter list (dropped from both the `OrderType` union and `ORDER_TYPES`); now B2B/B2C/RTV/STO.
-
-- 2026-06-19: Orders table — decolorized the inline B2C/B2B order-type chip (neutral border/muted background, single style for both types) instead of the AI/system colour variants.
-
-- 2026-06-19: Orders table — moved Ext Order No, City, and State to optional (default-hidden) columns, and removed the standalone Order Type column in favour of an inline B2C/B2B tag rendered next to the Order No link so order type stays visible in the default view. Order Type filter unchanged.
-
 - 2026-06-19: Zone Insights — extended the lane heatmap (`/lane-congestion`) into a multi-lens screen via a single "View" switcher (one metric at a time to avoid overload): Congestion, Pending Lines (unpicked allocated lines, green→red), SKU Hits (A-mover pick-request density), Replen Risk (faces near zero-scan / below the 25% min, inverted ramp), and Pickers (per-zone operator count, neutral blue ramp). Refactored cell/legend/KPI/filter-chip/detail-panel rendering to read from a `VIEWS` registry so the same zone×lane grid powers every view; tier filter chips, zone summaries, and recommendations relabel per view. Renamed sidebar entry "Lane Congestion" → "Zone Insights". Mock data only. tsc clean
 
 - 2026-06-19: Lane Congestion — added a new zone-wise pick-traffic heatmap (`/lane-congestion`, Outbound → Picking) that visualises live picker footfall per lane across Zones A/B/C, colour-banded clear→busy→congested→blocked, with KPI bar (active pickers, likely-blocked/congested lanes, peak dwell), band filter chips, cross-aisle chokepoint markers, per-zone summaries, and a click-through lane detail panel (pickers in lane, throughput, dwell, re-route recommendation). Mock data only. New "Lane Congestion" sidebar entry (Footprints icon). tsc clean
@@ -60,3 +54,4 @@
 - 2026-06-17: Added Bin Density Heatmap (/slotting) — zone tabs, density chips, 4 KPI cards, interactive grid with golden-zone markers, bin detail panel
 - 2026-06-17: Added Wave Creation (/wave-creation) — schedule-based picklist batching with order/seller/courier/channel/SLA/qty/amount filters, time + day picker, mandatory Picklist Type, activate/edit/delete
 - 2026-06-17: Created DESIGN_MIGRATION.md — SRF 2.0 migration task file (5 phases, 40+ items)
+- 2026-06-19: SPA migration complete — removed TanStack Start/Nitro SSR layer; app now builds to dist/ as static files served by nginx:alpine in Docker; Node.js server eliminated; Dockerfile, docker-compose, and k8s manifests updated for port 80

@@ -5,7 +5,7 @@ node_modules
 .gitignore
 docs
 artefacts
-*.html
+public/*.html
 dist
 *.local
 .env*
