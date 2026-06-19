@@ -1,0 +1,17 @@
+node_modules
+.output
+.nitro
+.git
+.gitignore
+docs
+artefacts
+*.html
+dist
+*.local
+.env*
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+coverage
+*.tsbuildinfo

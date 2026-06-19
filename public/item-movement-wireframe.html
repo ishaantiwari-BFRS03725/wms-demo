@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Item Movement — Wireframe</title>
+<style>
+  :root{
+    --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f1f5f9;
+    --card:#ffffff; --accent:#0f172a; --green:#16a34a; --greenbg:#dcfce7;
+    --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink)}
+  .board{width:1480px;margin:0 auto;padding:40px 44px 48px}
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:6px}
+  .title{font-size:30px;font-weight:800;letter-spacing:-.5px}
+  .sub{color:var(--muted);font-size:15px;margin-top:4px}
+  .tag{background:var(--accent);color:#fff;font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;letter-spacing:.3px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:30px}
+  .panel{background:transparent}
+  .badge{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:13px;color:var(--muted);margin-bottom:10px}
+  .num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;background:var(--accent);color:#fff;font-size:13px;font-weight:700}
+  .device{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 8px 22px rgba(15,23,42,.06);min-height:300px}
+  .top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}
+  .back{color:var(--muted);font-size:13px}
+  .tid{font-weight:700;font-size:14px;text-align:right}
+  .tid small{display:block;color:var(--muted);font-weight:500;font-size:11px}
+  .bins{display:flex;gap:8px;margin-bottom:14px}
+  .bin{flex:1;border:1px solid var(--line);border-radius:9px;padding:7px 10px;display:flex;justify-content:space-between;align-items:center}
+  .bin .l{color:var(--muted);font-size:10px;letter-spacing:.4px}
+  .bin .v{font-family:var(--mono);font-weight:700;font-size:12px}
+  .well{border:1px solid var(--line);border-radius:11px;padding:14px}
+  .cap{color:var(--muted);font-size:10px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+  .bighint{font-family:var(--mono);font-weight:800;font-size:26px;letter-spacing:-.5px;margin-bottom:14px}
+  .scanlabel{color:var(--muted);font-size:10px;letter-spacing:.5px;text-transform:uppercase;display:flex;align-items:center;gap:6px;margin-bottom:6px}
+  .scan{display:flex;gap:8px;align-items:center}
+  .input{flex:1;border:1px solid #cbd5e1;border-radius:9px;padding:10px 12px;font-family:var(--mono);font-size:13px;color:var(--ink);background:#fff}
+  .input.focus{box-shadow:0 0 0 3px rgba(15,23,42,.10);border-color:#94a3b8}
+  .auto{color:var(--muted);font-size:12px;font-weight:600;padding:0 4px}
+  .prod{border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-bottom:12px}
+  .prodimg{height:96px;background:linear-gradient(135deg,#b45309,#7c2d12)}
+  .prodbody{padding:10px 12px}
+  .prodbody b{font-size:14px}
+  .prodbody small{display:block;color:var(--muted);font-family:var(--mono);font-size:11px;margin-top:2px}
+  .scanned{display:flex;align-items:center;gap:6px;color:var(--green);font-size:11px;font-weight:600;margin-bottom:10px}
+  .sysrow{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-bottom:9px}
+  .sysrow .v{font-family:var(--mono);font-weight:700;font-size:13px}
+  .sysrow .sys{font-size:9px;letter-spacing:.5px;color:var(--muted);font-weight:700}
+  .qtybox{border:1px solid #cbd5e1;border-radius:9px;padding:12px;font-family:var(--mono);font-size:18px;font-weight:700;margin-bottom:10px}
+  .sugg{color:var(--muted);font-size:11px;margin-bottom:6px}
+  .btn{background:var(--accent);color:#fff;text-align:center;font-weight:700;font-size:14px;padding:13px;border-radius:9px;margin-top:4px}
+  .toast{display:inline-flex;align-items:center;gap:9px;background:var(--greenbg);color:#14532d;border:1px solid #bbf7d0;border-radius:11px;padding:11px 16px;font-weight:600;font-size:14px;margin-bottom:14px}
+  .dot{width:18px;height:18px;border-radius:999px;background:var(--green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+  .tasklist .trow{border:1px solid var(--line);border-radius:11px;padding:12px 13px;margin-bottom:10px}
+  .tasklist .trow.head{display:flex;gap:10px;align-items:center}
+  .tasklist .ico{width:30px;height:30px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center}
+  .tasklist b{font-size:14px}
+  .tasklist .meta{color:var(--muted);font-size:11px;margin-top:2px}
+  .tasklist .pins{font-family:var(--mono);font-size:11px;color:#334155;margin-top:6px}
+  .caption{margin-top:12px;font-size:13.5px;color:#334155;line-height:1.45}
+  .caption b{color:var(--ink)}
+  .foot{margin-top:34px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:14px;display:flex;justify-content:space-between}
+  @page{size:1568px 1450px;margin:0}
+  @media print{body{background:#fff}.board{width:1568px;padding:40px 44px 30px}.device{box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="board" id="board">
+  <div class="head">
+    <div>
+      <div class="title">Item Movement — Operator Flow</div>
+      <div class="sub">HHT (handheld) screen · task-driven, scan-validated bin-to-bin movement</div>
+    </div>
+    <div class="tag">Shiprocket WMS · Wireframe</div>
+  </div>
+
+  <div class="grid">
+
+    <!-- 1 -->
+    <div class="panel">
+      <div class="badge"><span class="num">1</span> Task List</div>
+      <div class="device tasklist">
+        <div class="trow head">
+          <div class="ico">⇄</div>
+          <div><b>Item Movement</b><div class="meta">Tap a task to start. Bins &amp; items are system-suggested.</div></div>
+        </div>
+        <div class="trow"><b>MOV-3001</b><div class="meta">Replenishment · Bulk → Pick</div><div class="pins">BULK16-02 › PICK01-A1</div></div>
+        <div class="trow"><b>MOV-3002</b><div class="meta">Consolidation · Merge bins</div><div class="pins">BULK10-14 › PICK02-B3</div></div>
+        <div class="trow"><b>MOV-3003</b><div class="meta">Putaway · Inward → Bulk</div><div class="pins">RX-LPN-204 › BULK09-13</div></div>
+      </div>
+      <div class="caption"><b>Pick a task.</b> Each task already carries the source bin, destination bin and item — the operator just taps to begin.</div>
+    </div>
+
+    <!-- 2 -->
+    <div class="panel">
+      <div class="badge"><span class="num">2</span> Scan From Bin</div>
+      <div class="device">
+        <div class="top"><div class="back">← Tasks</div><div class="tid">MOV-3001<small>Step 1 of 3</small></div></div>
+        <div class="bins">
+          <div class="bin"><span class="l">↑ FROM</span><span class="v">BULK16-02</span></div>
+          <div class="bin"><span class="l">↓ TO</span><span class="v">PICK01-A1</span></div>
+        </div>
+        <div class="well">
+          <div class="cap">◎ Go to from bin</div>
+          <div class="bighint">BULK16-02</div>
+          <div class="scanlabel">▥ Scan from bin</div>
+          <div class="scan"><div class="input focus">BULK16-02</div><div class="auto">Auto</div></div>
+        </div>
+      </div>
+      <div class="caption"><b>Confirm the source.</b> Operator scans the from-bin barcode. A wrong scan throws an error and blocks progress.</div>
+    </div>
+
+    <!-- 3 -->
+    <div class="panel">
+      <div class="badge"><span class="num">3</span> Scan To Bin</div>
+      <div class="device">
+        <div class="top"><div class="back">← Tasks</div><div class="tid">MOV-3001<small>Step 2 of 3</small></div></div>
+        <div class="bins">
+          <div class="bin"><span class="l">↑ FROM</span><span class="v">BULK16-02</span></div>
+          <div class="bin"><span class="l">↓ TO</span><span class="v">PICK01-A1</span></div>
+        </div>
+        <div class="well">
+          <div class="cap">◎ Go to to bin</div>
+          <div class="bighint">PICK01-A1</div>
+          <div class="scanlabel">▥ Scan to bin</div>
+          <div class="scan"><div class="input focus">PICK01-A1</div><div class="auto">Auto</div></div>
+        </div>
+      </div>
+      <div class="caption"><b>Confirm the destination.</b> Operator scans the to-bin barcode; only the system-suggested bin is accepted.</div>
+    </div>
+
+    <!-- 4 -->
+    <div class="panel">
+      <div class="badge"><span class="num">4</span> Scan Item</div>
+      <div class="device">
+        <div class="top"><div class="back">← Tasks</div><div class="tid">MOV-3001<small>Step 3 of 3</small></div></div>
+        <div class="bins">
+          <div class="bin"><span class="l">↑ FROM</span><span class="v">BULK16-02</span></div>
+          <div class="bin"><span class="l">↓ TO</span><span class="v">PICK01-A1</span></div>
+        </div>
+        <div class="prod">
+          <div class="prodimg"></div>
+          <div class="prodbody"><b>boAt Airdopes 141 TWS Earbuds</b><small>600179</small></div>
+        </div>
+        <div class="scanlabel">▥ Scan item barcode</div>
+        <div class="scan"><div class="input focus">600179</div><div class="auto">Auto</div></div>
+      </div>
+      <div class="caption"><b>Confirm the item.</b> Product image &amp; SKU are shown for a visual check; the scanned barcode must match.</div>
+    </div>
+
+    <!-- 5 -->
+    <div class="panel">
+      <div class="badge"><span class="num">5</span> Quantity &amp; Batch Details</div>
+      <div class="device">
+        <div class="top"><div class="back">← Tasks</div><div class="tid">MOV-3001<small>Step 3 of 3</small></div></div>
+        <div class="prod">
+          <div class="prodimg"></div>
+          <div class="prodbody"><b>boAt Airdopes 141 TWS Earbuds</b><small>600179</small></div>
+        </div>
+        <div class="scanned"><span class="dot">✓</span> Item scanned</div>
+        <div class="cap"># Quantity to move</div>
+        <div class="sugg">Suggested <b>50</b> units.</div>
+        <div class="qtybox">50</div>
+        <div class="sysrow"><span><div class="cap">◇ Batch being moved</div><span class="v">BTH-AD141-0423</span></span><span class="sys">SYSTEM</span></div>
+        <div class="sysrow"><span><div class="cap">⌛ Expiry date</div><span class="v">01/04/2026</span></span><span class="sys">SYSTEM</span></div>
+        <div class="btn">Confirm movement</div>
+      </div>
+      <div class="caption"><b>Enter quantity, review batch.</b> Quantity is entered inline; batch, expiry, mfg &amp; MRP are <b>system-populated read-only</b> (vary by SKU) — shown only for verification.</div>
+    </div>
+
+    <!-- 6 -->
+    <div class="panel">
+      <div class="badge"><span class="num">6</span> Done — Task Disappears</div>
+      <div class="device tasklist">
+        <div class="toast"><span class="dot">✓</span> Item moved successfully</div>
+        <div class="trow head">
+          <div class="ico">⇄</div>
+          <div><b>Item Movement</b><div class="meta">Tap a task to start. Bins &amp; items are system-suggested.</div></div>
+        </div>
+        <div class="trow"><b>MOV-3002</b><div class="meta">Consolidation · Merge bins</div><div class="pins">BULK10-14 › PICK02-B3</div></div>
+        <div class="trow"><b>MOV-3003</b><div class="meta">Putaway · Inward → Bulk</div><div class="pins">RX-LPN-204 › BULK09-13</div></div>
+      </div>
+      <div class="caption"><b>Movement committed.</b> A success toast confirms the move — no extra screens. The completed task (MOV-3001) drops off the list automatically.</div>
+    </div>
+
+  </div>
+
+  <div class="foot">
+    <span>Item Movement · 6-step operator flow · scan-validated at every stage</span>
+    <span>Generated for demo presentation</span>
+  </div>
+</div>
+</body>
+</html>

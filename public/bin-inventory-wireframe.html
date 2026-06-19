@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Bin Inventory — Item Info Update & Approval Wireframe</title>
+<style>
+  :root{
+    --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f1f5f9;
+    --card:#ffffff; --accent:#0f172a; --green:#15803d; --greenbg:#dcfce7;
+    --amber:#b45309; --amberbg:#fef3c7; --red:#b91c1c; --redbg:#fee2e2;
+    --blue:#1e3a8a;
+    --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink)}
+  .board{width:1560px;margin:0 auto;padding:40px 44px 40px}
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:4px}
+  .title{font-size:30px;font-weight:800;letter-spacing:-.5px}
+  .sub{color:var(--muted);font-size:15px;margin-top:4px}
+  .tag{background:var(--accent);color:#fff;font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;letter-spacing:.3px}
+  .lane{margin-top:26px}
+  .lanehead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .lanepill{font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:#fff;background:var(--accent);padding:5px 12px;border-radius:999px}
+  .lanepill.web{background:var(--blue)}
+  .lanedesc{color:var(--muted);font-size:13px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .panel{background:transparent}
+  .badge{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:13px;color:var(--muted);margin-bottom:10px}
+  .num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;background:var(--accent);color:#fff;font-size:13px;font-weight:700}
+  .num.web{background:var(--blue)}
+  .device{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 8px 22px rgba(15,23,42,.06);min-height:280px}
+  .top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:11px;margin-bottom:12px}
+  .top .ttl{font-weight:700;font-size:13px}
+  .top .ttl small{display:block;color:var(--muted);font-weight:500;font-size:10px;margin-top:1px}
+  .back{color:var(--muted);font-size:12px}
+  .hrow{display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--line);padding-bottom:11px;margin-bottom:12px}
+  .hico{width:30px;height:30px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:15px}
+  .hrow b{font-size:13px}
+  .hrow .m{color:var(--muted);font-size:10.5px;margin-top:1px;line-height:1.3}
+  .well{border:1px solid var(--line);border-radius:11px;padding:13px}
+  .cap{color:var(--muted);font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+  .scan{display:flex;gap:8px;align-items:center}
+  .input{flex:1;border:1px solid #cbd5e1;border-radius:9px;padding:10px 11px;font-family:var(--mono);font-size:12px;color:var(--ink);background:#fff}
+  .input.focus{box-shadow:0 0 0 3px rgba(15,23,42,.10);border-color:#94a3b8}
+  .auto{color:var(--muted);font-size:11px;font-weight:600;padding:0 4px}
+  .locstrip{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-bottom:11px;background:#f8fafc}
+  .locstrip .v{font-family:var(--mono);font-weight:700;font-size:12px}
+  .chip{background:#e2e8f0;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:600}
+  .itemcard{border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:10px}
+  .itemcard .r1{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .itemcard .lbl{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+  .itemcard .sku{font-family:var(--mono);font-weight:700;font-size:13px}
+  .editbtn{border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:11px;font-weight:600;display:inline-flex;gap:5px;align-items:center;background:#fff}
+  .pendpill{display:inline-flex;align-items:center;gap:5px;background:var(--amberbg);color:var(--amber);border-radius:999px;padding:4px 9px;font-size:10px;font-weight:700}
+  .kv{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;margin-top:9px}
+  .kv .lbl{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+  .kv .val{font-size:11.5px;font-weight:600}
+  .kv .mono{font-family:var(--mono)}
+  .prod{border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-bottom:11px}
+  .prodimg{height:74px;background:linear-gradient(135deg,#7c2d12,#b91c1c)}
+  .prodbody{padding:9px 11px}
+  .prodbody b{font-size:12.5px}
+  .prodbody small{display:block;color:var(--muted);font-family:var(--mono);font-size:10px;margin-top:2px}
+  .field{margin-bottom:9px}
+  .fieldbox{border:1px solid #cbd5e1;border-radius:9px;padding:9px 11px;font-family:var(--mono);font-size:12px;font-weight:600}
+  .note{display:flex;gap:8px;border:1px solid var(--line);border-radius:9px;background:#f8fafc;padding:10px;margin:10px 0}
+  .note .i{color:var(--muted);font-size:13px}
+  .note p{margin:0;font-size:10.5px;color:var(--muted);line-height:1.45}
+  .btn{background:var(--accent);color:#fff;text-align:center;font-weight:700;font-size:13px;padding:12px;border-radius:9px}
+  .btn.blue{background:var(--blue)}
+  .toast{display:inline-flex;align-items:center;gap:8px;background:var(--greenbg);color:var(--green);border:1px solid #bbf7d0;border-radius:10px;padding:10px 13px;font-weight:600;font-size:12.5px;margin-bottom:12px;width:100%}
+  .dot{width:17px;height:17px;border-radius:999px;background:var(--green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+  .caption{margin-top:12px;font-size:13px;color:#334155;line-height:1.45}
+  .caption b{color:var(--ink)}
+  /* web mocks */
+  .web-head .h1{font-size:16px;font-weight:800}
+  .web-head .crumb{font-size:10px;color:var(--muted)}
+  .web-head .desc{font-size:11px;color:var(--muted);margin-top:2px}
+  .typesel{display:flex;align-items:center;gap:8px;margin:11px 0}
+  .typesel .lab{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+  .typesel .box{border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:600;flex:1;display:flex;justify-content:space-between;align-items:center}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:11px}
+  .stat{border:1px solid var(--line);border-radius:9px;padding:9px}
+  .stat .v{font-size:16px;font-weight:800}
+  .stat .l{font-size:9px;color:var(--muted)}
+  table.web{width:100%;border-collapse:collapse;font-size:10.5px}
+  table.web th{background:#f1f5f9;color:var(--muted);text-align:left;padding:7px 8px;font-size:8.5px;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--line)}
+  table.web td{padding:8px;border-bottom:1px solid var(--line);font-size:10px}
+  .st{display:inline-block;border-radius:999px;padding:2px 8px;font-size:9px;font-weight:700}
+  .st.app{background:var(--greenbg);color:var(--green)}
+  .st.pen{background:#e2e8f0;color:#475569}
+  .st.dec{background:var(--redbg);color:var(--red)}
+  .mono{font-family:var(--mono)}
+  /* comparison table */
+  .sumgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:11px}
+  .sumc{background:#f1f5f9;border-radius:9px;padding:9px}
+  .sumc .l{font-size:8.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted)}
+  .sumc .v{font-size:11.5px;font-weight:700;margin-top:3px}
+  .sumc .v.mono{font-family:var(--mono);color:var(--blue)}
+  table.cmp{width:100%;border-collapse:collapse;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  table.cmp th{background:var(--blue);color:#fff;text-align:left;padding:8px 11px;font-size:9px;text-transform:uppercase;letter-spacing:.4px}
+  table.cmp td{padding:9px 11px;border-top:1px solid var(--line);font-size:11px;font-family:var(--mono)}
+  table.cmp td.prop{font-family:inherit;font-weight:600}
+  tr.changed{background:#f0fdf4}
+  tr.changed td.prop,tr.changed td.upd{color:var(--green);font-weight:700}
+  .remarks{margin-top:11px}
+  .remarks .lab{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:5px}
+  .remarks .ta{border:1px solid #cbd5e1;border-radius:9px;padding:10px;height:54px;font-size:10.5px;color:#94a3b8}
+  .modfoot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;border-top:1px solid var(--line);padding-top:11px}
+  .modfoot .n{font-size:10px;color:var(--muted)}
+  .modfoot .btns{display:flex;gap:8px}
+  .obtn{border:1px solid var(--line);border-radius:8px;padding:8px 13px;font-size:11px;font-weight:700;background:#fff}
+  .pbtn{border:none;border-radius:8px;padding:8px 13px;font-size:11px;font-weight:700;background:var(--blue);color:#fff}
+  .foot{margin-top:30px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:14px;display:flex;justify-content:space-between}
+  @page{size:1648px 1320px;margin:0}
+  @media print{body{background:#fff}.board{width:1648px;padding:40px 44px 26px}.device{box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="board" id="board">
+  <div class="head">
+    <div>
+      <div class="title">Bin Inventory — Item Info Update &amp; Approval</div>
+      <div class="sub">Operator requests a batch-data change on the handheld; a warehouse manager approves it on the web before it goes live.</div>
+    </div>
+    <div class="tag">Shiprocket WMS · Wireframe</div>
+  </div>
+
+  <!-- OPERATOR LANE -->
+  <div class="lane">
+    <div class="lanehead">
+      <span class="lanepill">Operator · HHT</span>
+      <span class="lanedesc">Raises the change request from the warehouse floor</span>
+    </div>
+    <div class="grid4">
+
+      <!-- 1 -->
+      <div class="panel">
+        <div class="badge"><span class="num">1</span> Scan Location</div>
+        <div class="device">
+          <div class="hrow">
+            <div class="hico">✐</div>
+            <div><b>Bin Inventory</b><div class="m">Scan a location to view its items.</div></div>
+          </div>
+          <div class="well">
+            <div class="cap">◎ Scan location</div>
+            <div class="cap">▥ Scan or enter location</div>
+            <div class="scan"><div class="input focus">BIN-A12-402</div><div class="auto">Auto</div></div>
+          </div>
+        </div>
+        <div class="caption"><b>Start empty.</b> The screen opens with only a location field — the operator scans a bin to load its contents.</div>
+      </div>
+
+      <!-- 2 -->
+      <div class="panel">
+        <div class="badge"><span class="num">2</span> Select Item</div>
+        <div class="device">
+          <div class="hrow">
+            <div class="hico">✐</div>
+            <div><b>Bin Inventory</b><div class="m">Request a change — applied after approval.</div></div>
+          </div>
+          <div class="locstrip"><span class="cap" style="margin:0">◎ Location</span><span class="v">BIN-A12-402</span><span class="chip">4 Items</span></div>
+          <div class="itemcard">
+            <div class="r1">
+              <div><div class="lbl">Item Number</div><div class="sku">SKU-99201-WH</div></div>
+              <span class="editbtn">✐ Edit</span>
+            </div>
+            <div class="kv">
+              <div><div class="lbl">Quantity</div><div class="val">250 Units</div></div>
+              <div><div class="lbl">Batch No</div><div class="val mono">B-2024-X45</div></div>
+            </div>
+          </div>
+          <div class="itemcard">
+            <div class="r1">
+              <div><div class="lbl">Item Number</div><div class="sku">SKU-44023-BL</div></div>
+              <span class="editbtn">✐ Edit</span>
+            </div>
+            <div class="kv">
+              <div><div class="lbl">Quantity</div><div class="val">12 Units</div></div>
+              <div><div class="lbl">Batch No</div><div class="val mono">B-2023-Y02</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="caption"><b>Pick an item.</b> The bin’s items appear with their current batch details; each has an Edit action.</div>
+      </div>
+
+      <!-- 3 -->
+      <div class="panel">
+        <div class="badge"><span class="num">3</span> Edit Details</div>
+        <div class="device">
+          <div class="top"><div class="back">← Items</div><div class="ttl">Edit Item Details<small>Update request</small></div></div>
+          <div class="prod"><div class="prodimg"></div><div class="prodbody"><b>boAt Airdopes 141 TWS Earbuds</b><small>SKU: SKU-99201-WH · BIN-A12-402</small></div></div>
+          <div class="field"><div class="cap"># Batch Number</div><div class="fieldbox">B-2024-X45</div></div>
+          <div class="field"><div class="cap">₹ Maximum Retail Price (MRP)</div><div class="fieldbox">1250.00</div></div>
+          <div class="field"><div class="cap">⌛ Expiry Date</div><div class="fieldbox">2025-10-12</div></div>
+          <div class="note"><span class="i">ⓘ</span><p>Modified batch information will be sent for approval. Please ensure documentation matches physical labels.</p></div>
+          <div class="btn">✓ Submit for approval</div>
+        </div>
+        <div class="caption"><b>Edit &amp; submit.</b> Batch number, MRP, expiry and mfg date are editable; the button stays disabled until something changes.</div>
+      </div>
+
+      <!-- 4 -->
+      <div class="panel">
+        <div class="badge"><span class="num">4</span> Request Raised</div>
+        <div class="device">
+          <div class="toast"><span class="dot">✓</span> Update request submitted for approval</div>
+          <div class="locstrip"><span class="cap" style="margin:0">◎ Location</span><span class="v">BIN-A12-402</span><span class="chip">4 Items</span></div>
+          <div class="itemcard" style="opacity:.75">
+            <div class="r1">
+              <div><div class="lbl">Item Number</div><div class="sku">SKU-99201-WH</div></div>
+              <span class="pendpill">◷ Pending approval</span>
+            </div>
+            <div class="kv">
+              <div><div class="lbl">Quantity</div><div class="val">250 Units</div></div>
+              <div><div class="lbl">Batch No</div><div class="val mono">B-2024-X45</div></div>
+            </div>
+          </div>
+          <div class="itemcard">
+            <div class="r1">
+              <div><div class="lbl">Item Number</div><div class="sku">SKU-44023-BL</div></div>
+              <span class="editbtn">✐ Edit</span>
+            </div>
+          </div>
+        </div>
+        <div class="caption"><b>Awaiting approval.</b> A confirmation toast shows, and the item is tagged “Pending approval” — its values stay unchanged until signed off.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- APPROVER LANE -->
+  <div class="lane">
+    <div class="lanehead">
+      <span class="lanepill web">Approver · Web</span>
+      <span class="lanedesc">Warehouse manager reviews and decides</span>
+    </div>
+    <div class="grid3">
+
+      <!-- 5 -->
+      <div class="panel">
+        <div class="badge"><span class="num web">5</span> Approvals List</div>
+        <div class="device">
+          <div class="web-head">
+            <div class="crumb">Inventory › Approvals</div>
+            <div class="h1">Approval Requests</div>
+            <div class="desc">Review and process inventory update requests.</div>
+          </div>
+          <div class="typesel"><span class="lab">Approval Type</span><span class="box">Item Info Editing Approval ⌄</span></div>
+          <div class="stats">
+            <div class="stat"><div class="v">3</div><div class="l">Pending</div></div>
+            <div class="stat"><div class="v">2,840</div><div class="l">Processed</div></div>
+            <div class="stat"><div class="v">1</div><div class="l">Declined</div></div>
+            <div class="stat"><div class="v">Fast</div><div class="l">Velocity</div></div>
+          </div>
+          <table class="web">
+            <thead><tr><th>Status</th><th>Bin No</th><th>Item No</th><th>Created By</th></tr></thead>
+            <tbody>
+              <tr><td><span class="st app">Approved</span></td><td class="mono">BIN-A12-402</td><td class="mono">SKU-99201-WH</td><td>P. Gupta</td></tr>
+              <tr><td><span class="st pen">Pending</span></td><td class="mono">BIN-A12-402</td><td class="mono">SKU-44023-BL</td><td>P. Chaturvedi</td></tr>
+              <tr><td><span class="st pen">Pending</span></td><td class="mono">BIN-A12-402</td><td class="mono">SKU-77312-RD</td><td>P. Chaturvedi</td></tr>
+              <tr><td><span class="st dec">Declined</span></td><td class="mono">BIN-C04-118</td><td class="mono">SKU-60221-BK</td><td>P. Gupta</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="caption"><b>Queue by type.</b> Requests land under the “Item Info Editing Approval” type, with status, source bin, item and who raised it.</div>
+      </div>
+
+      <!-- 6 -->
+      <div class="panel">
+        <div class="badge"><span class="num web">6</span> Approval Detail</div>
+        <div class="device">
+          <div class="top" style="border:none;margin:0;padding:0 0 8px"><div class="ttl" style="font-size:14px">Approval Detail</div><div class="back">✕</div></div>
+          <div class="sumgrid">
+            <div class="sumc"><div class="l">Request</div><div class="v mono">00304</div></div>
+            <div class="sumc"><div class="l">SKU</div><div class="v">8904037207871</div></div>
+            <div class="sumc"><div class="l">Description</div><div class="v">Airdopes 141</div></div>
+            <div class="sumc"><div class="l">Qty</div><div class="v">100</div></div>
+          </div>
+          <table class="cmp">
+            <thead><tr><th>Data Property</th><th>Current</th><th>Updated</th></tr></thead>
+            <tbody>
+              <tr><td class="prop">MRP</td><td>143</td><td class="upd">143</td></tr>
+              <tr class="changed"><td class="prop">Lot No</td><td>BAT-B-02</td><td class="upd">→ BAT-A-028-11-28</td></tr>
+              <tr><td class="prop">MFG Date</td><td>2024-06-01</td><td class="upd">2024-06-01</td></tr>
+              <tr class="changed"><td class="prop">Expiry Date</td><td>2024-06-01</td><td class="upd">→ 2026-07-08</td></tr>
+            </tbody>
+          </table>
+          <div class="remarks"><div class="lab">Approver Remarks *</div><div class="ta">Enter comments for this approval / rejection decision…</div></div>
+          <div class="modfoot"><span class="n">ⓘ Changes take effect immediately upon approval.</span><span class="btns"><span class="obtn">Decline</span><span class="pbtn">Approve Update</span></span></div>
+        </div>
+        <div class="caption"><b>Review the diff.</b> Only genuinely changed fields are highlighted with an arrow; remarks are mandatory before deciding.</div>
+      </div>
+
+      <!-- 7 -->
+      <div class="panel">
+        <div class="badge"><span class="num web">7</span> Decision Applied</div>
+        <div class="device">
+          <div class="toast"><span class="dot">✓</span> Update approved — inventory updated</div>
+          <table class="web">
+            <thead><tr><th>Status</th><th>Bin No</th><th>Item No</th><th>Approved By</th></tr></thead>
+            <tbody>
+              <tr><td><span class="st app">Approved</span></td><td class="mono">BIN-A12-402</td><td class="mono">SKU-99201-WH</td><td>WH Manager</td></tr>
+              <tr><td><span class="st app">Approved</span></td><td class="mono">BIN-A12-402</td><td class="mono">SKU-44023-BL</td><td>WH Manager</td></tr>
+              <tr><td><span class="st pen">Pending</span></td><td class="mono">BIN-A12-402</td><td class="mono">SKU-77312-RD</td><td>—</td></tr>
+              <tr><td><span class="st dec">Declined</span></td><td class="mono">BIN-C04-118</td><td class="mono">SKU-60221-BK</td><td>WH Manager</td></tr>
+            </tbody>
+          </table>
+          <div class="note" style="margin-top:14px"><span class="i">ⓘ</span><p>On approval the new batch values are written to inventory and the request is stamped with the approver and time. Declined requests leave the data untouched.</p></div>
+        </div>
+        <div class="caption"><b>Live or rejected.</b> Approving updates the item’s batch data instantly and marks the row Approved; declining keeps the original values.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Bin Inventory · request-and-approval process · 7 steps across handheld and web</span>
+    <span>Generated for demo presentation</span>
+  </div>
+</div>
+</body>
+</html>
