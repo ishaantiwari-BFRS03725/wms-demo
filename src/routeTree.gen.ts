@@ -42,6 +42,7 @@ import { Route as WmsOutboundExceptionsRouteImport } from './routes/_wms.outboun
 import { Route as WmsMovementTaskCreateRouteImport } from './routes/_wms.movement-task-create'
 import { Route as WmsMasterDataRouteImport } from './routes/_wms.master-data'
 import { Route as WmsManifestRouteImport } from './routes/_wms.manifest'
+import { Route as WmsLaneCongestionRouteImport } from './routes/_wms.lane-congestion'
 import { Route as WmsKittingRouteImport } from './routes/_wms.kitting'
 import { Route as WmsKitOrderRouteImport } from './routes/_wms.kit-order'
 import { Route as WmsKitMappingRouteImport } from './routes/_wms.kit-mapping'
@@ -242,6 +243,11 @@ const WmsMasterDataRoute = WmsMasterDataRouteImport.update({
 const WmsManifestRoute = WmsManifestRouteImport.update({
   id: '/manifest',
   path: '/manifest',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsLaneCongestionRoute = WmsLaneCongestionRouteImport.update({
+  id: '/lane-congestion',
+  path: '/lane-congestion',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsKittingRoute = WmsKittingRouteImport.update({
@@ -461,6 +467,7 @@ export interface FileRoutesByFullPath {
   '/kit-mapping': typeof WmsKitMappingRoute
   '/kit-order': typeof WmsKitOrderRoute
   '/kitting': typeof WmsKittingRoute
+  '/lane-congestion': typeof WmsLaneCongestionRoute
   '/manifest': typeof WmsManifestRoute
   '/master-data': typeof WmsMasterDataRoute
   '/movement-task-create': typeof WmsMovementTaskCreateRoute
@@ -532,6 +539,7 @@ export interface FileRoutesByTo {
   '/kit-mapping': typeof WmsKitMappingRoute
   '/kit-order': typeof WmsKitOrderRoute
   '/kitting': typeof WmsKittingRoute
+  '/lane-congestion': typeof WmsLaneCongestionRoute
   '/manifest': typeof WmsManifestRoute
   '/master-data': typeof WmsMasterDataRoute
   '/movement-task-create': typeof WmsMovementTaskCreateRoute
@@ -605,6 +613,7 @@ export interface FileRoutesById {
   '/_wms/kit-mapping': typeof WmsKitMappingRoute
   '/_wms/kit-order': typeof WmsKitOrderRoute
   '/_wms/kitting': typeof WmsKittingRoute
+  '/_wms/lane-congestion': typeof WmsLaneCongestionRoute
   '/_wms/manifest': typeof WmsManifestRoute
   '/_wms/master-data': typeof WmsMasterDataRoute
   '/_wms/movement-task-create': typeof WmsMovementTaskCreateRoute
@@ -678,6 +687,7 @@ export interface FileRouteTypes {
     | '/kit-mapping'
     | '/kit-order'
     | '/kitting'
+    | '/lane-congestion'
     | '/manifest'
     | '/master-data'
     | '/movement-task-create'
@@ -749,6 +759,7 @@ export interface FileRouteTypes {
     | '/kit-mapping'
     | '/kit-order'
     | '/kitting'
+    | '/lane-congestion'
     | '/manifest'
     | '/master-data'
     | '/movement-task-create'
@@ -821,6 +832,7 @@ export interface FileRouteTypes {
     | '/_wms/kit-mapping'
     | '/_wms/kit-order'
     | '/_wms/kitting'
+    | '/_wms/lane-congestion'
     | '/_wms/manifest'
     | '/_wms/master-data'
     | '/_wms/movement-task-create'
@@ -1100,6 +1112,13 @@ declare module '@tanstack/react-router' {
       path: '/manifest'
       fullPath: '/manifest'
       preLoaderRoute: typeof WmsManifestRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/lane-congestion': {
+      id: '/_wms/lane-congestion'
+      path: '/lane-congestion'
+      fullPath: '/lane-congestion'
+      preLoaderRoute: typeof WmsLaneCongestionRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/kitting': {
@@ -1392,6 +1411,7 @@ interface WmsRouteChildren {
   WmsKitMappingRoute: typeof WmsKitMappingRoute
   WmsKitOrderRoute: typeof WmsKitOrderRoute
   WmsKittingRoute: typeof WmsKittingRoute
+  WmsLaneCongestionRoute: typeof WmsLaneCongestionRoute
   WmsManifestRoute: typeof WmsManifestRoute
   WmsMasterDataRoute: typeof WmsMasterDataRoute
   WmsMovementTaskCreateRoute: typeof WmsMovementTaskCreateRoute
@@ -1463,6 +1483,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsKitMappingRoute: WmsKitMappingRoute,
   WmsKitOrderRoute: WmsKitOrderRoute,
   WmsKittingRoute: WmsKittingRoute,
+  WmsLaneCongestionRoute: WmsLaneCongestionRoute,
   WmsManifestRoute: WmsManifestRoute,
   WmsMasterDataRoute: WmsMasterDataRoute,
   WmsMovementTaskCreateRoute: WmsMovementTaskCreateRoute,
