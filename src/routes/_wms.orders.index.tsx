@@ -758,14 +758,7 @@ function OrdersPage() {
                           >
                             {o.orderNo}
                           </Link>
-                          <span
-                            className={cn(
-                              "rounded-[2px] border px-1.5 py-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.06em]",
-                              o.orderType === "B2B"
-                                ? "border-sys/30 bg-sys-bg text-sys"
-                                : "border-ai-ring bg-ai-bg text-ai",
-                            )}
-                          >
+                          <span className="rounded-[2px] border border-border bg-muted px-1.5 py-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
                             {o.orderType}
                           </span>
                         </div>
