@@ -90,7 +90,6 @@ const ALL = "all";
 type ColKey =
   | "orderNo"
   | "extOrderNo"
-  | "orderType"
   | "channel"
   | "seller"
   | "courier"
@@ -107,14 +106,13 @@ type ColKey =
 
 const COLUMNS: { key: ColKey; label: string; default: boolean }[] = [
   { key: "orderNo", label: "Order No", default: true },
-  { key: "extOrderNo", label: "Ext Order No", default: true },
-  { key: "orderType", label: "Order Type", default: true },
+  { key: "extOrderNo", label: "Ext Order No", default: false },
   { key: "channel", label: "Channel", default: true },
   { key: "seller", label: "Seller", default: true },
   { key: "courier", label: "Courier", default: true },
   { key: "sla", label: "SLA", default: true },
-  { key: "city", label: "City", default: true },
-  { key: "state", label: "State", default: true },
+  { key: "city", label: "City", default: false },
+  { key: "state", label: "State", default: false },
   { key: "paymentMode", label: "Payment Mode", default: true },
   { key: "status", label: "Status", default: true },
   { key: "totalQuantity", label: "Total Quantity", default: true },
@@ -702,7 +700,6 @@ function OrdersPage() {
               <TableRow className="bg-muted [&>th]:sticky [&>th]:top-0 [&>th]:z-20 [&>th]:bg-muted [&>th]:shadow-[inset_0_-1px_0_hsl(var(--border))]">
                 {visibleCols.orderNo && <TableHead>Order No</TableHead>}
                 {visibleCols.extOrderNo && <TableHead>Ext Order No</TableHead>}
-                {visibleCols.orderType && <TableHead>Order Type</TableHead>}
                 {visibleCols.channel && <TableHead>Channel</TableHead>}
                 {visibleCols.seller && <TableHead>Seller</TableHead>}
                 {visibleCols.courier && <TableHead>Courier</TableHead>}
@@ -753,32 +750,23 @@ function OrdersPage() {
                   >
                     {visibleCols.orderNo && (
                       <TableCell className="font-medium">
-                        <Link
-                          to="/orders/$orderNo"
-                          params={{ orderNo: o.orderNo }}
-                          className="text-primary hover:underline"
-                        >
-                          {o.orderNo}
-                        </Link>
+                        <div className="flex items-center gap-1.5">
+                          <Link
+                            to="/orders/$orderNo"
+                            params={{ orderNo: o.orderNo }}
+                            className="text-primary hover:underline"
+                          >
+                            {o.orderNo}
+                          </Link>
+                          <span className="rounded-[2px] border border-border px-1.5 py-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                            {o.orderType}
+                          </span>
+                        </div>
                       </TableCell>
                     )}
                     {visibleCols.extOrderNo && (
                       <TableCell className="text-muted-foreground">
                         {o.extOrderNo}
-                      </TableCell>
-                    )}
-                    {visibleCols.orderType && (
-                      <TableCell>
-                        <span
-                          className={cn(
-                            "rounded-[2px] border px-1.5 py-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.06em]",
-                            o.orderType === "B2B"
-                              ? "border-sys/30 bg-sys-bg text-sys"
-                              : "border-ai-ring bg-ai-bg text-ai",
-                          )}
-                        >
-                          {o.orderType}
-                        </span>
                       </TableCell>
                     )}
                     {visibleCols.channel && <TableCell>{o.channel}</TableCell>}

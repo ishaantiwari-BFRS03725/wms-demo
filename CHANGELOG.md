@@ -1,5 +1,13 @@
 # Changelog
 
+- 2026-06-19: Added SCREENS.md — quick reference mapping every screen/module to its route file and mock-data source, grouped by sidebar section, flagging native screens vs SRF design mocks
+
+- 2026-06-19: Wave Creation — moved Channel and Courier directly below Seller (in the Order Filters group) and converted both from selection chips to multi-select dropdowns; generalized SellerMultiSelect into a reusable `MultiSelectDropdown` (noun prop) now shared by Seller/Channel/Courier; removed the now-empty Fulfillment Filters section
+- 2026-06-19: Wave Creation — replaced the Number of SKUs min/max number inputs with a Single SKU / Multi SKU radio toggle (mirrors Order Quantity) and moved the section directly below Order Quantity; updated seed data, edit-load, and summary chips; removed now-unused NumberInput helper
+- 2026-06-19: Orders table — City and State columns now hidden by default (moved to optional columns)
+- 2026-06-19: Orders table — moved the decolorized B2C/B2B tag inline into the Order No cell (was Ext Order No) so it stays visible in the default view
+- 2026-06-19: Orders table — Ext Order No column now hidden by default (moved to optional columns); removed the standalone Order Type column and instead show a decolorized (neutral border/muted) B2C/B2B tag inline inside the Ext Order No cell to save horizontal space; Order Type filter unchanged so users can still filter/sort by type
+
 - 2026-06-19: Imported SRF 2.0 Tier-4 screens (Users & Roles, Policies, Master Data, Audit Log, Platform Health, Billing Leakage, Carrier/Vendor Scorecards, Gatepass Log, Floor Handhelds) as static mockups — 8 reuse already-bundled design components; `GatepassScreen` (core-ops-screens.jsx) + full handheld suite (`PhoneFrame`/`HHHeader`/`ScanBox`/`HHBtn` + `HHDockUnload`/`HHPicker`/`HHPacker`/`HHQCInspect` + `FloorScreens`, handheld-screens.jsx) copy-pasted verbatim into `src/srf/srf-screens.tsx`; 10 route wrappers added; sidebar gains "Admin & Governance" + "Devices" sections. Completes the SRF 2.0 missing-screens import (30 screens, all 4 tiers). tsc clean
 
 - 2026-06-19: Imported SRF 2.0 Tier-3 screens (Returns Intake, Returns Evaluation, RTO/RTV/CIR flows, QC Station, Cycle Count & Audit) as static mockups — `returns-flows.jsx` (RTO/RTV/CIR + ReturnFlowHeader) and `CycleCountScreen` copy-pasted verbatim into `src/srf/srf-screens.tsx`; 7 route wrappers added; sidebar gains "Reverse & QC" section. tsc clean

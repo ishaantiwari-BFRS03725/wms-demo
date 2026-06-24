@@ -103,9 +103,8 @@ interface WaveSchedule {
   slaWindow: string;          // SLA option value e.g. "1-2", or ""
   // quantity / amount filters
   orderQtyType: "" | "single" | "multi";  // single- vs multi-quantity orders
+  skuCountType: "" | "single" | "multi";  // single- vs multi-SKU orders
   saleAmountMin: string;
-  skuCountMin: string;
-  skuCountMax: string;
   // fulfillment filters
   couriers: string[];
   channels: string[];
@@ -131,9 +130,8 @@ const SEED: WaveSchedule[] = [
     sellers: ["Acme Traders", "Blue Star Retail"],
     slaWindow: "1-2",
     orderQtyType: "",
+    skuCountType: "multi",
     saleAmountMin: "",
-    skuCountMin: "",
-    skuCountMax: "5",
     couriers: ["Bluedart", "Delhivery"],
     channels: ["Amazon", "Flipkart"],
     time: "09:00",
@@ -151,9 +149,8 @@ const SEED: WaveSchedule[] = [
     sellers: [],
     slaWindow: "3-5",
     orderQtyType: "multi",
+    skuCountType: "",
     saleAmountMin: "500",
-    skuCountMin: "",
-    skuCountMax: "",
     couriers: [],
     channels: [],
     time: "14:30",
@@ -177,9 +174,8 @@ const EMPTY_FORM: WaveForm = {
   sellers: [],
   slaWindow: "",
   orderQtyType: "",
+  skuCountType: "",
   saleAmountMin: "",
-  skuCountMin: "",
-  skuCountMax: "",
   couriers: [],
   channels: [],
   time: "09:00",
@@ -229,9 +225,8 @@ function WaveCreation() {
       sellers: w.sellers,
       slaWindow: w.slaWindow,
       orderQtyType: w.orderQtyType,
+      skuCountType: w.skuCountType,
       saleAmountMin: w.saleAmountMin,
-      skuCountMin: w.skuCountMin,
-      skuCountMax: w.skuCountMax,
       couriers: w.couriers,
       channels: w.channels,
       time: w.time,
@@ -379,11 +374,34 @@ function WaveCreation() {
 
               {/* Seller — searchable multi-select */}
               <Section label="Seller" hint="Leave empty to include all sellers.">
-                <SellerMultiSelect
+                <MultiSelectDropdown
+                  noun="seller"
                   options={SELLER_OPTIONS}
                   selected={f.sellers}
                   onToggle={(v) => set({ sellers: toggleItem(f.sellers, v) })}
                   onClear={() => set({ sellers: [] })}
+                />
+              </Section>
+
+              {/* Channel — multi-select dropdown */}
+              <Section label="Channel" hint="Leave empty to include all channels.">
+                <MultiSelectDropdown
+                  noun="channel"
+                  options={CHANNEL_OPTIONS}
+                  selected={f.channels}
+                  onToggle={(v) => set({ channels: toggleItem(f.channels, v) })}
+                  onClear={() => set({ channels: [] })}
+                />
+              </Section>
+
+              {/* Courier — multi-select dropdown */}
+              <Section label="Courier" hint="Leave empty to include all couriers.">
+                <MultiSelectDropdown
+                  noun="courier"
+                  options={COURIER_OPTIONS}
+                  selected={f.couriers}
+                  onToggle={(v) => set({ couriers: toggleItem(f.couriers, v) })}
+                  onClear={() => set({ couriers: [] })}
                 />
               </Section>
 
@@ -445,6 +463,39 @@ function WaveCreation() {
                 </div>
               </Section>
 
+              {/* Number of SKUs */}
+              <Section label="Number of SKUs" hint="Filter by distinct SKU count per order.">
+                <div className="flex flex-wrap items-center gap-2">
+                  {([
+                    { value: "single", label: "Single SKU order" },
+                    { value: "multi",  label: "Multi SKU order" },
+                  ] as const).map((opt) => {
+                    const selected = f.skuCountType === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => set({ skuCountType: selected ? "" : opt.value })}
+                        className={cn(
+                          "flex items-center gap-2 rounded-[3px] border px-3 py-2 text-[13px] transition-colors",
+                          selected
+                            ? "border-sys/40 bg-sys-bg text-sys"
+                            : "border-border bg-background text-foreground hover:bg-muted",
+                        )}
+                      >
+                        <span className={cn(
+                          "flex h-3.5 w-3.5 items-center justify-center rounded-full border",
+                          selected ? "border-sys" : "border-muted-foreground/40",
+                        )}>
+                          {selected && <span className="h-1.5 w-1.5 rounded-full bg-sys" />}
+                        </span>
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Section>
+
               {/* Sale Amount */}
               <Section label="Sale Amount" hint="Include orders with total value above this amount.">
                 <div className="relative w-44">
@@ -457,37 +508,6 @@ function WaveCreation() {
                     onChange={(e) => set({ saleAmountMin: e.target.value })}
                     className="h-9 pl-8"
                   />
-                </div>
-              </Section>
-
-              {/* Number of SKUs */}
-              <Section label="Number of SKUs" hint="Filter by distinct SKU count per order.">
-                <div className="grid grid-cols-2 gap-3">
-                  <NumberInput prefix="At least" placeholder="—" value={f.skuCountMin} onChange={(v) => set({ skuCountMin: v })} />
-                  <NumberInput prefix="At most"  placeholder="—" value={f.skuCountMax} onChange={(v) => set({ skuCountMax: v })} />
-                </div>
-              </Section>
-            </div>
-
-            {/* ── FULFILLMENT FILTERS ── */}
-            <div className="px-6 py-5 space-y-5">
-              <p className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground/70">
-                Fulfillment Filters
-              </p>
-
-              <Section label="Courier" hint="Leave empty to include all couriers.">
-                <div className="flex flex-wrap gap-2">
-                  {COURIER_OPTIONS.map((c) => (
-                    <FilterChip key={c} label={c} active={f.couriers.includes(c)} onClick={() => set({ couriers: toggleItem(f.couriers, c) })} />
-                  ))}
-                </div>
-              </Section>
-
-              <Section label="Channel" hint="Leave empty to include all channels.">
-                <div className="flex flex-wrap gap-2">
-                  {CHANNEL_OPTIONS.map((ch) => (
-                    <FilterChip key={ch} label={ch} active={f.channels.includes(ch)} onClick={() => set({ channels: toggleItem(f.channels, ch) })} />
-                  ))}
                 </div>
               </Section>
             </div>
@@ -608,11 +628,10 @@ function WaveCard({
   if (wave.orderQtyType) {
     tags.push({ label: wave.orderQtyType === "single" ? "Single qty" : "Multi qty", cls: "bg-orange-50 text-orange-700 border-orange-200" });
   }
-  if (wave.saleAmountMin) tags.push({ label: `Sale ≥ ₹${wave.saleAmountMin}`, cls: "bg-teal-50 text-teal-700 border-teal-200" });
-  if (wave.skuCountMin || wave.skuCountMax) {
-    const parts = [wave.skuCountMin ? `≥ ${wave.skuCountMin}` : "", wave.skuCountMax ? `≤ ${wave.skuCountMax}` : ""].filter(Boolean);
-    tags.push({ label: `SKUs ${parts.join(", ")}`, cls: "bg-indigo-50 text-indigo-700 border-indigo-200" });
+  if (wave.skuCountType) {
+    tags.push({ label: wave.skuCountType === "single" ? "Single SKU" : "Multi SKU", cls: "bg-indigo-50 text-indigo-700 border-indigo-200" });
   }
+  if (wave.saleAmountMin) tags.push({ label: `Sale ≥ ₹${wave.saleAmountMin}`, cls: "bg-teal-50 text-teal-700 border-teal-200" });
 
   wave.couriers.forEach((c)  => tags.push({ label: c,  cls: "bg-slate-100 text-slate-700 border-slate-200" }));
   wave.channels.forEach((ch) => tags.push({ label: ch, cls: "bg-emerald-50 text-emerald-700 border-emerald-200" }));
@@ -692,18 +711,20 @@ function WaveCard({
   );
 }
 
-// ─── SellerMultiSelect ────────────────────────────────────────────────────────
+// ─── MultiSelectDropdown ──────────────────────────────────────────────────────
 
-function SellerMultiSelect({
-  options, selected, onToggle, onClear,
+function MultiSelectDropdown({
+  options, selected, onToggle, onClear, noun,
 }: {
   options: string[];
   selected: string[];
   onToggle: (v: string) => void;
   onClear: () => void;
+  noun: string;            // singular, e.g. "seller" — pluralised with +s for labels
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const plural = `${noun}s`;
 
   const filtered = options.filter((o) =>
     o.toLowerCase().includes(search.toLowerCase())
@@ -719,10 +740,10 @@ function SellerMultiSelect({
           >
             <span className={selected.length === 0 ? "text-muted-foreground" : ""}>
               {selected.length === 0
-                ? "All sellers"
+                ? `All ${plural}`
                 : selected.length === 1
                 ? selected[0]
-                : `${selected.length} sellers selected`}
+                : `${selected.length} ${plural} selected`}
             </span>
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </button>
@@ -734,7 +755,7 @@ function SellerMultiSelect({
             <Search className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
             <input
               autoFocus
-              placeholder="Search sellers…"
+              placeholder={`Search ${plural}…`}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
@@ -744,7 +765,7 @@ function SellerMultiSelect({
           {/* Options list */}
           <div className="max-h-52 overflow-y-auto py-1">
             {filtered.length === 0 ? (
-              <p className="px-3 py-4 text-center text-xs text-muted-foreground">No sellers found</p>
+              <p className="px-3 py-4 text-center text-xs text-muted-foreground">No {plural} found</p>
             ) : (
               filtered.map((o) => {
                 const checked = selected.includes(o);
@@ -855,14 +876,5 @@ function FilterChip({ label, active, onClick, compact = false }: { label: string
     >
       {label}
     </button>
-  );
-}
-
-function NumberInput({ prefix, placeholder, value, onChange }: { prefix: string; placeholder: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <div className="space-y-1">
-      <label className="text-[10px] text-muted-foreground">{prefix}</label>
-      <Input type="number" min={0} placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} className="h-9" />
-    </div>
   );
 }
