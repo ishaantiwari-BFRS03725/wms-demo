@@ -72,11 +72,13 @@ import { Route as WmsAgentDirectoryRouteImport } from './routes/_wms.agent-direc
 import { Route as WmsAdminRouteImport } from './routes/_wms.admin'
 import { Route as WmsViewPicklistIndexRouteImport } from './routes/_wms.view-picklist.index'
 import { Route as WmsViewPackIndexRouteImport } from './routes/_wms.view-pack.index'
+import { Route as WmsViewGrnIndexRouteImport } from './routes/_wms.view-grn.index'
 import { Route as WmsSortIndexRouteImport } from './routes/_wms.sort.index'
 import { Route as WmsPickIndexRouteImport } from './routes/_wms.pick.index'
 import { Route as WmsOrdersIndexRouteImport } from './routes/_wms.orders.index'
 import { Route as WmsViewPicklistPicklistIdRouteImport } from './routes/_wms.view-picklist.$picklistId'
 import { Route as WmsViewPackPacklistIdRouteImport } from './routes/_wms.view-pack.$packlistId'
+import { Route as WmsViewGrnGrnIdRouteImport } from './routes/_wms.view-grn.$grnId'
 import { Route as WmsSortTaskIdRouteImport } from './routes/_wms.sort.$taskId'
 import { Route as WmsPickPicklistIdRouteImport } from './routes/_wms.pick.$picklistId'
 import { Route as WmsOrdersOrderNoRouteImport } from './routes/_wms.orders.$orderNo'
@@ -396,6 +398,11 @@ const WmsViewPackIndexRoute = WmsViewPackIndexRouteImport.update({
   path: '/view-pack/',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsViewGrnIndexRoute = WmsViewGrnIndexRouteImport.update({
+  id: '/view-grn/',
+  path: '/view-grn/',
+  getParentRoute: () => WmsRoute,
+} as any)
 const WmsSortIndexRoute = WmsSortIndexRouteImport.update({
   id: '/sort/',
   path: '/sort/',
@@ -420,6 +427,11 @@ const WmsViewPicklistPicklistIdRoute =
 const WmsViewPackPacklistIdRoute = WmsViewPackPacklistIdRouteImport.update({
   id: '/view-pack/$packlistId',
   path: '/view-pack/$packlistId',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsViewGrnGrnIdRoute = WmsViewGrnGrnIdRouteImport.update({
+  id: '/view-grn/$grnId',
+  path: '/view-grn/$grnId',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsSortTaskIdRoute = WmsSortTaskIdRouteImport.update({
@@ -502,11 +514,13 @@ export interface FileRoutesByFullPath {
   '/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/pick/$picklistId': typeof WmsPickPicklistIdRoute
   '/sort/$taskId': typeof WmsSortTaskIdRoute
+  '/view-grn/$grnId': typeof WmsViewGrnGrnIdRoute
   '/view-pack/$packlistId': typeof WmsViewPackPacklistIdRoute
   '/view-picklist/$picklistId': typeof WmsViewPicklistPicklistIdRoute
   '/orders/': typeof WmsOrdersIndexRoute
   '/pick/': typeof WmsPickIndexRoute
   '/sort/': typeof WmsSortIndexRoute
+  '/view-grn/': typeof WmsViewGrnIndexRoute
   '/view-pack/': typeof WmsViewPackIndexRoute
   '/view-picklist/': typeof WmsViewPicklistIndexRoute
 }
@@ -574,11 +588,13 @@ export interface FileRoutesByTo {
   '/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/pick/$picklistId': typeof WmsPickPicklistIdRoute
   '/sort/$taskId': typeof WmsSortTaskIdRoute
+  '/view-grn/$grnId': typeof WmsViewGrnGrnIdRoute
   '/view-pack/$packlistId': typeof WmsViewPackPacklistIdRoute
   '/view-picklist/$picklistId': typeof WmsViewPicklistPicklistIdRoute
   '/orders': typeof WmsOrdersIndexRoute
   '/pick': typeof WmsPickIndexRoute
   '/sort': typeof WmsSortIndexRoute
+  '/view-grn': typeof WmsViewGrnIndexRoute
   '/view-pack': typeof WmsViewPackIndexRoute
   '/view-picklist': typeof WmsViewPicklistIndexRoute
 }
@@ -648,11 +664,13 @@ export interface FileRoutesById {
   '/_wms/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/_wms/pick/$picklistId': typeof WmsPickPicklistIdRoute
   '/_wms/sort/$taskId': typeof WmsSortTaskIdRoute
+  '/_wms/view-grn/$grnId': typeof WmsViewGrnGrnIdRoute
   '/_wms/view-pack/$packlistId': typeof WmsViewPackPacklistIdRoute
   '/_wms/view-picklist/$picklistId': typeof WmsViewPicklistPicklistIdRoute
   '/_wms/orders/': typeof WmsOrdersIndexRoute
   '/_wms/pick/': typeof WmsPickIndexRoute
   '/_wms/sort/': typeof WmsSortIndexRoute
+  '/_wms/view-grn/': typeof WmsViewGrnIndexRoute
   '/_wms/view-pack/': typeof WmsViewPackIndexRoute
   '/_wms/view-picklist/': typeof WmsViewPicklistIndexRoute
 }
@@ -722,11 +740,13 @@ export interface FileRouteTypes {
     | '/orders/$orderNo'
     | '/pick/$picklistId'
     | '/sort/$taskId'
+    | '/view-grn/$grnId'
     | '/view-pack/$packlistId'
     | '/view-picklist/$picklistId'
     | '/orders/'
     | '/pick/'
     | '/sort/'
+    | '/view-grn/'
     | '/view-pack/'
     | '/view-picklist/'
   fileRoutesByTo: FileRoutesByTo
@@ -794,11 +814,13 @@ export interface FileRouteTypes {
     | '/orders/$orderNo'
     | '/pick/$picklistId'
     | '/sort/$taskId'
+    | '/view-grn/$grnId'
     | '/view-pack/$packlistId'
     | '/view-picklist/$picklistId'
     | '/orders'
     | '/pick'
     | '/sort'
+    | '/view-grn'
     | '/view-pack'
     | '/view-picklist'
   id:
@@ -867,11 +889,13 @@ export interface FileRouteTypes {
     | '/_wms/orders/$orderNo'
     | '/_wms/pick/$picklistId'
     | '/_wms/sort/$taskId'
+    | '/_wms/view-grn/$grnId'
     | '/_wms/view-pack/$packlistId'
     | '/_wms/view-picklist/$picklistId'
     | '/_wms/orders/'
     | '/_wms/pick/'
     | '/_wms/sort/'
+    | '/_wms/view-grn/'
     | '/_wms/view-pack/'
     | '/_wms/view-picklist/'
   fileRoutesById: FileRoutesById
@@ -1324,6 +1348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsViewPackIndexRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/view-grn/': {
+      id: '/_wms/view-grn/'
+      path: '/view-grn'
+      fullPath: '/view-grn/'
+      preLoaderRoute: typeof WmsViewGrnIndexRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/sort/': {
       id: '/_wms/sort/'
       path: '/sort'
@@ -1357,6 +1388,13 @@ declare module '@tanstack/react-router' {
       path: '/view-pack/$packlistId'
       fullPath: '/view-pack/$packlistId'
       preLoaderRoute: typeof WmsViewPackPacklistIdRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/view-grn/$grnId': {
+      id: '/_wms/view-grn/$grnId'
+      path: '/view-grn/$grnId'
+      fullPath: '/view-grn/$grnId'
+      preLoaderRoute: typeof WmsViewGrnGrnIdRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/sort/$taskId': {
@@ -1446,11 +1484,13 @@ interface WmsRouteChildren {
   WmsOrdersOrderNoRoute: typeof WmsOrdersOrderNoRoute
   WmsPickPicklistIdRoute: typeof WmsPickPicklistIdRoute
   WmsSortTaskIdRoute: typeof WmsSortTaskIdRoute
+  WmsViewGrnGrnIdRoute: typeof WmsViewGrnGrnIdRoute
   WmsViewPackPacklistIdRoute: typeof WmsViewPackPacklistIdRoute
   WmsViewPicklistPicklistIdRoute: typeof WmsViewPicklistPicklistIdRoute
   WmsOrdersIndexRoute: typeof WmsOrdersIndexRoute
   WmsPickIndexRoute: typeof WmsPickIndexRoute
   WmsSortIndexRoute: typeof WmsSortIndexRoute
+  WmsViewGrnIndexRoute: typeof WmsViewGrnIndexRoute
   WmsViewPackIndexRoute: typeof WmsViewPackIndexRoute
   WmsViewPicklistIndexRoute: typeof WmsViewPicklistIndexRoute
 }
@@ -1518,11 +1558,13 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsOrdersOrderNoRoute: WmsOrdersOrderNoRoute,
   WmsPickPicklistIdRoute: WmsPickPicklistIdRoute,
   WmsSortTaskIdRoute: WmsSortTaskIdRoute,
+  WmsViewGrnGrnIdRoute: WmsViewGrnGrnIdRoute,
   WmsViewPackPacklistIdRoute: WmsViewPackPacklistIdRoute,
   WmsViewPicklistPicklistIdRoute: WmsViewPicklistPicklistIdRoute,
   WmsOrdersIndexRoute: WmsOrdersIndexRoute,
   WmsPickIndexRoute: WmsPickIndexRoute,
   WmsSortIndexRoute: WmsSortIndexRoute,
+  WmsViewGrnIndexRoute: WmsViewGrnIndexRoute,
   WmsViewPackIndexRoute: WmsViewPackIndexRoute,
   WmsViewPicklistIndexRoute: WmsViewPicklistIndexRoute,
 }

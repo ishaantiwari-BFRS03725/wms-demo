@@ -214,6 +214,7 @@ const sections: NavSection[] = [
       { title: "Gate Entry", url: "/gate-entry", icon: DoorOpen },
       { title: "Unloading", url: "/unloading", icon: PackageOpen },
       { title: "GRN", url: "/grn", icon: ClipboardCheck },
+      { title: "View GRNs", url: "/view-grn", icon: ClipboardList },
       {
         title: "Sales Return GRN",
         url: "/sales-return-grn",

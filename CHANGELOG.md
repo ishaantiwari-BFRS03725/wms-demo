@@ -1,5 +1,11 @@
 # Changelog
 
+- 2026-06-30: GRN detail screen — simplified QC Grade to OK/Reject (was A/B/C/Reject); USN now only populated on rejected lines (OK lines show —); reject reasons are short single-word labels (Damaged, Faded, …) representing a dropdown selection.
+
+- 2026-06-30: Added GRN detail screen (`/view-grn/$grnId`) — line-item table with Sr No, Bin Number, SKU, Description, Quantity, Remaining Qty, QC Grade (A/B/C/Reject badges), MRP, MFG Date, Expiry Date, Lot No, Box ID, Reject Reason, USN, Created By; back-link + search + putaway summary. Wired the View GRNs list's View button to navigate here (replaced the read-only detail dialog). Mock data only. tsc clean (only pre-existing orders.$orderNo errors)
+
+- 2026-06-30: Added supervisor "View GRNs" screen (`/view-grn`, Inbound → after GRN) modeled on View Picklists — searchable/filterable table (Status: Created/Open/Closed, Seller, Created By) with columns GRN Number, Status, Seller, Gate Entry No, PO Number, Expected Qty, GRN Qty, Created By, Created At, and a View action opening a read-only detail dialog (incl. variance). Mock data only. New "View GRNs" sidebar entry (ClipboardList). tsc clean (only pre-existing orders.$orderNo errors)
+
 - 2026-06-26: Reconciled `local-srf-work`'s core UI features into `main` on top of the bfrs baseline — Orders table tweaks taken wholesale (dropped standalone Order Type column, inline B2C/B2B tag in Order No cell, Ext Order No/City/State hidden by default); Wave Creation gained the "Number of SKUs → Single/Multi SKU" radio toggle (field, seed, edit-load, WaveCard tag) added surgically so it coexists with main's recurring-schedule system; pick screen left on main's newer version (local's was older). tsc clean (only pre-existing orders.$orderNo errors)
 
 - 2026-06-25: Merged `local-srf-work` (SRF 2.0 screen imports + SCREENS.md + orders/wave UI tweaks) into `main` on top of the bfrs deployment baseline — bfrs prioritized for all config/deploy files (Docker, k8s, vite, package manifests) and for the conflicting orders/wave-creation/pick screens; sidebar manually unioned so both bfrs's new screens and the SRF imports are reachable; routeTree regenerated to register all routes
