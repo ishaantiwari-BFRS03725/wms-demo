@@ -1,5 +1,11 @@
 # Changelog
 
+- 2026-06-30: Putaway detail — Storage Address now uses the compact code format (Z1-A12-R03-B2) instead of the "Zone A · Aisle 12 · …" text; rendered mono to match the bin columns.
+
+- 2026-06-30: Built out Putaway detail screen (`/view-putaway/$putawayId`, replacing the placeholder) — line-item table with SKU Number, Description, Category, From Bin, To Bin, Storage Address, Quantity, Pack Size, Document Number (GRN/Sales Return No), Box Number; back-link + search + item/units summary. Mock data only. tsc clean (only pre-existing orders.$orderNo errors)
+
+- 2026-06-30: Added supervisor "View Putaway" screen (`/view-putaway`, Inbound → after Putaway) modeled on View GRNs — searchable/filterable table (Status: Open/Closed, Document Type: GRN/Sales Return, Created By) with columns Putaway Number, Status, Document Type, Putaway Qty, Created By, Created At, Closed At, and a "View Details" action linking to `/view-putaway/$putawayId` (placeholder detail page pending spec). New sidebar entry (ClipboardList). Mock data only. tsc clean (only pre-existing orders.$orderNo errors)
+
 - 2026-06-30: GRN detail screen — simplified QC Grade to OK/Reject (was A/B/C/Reject); USN now only populated on rejected lines (OK lines show —); reject reasons are short single-word labels (Damaged, Faded, …) representing a dropdown selection.
 
 - 2026-06-30: Added GRN detail screen (`/view-grn/$grnId`) — line-item table with Sr No, Bin Number, SKU, Description, Quantity, Remaining Qty, QC Grade (A/B/C/Reject badges), MRP, MFG Date, Expiry Date, Lot No, Box ID, Reject Reason, USN, Created By; back-link + search + putaway summary. Wired the View GRNs list's View button to navigate here (replaced the read-only detail dialog). Mock data only. tsc clean (only pre-existing orders.$orderNo errors)

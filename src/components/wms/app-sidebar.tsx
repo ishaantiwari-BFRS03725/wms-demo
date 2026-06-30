@@ -221,6 +221,7 @@ const sections: NavSection[] = [
         icon: ClipboardCheck,
       },
       { title: "Putaway", url: "/putaway", icon: MoveDown },
+      { title: "View Putaway", url: "/view-putaway", icon: ClipboardList },
     ],
   },
   {

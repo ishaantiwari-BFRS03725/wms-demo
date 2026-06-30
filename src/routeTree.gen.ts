@@ -70,12 +70,14 @@ import { Route as WmsAlertsRouteImport } from './routes/_wms.alerts'
 import { Route as WmsAgentHealthRouteImport } from './routes/_wms.agent-health'
 import { Route as WmsAgentDirectoryRouteImport } from './routes/_wms.agent-directory'
 import { Route as WmsAdminRouteImport } from './routes/_wms.admin'
+import { Route as WmsViewPutawayIndexRouteImport } from './routes/_wms.view-putaway.index'
 import { Route as WmsViewPicklistIndexRouteImport } from './routes/_wms.view-picklist.index'
 import { Route as WmsViewPackIndexRouteImport } from './routes/_wms.view-pack.index'
 import { Route as WmsViewGrnIndexRouteImport } from './routes/_wms.view-grn.index'
 import { Route as WmsSortIndexRouteImport } from './routes/_wms.sort.index'
 import { Route as WmsPickIndexRouteImport } from './routes/_wms.pick.index'
 import { Route as WmsOrdersIndexRouteImport } from './routes/_wms.orders.index'
+import { Route as WmsViewPutawayPutawayIdRouteImport } from './routes/_wms.view-putaway.$putawayId'
 import { Route as WmsViewPicklistPicklistIdRouteImport } from './routes/_wms.view-picklist.$picklistId'
 import { Route as WmsViewPackPacklistIdRouteImport } from './routes/_wms.view-pack.$packlistId'
 import { Route as WmsViewGrnGrnIdRouteImport } from './routes/_wms.view-grn.$grnId'
@@ -388,6 +390,11 @@ const WmsAdminRoute = WmsAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsViewPutawayIndexRoute = WmsViewPutawayIndexRouteImport.update({
+  id: '/view-putaway/',
+  path: '/view-putaway/',
+  getParentRoute: () => WmsRoute,
+} as any)
 const WmsViewPicklistIndexRoute = WmsViewPicklistIndexRouteImport.update({
   id: '/view-picklist/',
   path: '/view-picklist/',
@@ -416,6 +423,11 @@ const WmsPickIndexRoute = WmsPickIndexRouteImport.update({
 const WmsOrdersIndexRoute = WmsOrdersIndexRouteImport.update({
   id: '/orders/',
   path: '/orders/',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsViewPutawayPutawayIdRoute = WmsViewPutawayPutawayIdRouteImport.update({
+  id: '/view-putaway/$putawayId',
+  path: '/view-putaway/$putawayId',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsViewPicklistPicklistIdRoute =
@@ -517,12 +529,14 @@ export interface FileRoutesByFullPath {
   '/view-grn/$grnId': typeof WmsViewGrnGrnIdRoute
   '/view-pack/$packlistId': typeof WmsViewPackPacklistIdRoute
   '/view-picklist/$picklistId': typeof WmsViewPicklistPicklistIdRoute
+  '/view-putaway/$putawayId': typeof WmsViewPutawayPutawayIdRoute
   '/orders/': typeof WmsOrdersIndexRoute
   '/pick/': typeof WmsPickIndexRoute
   '/sort/': typeof WmsSortIndexRoute
   '/view-grn/': typeof WmsViewGrnIndexRoute
   '/view-pack/': typeof WmsViewPackIndexRoute
   '/view-picklist/': typeof WmsViewPicklistIndexRoute
+  '/view-putaway/': typeof WmsViewPutawayIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -591,12 +605,14 @@ export interface FileRoutesByTo {
   '/view-grn/$grnId': typeof WmsViewGrnGrnIdRoute
   '/view-pack/$packlistId': typeof WmsViewPackPacklistIdRoute
   '/view-picklist/$picklistId': typeof WmsViewPicklistPicklistIdRoute
+  '/view-putaway/$putawayId': typeof WmsViewPutawayPutawayIdRoute
   '/orders': typeof WmsOrdersIndexRoute
   '/pick': typeof WmsPickIndexRoute
   '/sort': typeof WmsSortIndexRoute
   '/view-grn': typeof WmsViewGrnIndexRoute
   '/view-pack': typeof WmsViewPackIndexRoute
   '/view-picklist': typeof WmsViewPicklistIndexRoute
+  '/view-putaway': typeof WmsViewPutawayIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -667,12 +683,14 @@ export interface FileRoutesById {
   '/_wms/view-grn/$grnId': typeof WmsViewGrnGrnIdRoute
   '/_wms/view-pack/$packlistId': typeof WmsViewPackPacklistIdRoute
   '/_wms/view-picklist/$picklistId': typeof WmsViewPicklistPicklistIdRoute
+  '/_wms/view-putaway/$putawayId': typeof WmsViewPutawayPutawayIdRoute
   '/_wms/orders/': typeof WmsOrdersIndexRoute
   '/_wms/pick/': typeof WmsPickIndexRoute
   '/_wms/sort/': typeof WmsSortIndexRoute
   '/_wms/view-grn/': typeof WmsViewGrnIndexRoute
   '/_wms/view-pack/': typeof WmsViewPackIndexRoute
   '/_wms/view-picklist/': typeof WmsViewPicklistIndexRoute
+  '/_wms/view-putaway/': typeof WmsViewPutawayIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -743,12 +761,14 @@ export interface FileRouteTypes {
     | '/view-grn/$grnId'
     | '/view-pack/$packlistId'
     | '/view-picklist/$picklistId'
+    | '/view-putaway/$putawayId'
     | '/orders/'
     | '/pick/'
     | '/sort/'
     | '/view-grn/'
     | '/view-pack/'
     | '/view-picklist/'
+    | '/view-putaway/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -817,12 +837,14 @@ export interface FileRouteTypes {
     | '/view-grn/$grnId'
     | '/view-pack/$packlistId'
     | '/view-picklist/$picklistId'
+    | '/view-putaway/$putawayId'
     | '/orders'
     | '/pick'
     | '/sort'
     | '/view-grn'
     | '/view-pack'
     | '/view-picklist'
+    | '/view-putaway'
   id:
     | '__root__'
     | '/'
@@ -892,12 +914,14 @@ export interface FileRouteTypes {
     | '/_wms/view-grn/$grnId'
     | '/_wms/view-pack/$packlistId'
     | '/_wms/view-picklist/$picklistId'
+    | '/_wms/view-putaway/$putawayId'
     | '/_wms/orders/'
     | '/_wms/pick/'
     | '/_wms/sort/'
     | '/_wms/view-grn/'
     | '/_wms/view-pack/'
     | '/_wms/view-picklist/'
+    | '/_wms/view-putaway/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1334,6 +1358,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsAdminRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/view-putaway/': {
+      id: '/_wms/view-putaway/'
+      path: '/view-putaway'
+      fullPath: '/view-putaway/'
+      preLoaderRoute: typeof WmsViewPutawayIndexRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/view-picklist/': {
       id: '/_wms/view-picklist/'
       path: '/view-picklist'
@@ -1374,6 +1405,13 @@ declare module '@tanstack/react-router' {
       path: '/orders'
       fullPath: '/orders/'
       preLoaderRoute: typeof WmsOrdersIndexRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/view-putaway/$putawayId': {
+      id: '/_wms/view-putaway/$putawayId'
+      path: '/view-putaway/$putawayId'
+      fullPath: '/view-putaway/$putawayId'
+      preLoaderRoute: typeof WmsViewPutawayPutawayIdRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/view-picklist/$picklistId': {
@@ -1487,12 +1525,14 @@ interface WmsRouteChildren {
   WmsViewGrnGrnIdRoute: typeof WmsViewGrnGrnIdRoute
   WmsViewPackPacklistIdRoute: typeof WmsViewPackPacklistIdRoute
   WmsViewPicklistPicklistIdRoute: typeof WmsViewPicklistPicklistIdRoute
+  WmsViewPutawayPutawayIdRoute: typeof WmsViewPutawayPutawayIdRoute
   WmsOrdersIndexRoute: typeof WmsOrdersIndexRoute
   WmsPickIndexRoute: typeof WmsPickIndexRoute
   WmsSortIndexRoute: typeof WmsSortIndexRoute
   WmsViewGrnIndexRoute: typeof WmsViewGrnIndexRoute
   WmsViewPackIndexRoute: typeof WmsViewPackIndexRoute
   WmsViewPicklistIndexRoute: typeof WmsViewPicklistIndexRoute
+  WmsViewPutawayIndexRoute: typeof WmsViewPutawayIndexRoute
 }
 
 const WmsRouteChildren: WmsRouteChildren = {
@@ -1561,12 +1601,14 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsViewGrnGrnIdRoute: WmsViewGrnGrnIdRoute,
   WmsViewPackPacklistIdRoute: WmsViewPackPacklistIdRoute,
   WmsViewPicklistPicklistIdRoute: WmsViewPicklistPicklistIdRoute,
+  WmsViewPutawayPutawayIdRoute: WmsViewPutawayPutawayIdRoute,
   WmsOrdersIndexRoute: WmsOrdersIndexRoute,
   WmsPickIndexRoute: WmsPickIndexRoute,
   WmsSortIndexRoute: WmsSortIndexRoute,
   WmsViewGrnIndexRoute: WmsViewGrnIndexRoute,
   WmsViewPackIndexRoute: WmsViewPackIndexRoute,
   WmsViewPicklistIndexRoute: WmsViewPicklistIndexRoute,
+  WmsViewPutawayIndexRoute: WmsViewPutawayIndexRoute,
 }
 
 const WmsRouteWithChildren = WmsRoute._addFileChildren(WmsRouteChildren)
