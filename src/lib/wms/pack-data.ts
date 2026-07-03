@@ -2,9 +2,11 @@ const img = (seed: string) => `https://picsum.photos/seed/${seed}/400/400`;
 
 export interface PackItem {
   sku: string;
+  ean?: string;
   name: string;
   qty: number;
   image: string;
+  brand?: string;
   color?: string;
   size?: string;
   weight?: string;
@@ -16,6 +18,7 @@ export interface PackItem {
 export interface PackOrder {
   orderNo: string;
   extOrderNo: string;
+  orderType: "B2C" | "B2B";
   channel: "Amazon" | "Flipkart" | "Shopify" | "Myntra";
   seller: string;
   courier: string;
@@ -61,6 +64,7 @@ const packOrders: PackOrder[] = [
   {
     orderNo: "WMS-100235",
     extOrderNo: "FK-77231",
+    orderType: "B2C",
     channel: "Flipkart",
     seller: "Acme Electronics",
     courier: "BlueDart",
@@ -69,9 +73,11 @@ const packOrders: PackOrder[] = [
     items: [
       {
         sku: "AC-EAR-PRO",
+        ean: "8901234567890",
         name: "Wireless Earbuds Pro",
         qty: 1,
         image: img("ear-pro"),
+        brand: "Acme",
         color: "Black",
         size: "One Size",
         weight: "75 g",
@@ -79,9 +85,11 @@ const packOrders: PackOrder[] = [
       },
       {
         sku: "AC-CHG-65W",
+        ean: "8901234567891",
         name: "65W GaN Charger",
         qty: 1,
         image: img("chg-65w"),
+        brand: "Acme",
         color: "White",
         size: "One Size",
         weight: "120 g",
@@ -92,6 +100,7 @@ const packOrders: PackOrder[] = [
   {
     orderNo: "WMS-100240",
     extOrderNo: "SHP-55189",
+    orderType: "B2C",
     channel: "Shopify",
     seller: "Verde Beauty",
     courier: "XpressBees",
@@ -100,9 +109,11 @@ const packOrders: PackOrder[] = [
     items: [
       {
         sku: "VB-SER-30",
+        ean: "8904567891230",
         name: "Vitamin C Serum 30ml",
         qty: 1,
         image: img("ser-30"),
+        brand: "Verde",
         size: "30 ml",
         weight: "45 g",
         lot: "LOT-2024-089",
@@ -111,9 +122,11 @@ const packOrders: PackOrder[] = [
       },
       {
         sku: "VB-CRM-50",
+        ean: "8904567891231",
         name: "Hydrating Cream 50ml",
         qty: 1,
         image: img("crm-50"),
+        brand: "Verde",
         size: "50 ml",
         weight: "80 g",
         lot: "LOT-2024-091",
@@ -122,9 +135,11 @@ const packOrders: PackOrder[] = [
       },
       {
         sku: "VB-SUN-50",
+        ean: "8904567891232",
         name: "Mineral Sunscreen 50ml",
         qty: 1,
         image: img("sun-50"),
+        brand: "Verde",
         size: "50 ml",
         weight: "75 g",
         lot: "LOT-2024-095",
@@ -136,6 +151,7 @@ const packOrders: PackOrder[] = [
   {
     orderNo: "WMS-100234",
     extOrderNo: "AMZ-IN-99812",
+    orderType: "B2C",
     channel: "Amazon",
     seller: "Northwind Apparel",
     courier: "Delhivery",
@@ -144,9 +160,11 @@ const packOrders: PackOrder[] = [
     items: [
       {
         sku: "NW-TSH-BLK-M",
+        ean: "8907654321012",
         name: "Crew Tee Black / M",
         qty: 2,
         image: img("tsh-blk"),
+        brand: "Northwind",
         color: "Black",
         size: "M",
         weight: "220 g",
@@ -154,9 +172,11 @@ const packOrders: PackOrder[] = [
       },
       {
         sku: "NW-SOC-WHT-L",
+        ean: "8907654321013",
         name: "Ribbed Socks White / L",
         qty: 1,
         image: img("soc-wht"),
+        brand: "Northwind",
         color: "White",
         size: "L",
         weight: "80 g",
@@ -167,6 +187,7 @@ const packOrders: PackOrder[] = [
   {
     orderNo: "WMS-100237",
     extOrderNo: "MYN-31204",
+    orderType: "B2C",
     channel: "Myntra",
     seller: "Northwind Apparel",
     courier: "Ecom Express",
@@ -175,9 +196,11 @@ const packOrders: PackOrder[] = [
     items: [
       {
         sku: "NW-JKT-NVY-L",
+        ean: "8907654321014",
         name: "Bomber Jacket Navy / L",
         qty: 1,
         image: img("jkt-nvy"),
+        brand: "Northwind",
         color: "Navy",
         size: "L",
         weight: "650 g",

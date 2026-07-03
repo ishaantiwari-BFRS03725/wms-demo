@@ -3,11 +3,13 @@ import { useRef, useState } from "react";
 import {
   AlertCircle,
   CheckCircle2,
+  FileText,
   Package,
   PackageCheck,
   ScanBarcode,
   SearchX,
   TriangleAlert,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -67,6 +69,18 @@ const channelStyles: Record<string, string> = {
   Myntra: "bg-ai-bg text-ai border-ai-ring",
 };
 
+type PackedRow = {
+  sku: string;
+  ean: string;
+  name: string;
+  qty: number;
+  box: string;
+  image: string;
+  brand: string;
+  color: string;
+  mrp: string;
+};
+
 function PackStation() {
   const [step, setStep] = useState<PackStep>("scan-station");
   const [stationId, setStationId] = useState("");
@@ -76,9 +90,7 @@ function PackStation() {
   const [nfSkus, setNfSkus] = useState<Set<string>>(new Set());
   const [damagedSkus, setDamagedSkus] = useState<Set<string>>(new Set());
   const [lastScannedItem, setLastScannedItem] = useState<PackItem | null>(null);
-  const [packedItems, setPackedItems] = useState<
-    { sku: string; name: string; qty: number; box: string; image: string }[]
-  >([]);
+  const [packedItems, setPackedItems] = useState<PackedRow[]>([]);
   const [itemError, setItemError] = useState<string | null>(null);
   const [packagingError, setPackagingError] = useState<string | null>(null);
   const [printOpen, setPrintOpen] = useState(false);
@@ -87,8 +99,16 @@ function PackStation() {
   const [nfSelectedSku, setNfSelectedSku] = useState("");
   const [scanKey, setScanKey] = useState(0);
 
-  // Packing material adherence tracking — persistent across orders for the
-  // duration of the packing station session.
+  // Table column filters
+  const [fPackNo, setFPackNo] = useState("");
+  const [fProductCode, setFProductCode] = useState("");
+  const [fDescription, setFDescription] = useState("");
+  const [fEan, setFEan] = useState("");
+  const [fMrp, setFMrp] = useState("");
+  const [fBrand, setFBrand] = useState("");
+  const [fColour, setFColour] = useState("");
+
+  // Packing material adherence
   const [adhTotal, setAdhTotal] = useState(0);
   const [adhMatches, setAdhMatches] = useState(0);
   const adherencePct =
@@ -99,25 +119,18 @@ function PackStation() {
   const totalItemQty =
     currentOrder?.items.reduce((s, it) => s + it.qty, 0) ?? 0;
   const totalScanned = Object.values(scannedQty).reduce((s, n) => s + n, 0);
+  const pendingQty = totalItemQty - totalScanned;
 
-  // Items not yet fully scanned and not already awaiting a replacement picklist
   const unscannedItems =
     currentOrder?.items.filter(
       (it) => (scannedQty[it.sku] ?? 0) < it.qty && !nfSkus.has(it.sku),
     ) ?? [];
 
-  // Pack can close only when every single ordered unit has been scanned in.
-  // Damaged or NF items do NOT bypass this — a fresh picklist is generated,
-  // and the replacement still has to come into the pack via a scan.
-  const checkAllDone = (qty: Record<string, number>) => {
-    return currentOrder!.items.every(
-      (it) => (qty[it.sku] ?? 0) >= it.qty,
-    );
-  };
+  const checkAllDone = (qty: Record<string, number>) =>
+    currentOrder!.items.every((it) => (qty[it.sku] ?? 0) >= it.qty);
 
   const allItemsDone = !!currentOrder && checkAllDone(scannedQty);
 
-  // Box number is unique across the warehouse — order number + box index.
   const boxIdFor = (orderNo: string, n = 1) => `${orderNo}-B${n}`;
 
   const commitToPacked = (item: PackItem) => {
@@ -134,10 +147,14 @@ function PackStation() {
         ...prev,
         {
           sku: item.sku,
+          ean: item.ean ?? "—",
           name: item.name,
           qty: 1,
           box,
           image: item.image,
+          brand: item.brand ?? "—",
+          color: item.color ?? "—",
+          mrp: item.mrp ?? "—",
         },
       ];
     });
@@ -159,6 +176,8 @@ function PackStation() {
     setLastScannedItem(null);
     setPackedItems([]);
     setItemError(null);
+    setFPackNo(""); setFProductCode(""); setFDescription("");
+    setFEan(""); setFMrp(""); setFBrand(""); setFColour("");
     setStep("scan-items");
     return true;
   };
@@ -199,21 +218,11 @@ function PackStation() {
     setItemError(null);
     if (lastScannedItem) commitToPacked(lastScannedItem);
     setLastScannedItem(item);
-    // Clear any prior NF / damaged flags for this SKU — this scan is the
-    // replacement coming in to fulfil the pendency.
     if (nfSkus.has(sku)) {
-      setNfSkus((s) => {
-        const next = new Set(s);
-        next.delete(sku);
-        return next;
-      });
+      setNfSkus((s) => { const n = new Set(s); n.delete(sku); return n; });
     }
     if (damagedSkus.has(sku)) {
-      setDamagedSkus((s) => {
-        const next = new Set(s);
-        next.delete(sku);
-        return next;
-      });
+      setDamagedSkus((s) => { const n = new Set(s); n.delete(sku); return n; });
     }
     const newQty = { ...scannedQty, [sku]: already + 1 };
     setScannedQty(newQty);
@@ -224,7 +233,6 @@ function PackStation() {
     if (!lastScannedItem) return;
     const dmg = lastScannedItem;
     setDamagedSkus((s) => new Set(s).add(dmg.sku));
-    // Undo the scan — the damaged unit doesn't go in the pack.
     setScannedQty((prev) => ({
       ...prev,
       [dmg.sku]: Math.max(0, (prev[dmg.sku] ?? 0) - 1),
@@ -262,20 +270,14 @@ function PackStation() {
     const id = val.trim().toUpperCase();
     if (!id) return;
     setPackagingError(null);
-    // Any packaging barcode is accepted. Track adherence — only matches
-    // against the system-recommended packaging count toward the %.
     setAdhTotal((n) => n + 1);
-    if (recommended && id === recommended.id) {
-      setAdhMatches((n) => n + 1);
-    }
+    if (recommended && id === recommended.id) setAdhMatches((n) => n + 1);
     if (lastScannedItem) commitToPacked(lastScannedItem);
     setLastScannedItem(null);
     setPrintOpen(true);
   };
 
-  const onClosePrint = () => {
-    setPrintOpen(false);
-    setPrintToteError(null);
+  const onClosePack = () => {
     setCurrentOrder(null);
     setScannedQty({});
     setNfSkus(new Set());
@@ -288,22 +290,56 @@ function PackStation() {
     setScanKey((k) => k + 1);
   };
 
+  const onClosePrint = () => {
+    setPrintOpen(false);
+    setPrintToteError(null);
+    onClosePack();
+  };
+
+  // Filtered rows
+  const filteredItems = packedItems.filter((p) => {
+    if (fPackNo && !p.box.toLowerCase().includes(fPackNo.toLowerCase())) return false;
+    if (fProductCode && !p.sku.toLowerCase().includes(fProductCode.toLowerCase())) return false;
+    if (fDescription && !p.name.toLowerCase().includes(fDescription.toLowerCase())) return false;
+    if (fEan && !p.ean.toLowerCase().includes(fEan.toLowerCase())) return false;
+    if (fMrp && !p.mrp.toLowerCase().includes(fMrp.toLowerCase())) return false;
+    if (fBrand && !p.brand.toLowerCase().includes(fBrand.toLowerCase())) return false;
+    if (fColour && !p.color.toLowerCase().includes(fColour.toLowerCase())) return false;
+    return true;
+  });
+
+  const progressPct = totalItemQty === 0 ? 0 : Math.round((totalScanned / totalItemQty) * 100);
+
   return (
-    <div className="pb-8">
-      {/* Top bar */}
-      <div className="flex items-center justify-between gap-2 border-b border-border bg-background px-4 py-3">
-        <div className="flex items-center gap-1.5 text-sm font-semibold">
-          <Package className="h-4 w-4 text-muted-foreground" />
-          Pack
-        </div>
-        {stationId && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>
-              Station{" "}
-              <span className="font-mono font-semibold text-foreground">
-                {stationId}
+    <div className="flex h-full flex-col">
+      {/* ── Top bar ── */}
+      <div className="flex items-center justify-between gap-3 border-b border-border bg-background px-4 py-2.5">
+        {/* Left: order type */}
+        <div className="flex items-center gap-3 text-sm">
+          <div className="flex items-center gap-1.5">
+            <Package className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium text-muted-foreground">Pack</span>
+          </div>
+          {currentOrder && (
+            <>
+              <span className="text-border">|</span>
+              <span className="text-sm">
+                <span className="text-muted-foreground">Order Type: </span>
+                <span className="font-bold">{currentOrder.orderType}</span>
               </span>
+            </>
+          )}
+        </div>
+
+        {/* Right: station + adherence + close pack */}
+        <div className="flex items-center gap-3">
+          {stationId && (
+            <span className="text-sm">
+              <span className="text-muted-foreground">Table ID: </span>
+              <span className="font-bold font-mono">{stationId}</span>
             </span>
+          )}
+          {stationId && (
             <TooltipProvider delayDuration={150}>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -320,31 +356,42 @@ function PackStation() {
                             : "border-risk/30 bg-risk-bg text-risk",
                     )}
                   >
-                    Adherence{" "}
-                    {adherencePct === null ? "—" : `${adherencePct}%`}
+                    Adherence {adherencePct === null ? "—" : `${adherencePct}%`}
                   </span>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-[240px] text-xs">
-                  Packing-material adherence for this packing station — the
-                  percentage of orders packed using the system-recommended
-                  packaging across the entire session.
+                  Packing-material adherence — percentage of orders packed using
+                  the system-recommended packaging this session.
                   {adherencePct !== null && (
                     <div className="mt-1 text-[10px] text-muted-foreground">
-                      {adhMatches} of {adhTotal} packs matched the
-                      recommendation.
+                      {adhMatches} of {adhTotal} packs matched the recommendation.
                     </div>
                   )}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          </div>
-        )}
+          )}
+          {step === "scan-items" && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 text-xs"
+              onClick={onClosePack}
+            >
+              <Package className="h-3.5 w-3.5" />
+              Close Pack
+              <kbd className="ml-1 rounded border border-border bg-muted px-1 font-mono text-[10px] text-muted-foreground">
+                ALT+P
+              </kbd>
+            </Button>
+          )}
+        </div>
       </div>
 
-      <div className="space-y-3 p-4">
+      <div className="flex-1 overflow-auto p-4 space-y-4">
         {/* ── Scan station ── */}
         {step === "scan-station" && (
-          <Card className="space-y-3 p-4">
+          <Card className="space-y-3 p-4 max-w-md">
             <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
               <ScanBarcode className="h-3.5 w-3.5" />
               Scan packing station
@@ -361,7 +408,7 @@ function PackStation() {
 
         {/* ── Scan tote ── */}
         {step === "scan-tote" && (
-          <Card className="space-y-3 p-4">
+          <Card className="space-y-3 p-4 max-w-md">
             <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
               <ScanBarcode className="h-3.5 w-3.5" />
               Scan pick tote
@@ -380,260 +427,338 @@ function PackStation() {
         {/* ── Scan items ── */}
         {step === "scan-items" && currentOrder && (
           <>
-            <OrderCard order={currentOrder} />
+            {/* Upper panel: scan + order info | item attributes | image | actions */}
+            <div className="flex overflow-hidden rounded-lg border border-border bg-card shadow-sm">
 
-            {/* Progress bar — full width, prominent */}
-            <Card className="p-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                    Packing progress
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm font-bold tabular-nums text-foreground">
-                      {totalScanned} / {totalItemQty}
-                    </span>
-                    <span className="text-xs text-muted-foreground">items</span>
-                    {allItemsDone && (
-                      <span className="flex items-center gap-1 rounded-[3px] border border-ok/30 bg-ok-bg px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-ok">
-                        <PackageCheck className="h-3 w-3" />
-                        All scanned
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="h-3 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full rounded-full bg-status-picked transition-all duration-300"
-                    style={{
-                      width: `${totalItemQty === 0 ? 0 : Math.round((totalScanned / totalItemQty) * 100)}%`,
-                    }}
-                  />
-                </div>
-                <div className="flex gap-2">
-                  {currentOrder.items.map((it) => {
-                    const scanned = scannedQty[it.sku] ?? 0;
-                    const done = scanned >= it.qty;
-                    const isNf = nfSkus.has(it.sku);
-                    return (
-                      <div
-                        key={it.sku}
-                        className={cn(
-                          "min-w-0 flex-1 rounded-[3px] border px-2 py-1 text-[10px]",
-                          done
-                            ? "border-ok/30 bg-ok-bg text-ok"
-                            : isNf
-                              ? "border-warn/30 bg-warn-bg text-warn"
-                              : "border-border bg-muted/30 text-muted-foreground",
-                        )}
-                      >
-                        <div className="truncate font-medium">{it.name}</div>
-                        <div className="font-mono tabular-nums">
-                          {scanned}/{it.qty}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </Card>
-
-            {/* Two-column: controls left, large image right */}
-            <div className="flex gap-3 items-start">
-              {/* Left: QC panel + scan input + packaging */}
-              <div className="min-w-0 flex-1 space-y-3">
-                <Card className="space-y-3 p-4">
-                  {/* QC attributes + actions */}
-                  <div className="space-y-2">
-                    {lastScannedItem ? (
-                      <div className="space-y-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <div className="text-base font-bold leading-tight">
-                                {lastScannedItem.name}
-                              </div>
-                              {damagedSkus.has(lastScannedItem.sku) && (
-                                <span className="shrink-0 rounded-[2px] border border-risk/30 bg-risk-bg px-1.5 py-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.06em] text-risk">
-                                  Damaged
-                                </span>
-                              )}
-                            </div>
-                            <div className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-0.5 text-[11px]">
-                              <QcRow label="SKU" value={lastScannedItem.sku} mono />
-                              {lastScannedItem.mrp && (
-                                <QcRow label="MRP" value={lastScannedItem.mrp} />
-                              )}
-                              {lastScannedItem.color && (
-                                <QcRow label="Colour" value={lastScannedItem.color} />
-                              )}
-                              {lastScannedItem.size && (
-                                <QcRow label="Size" value={lastScannedItem.size} />
-                              )}
-                              {lastScannedItem.weight && (
-                                <QcRow label="Weight" value={lastScannedItem.weight} />
-                              )}
-                              {lastScannedItem.lot && (
-                                <QcRow label="Lot" value={lastScannedItem.lot} mono />
-                              )}
-                              {lastScannedItem.expiry && (
-                                <QcRow label="Expiry" value={lastScannedItem.expiry} />
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex h-16 items-center text-xs text-muted-foreground">
-                        QC details will appear here after scanning an item.
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Actions row */}
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 border-destructive/40 text-destructive hover:bg-destructive/5 hover:text-destructive"
-                      disabled={!lastScannedItem || damagedSkus.has(lastScannedItem.sku)}
-                      onClick={onMarkDamaged}
-                    >
-                      <TriangleAlert className="mr-1.5 h-3.5 w-3.5" />
-                      Mark Damaged
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      disabled={unscannedItems.length === 0}
-                      onClick={() => {
-                        setNfSelectedSku("");
-                        setNfDialogOpen(true);
-                      }}
-                    >
-                      <SearchX className="mr-1.5 h-3.5 w-3.5" />
-                      Not Found
-                    </Button>
-                  </div>
-
-                  {itemError && <ErrorBanner message={itemError} />}
-
-                  <ScanRow
+              {/* Zone 1: Scan input + order info */}
+              <div className="w-64 shrink-0 border-r border-border p-4 space-y-4">
+                {/* Scan input */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-foreground">
+                    Scan Item ID<span className="text-destructive">*</span>
+                  </label>
+                  <ScanRowInline
                     key={`item-${allItemsDone ? "done" : "live"}-${scanKey}`}
-                    label="Scan item"
-                    placeholder="Scan SKU…"
+                    placeholder="Scan or type & hit enter"
                     onScan={onItemScan}
                     autoFocus={!allItemsDone}
                   />
+                  {itemError && <ErrorBanner message={itemError} />}
+                </div>
 
-                  {/* Packaging scan — appears only after all items are scanned */}
-                  {allItemsDone && recommended && (
-                    <div className="space-y-2 border-t border-border pt-3">
-                      <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 p-2.5">
-                        <Package className="h-4 w-4 shrink-0 text-primary" />
-                        <div className="min-w-0 text-xs">
-                          <span className="text-muted-foreground">
-                            Recommended packaging:{" "}
-                          </span>
-                          <span className="font-semibold">{recommended.name}</span>
-                          <span className="ml-1 font-mono text-[10px] text-muted-foreground">
-                            ({recommended.id})
-                          </span>
-                        </div>
-                      </div>
-                      {packagingError && <ErrorBanner message={packagingError} />}
-                      <ScanRow
-                        key={`pkg-${scanKey}`}
-                        label="Scan packaging material"
-                        placeholder={`e.g. ${recommended.id}`}
-                        onScan={onPackagingScan}
-                        autoFocus
-                      />
+                {/* Order info box */}
+                <div className="rounded border border-border bg-muted/20 p-3 space-y-2 text-sm">
+                  <InfoRow label="Order No" value={currentOrder.orderNo} mono />
+                  <InfoRow label="Order Qty" value={String(totalItemQty)} />
+                  <InfoRow
+                    label="Pending Qty"
+                    value={String(pendingQty)}
+                    danger={pendingQty > 0}
+                    done={pendingQty === 0}
+                  />
+                  <InfoRow label="Channel" value={currentOrder.channel} />
+                  <InfoRow label="Courier" value={currentOrder.courier} />
+                  <InfoRow label="Payment" value={currentOrder.paymentMode} />
+                </div>
+
+                {/* Progress bar */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>Progress</span>
+                    <span className="font-mono font-semibold text-foreground">
+                      {progressPct}%
+                    </span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-status-picked transition-all duration-300"
+                      style={{ width: `${progressPct}%` }}
+                    />
+                  </div>
+                  {allItemsDone && (
+                    <div className="flex items-center gap-1 text-[11px] font-medium text-ok">
+                      <PackageCheck className="h-3 w-3" />
+                      All items scanned
                     </div>
                   )}
-                </Card>
+                </div>
               </div>
 
-              {/* Right: large product image */}
-              <div className="w-52 shrink-0">
-                <Card className="overflow-hidden p-0">
-                  <div className="h-64 w-full bg-muted/20">
-                    {lastScannedItem ? (
-                      <img
-                        src={lastScannedItem.image}
-                        alt={lastScannedItem.name}
-                        className="h-full w-full object-contain p-3"
-                      />
-                    ) : (
-                      <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-                        <Package className="h-10 w-10 text-muted-foreground/30" />
-                        <span className="px-4 text-[11px] text-muted-foreground">
-                          Scan an item to see its image
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  {lastScannedItem && (
-                    <div className="border-t border-border bg-muted/20 px-3 py-2">
-                      <div className="truncate text-[11px] font-semibold leading-tight text-foreground">
-                        {lastScannedItem.name}
-                      </div>
-                      <div className="mt-0.5 font-mono text-[10px] text-muted-foreground">
-                        {lastScannedItem.sku}
-                      </div>
-                    </div>
+              {/* Zone 2: Item attributes */}
+              <div className="flex-1 border-r border-border p-4">
+                <div className="space-y-0">
+                  <AttrRow label="Name" value={lastScannedItem?.name} />
+                  <AttrRow label="EAN" value={lastScannedItem?.ean} mono />
+                  <AttrRow label="SKU" value={lastScannedItem?.sku} mono />
+                  <AttrRow label="Colour" value={lastScannedItem?.color} />
+                  <AttrRow label="Brand" value={lastScannedItem?.brand} />
+                  <AttrRow label="Size" value={lastScannedItem?.size} />
+                  <AttrRow label="MRP" value={lastScannedItem?.mrp} />
+                  <AttrRow label="Weight" value={lastScannedItem?.weight} />
+                  {lastScannedItem?.lot && (
+                    <AttrRow label="Lot" value={lastScannedItem.lot} mono />
                   )}
-                </Card>
+                  {lastScannedItem?.expiry && (
+                    <AttrRow label="Expiry" value={lastScannedItem.expiry} />
+                  )}
+                </div>
+                {damagedSkus.has(lastScannedItem?.sku ?? "") && (
+                  <div className="mt-3 inline-flex items-center gap-1 rounded-[3px] border border-risk/30 bg-risk-bg px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-risk">
+                    <TriangleAlert className="h-3 w-3" />
+                    Damaged — replacement requested
+                  </div>
+                )}
+              </div>
+
+              {/* Zone 3: Large product image */}
+              <div className="w-56 shrink-0 bg-muted/10">
+                {lastScannedItem ? (
+                  <img
+                    src={lastScannedItem.image}
+                    alt={lastScannedItem.name}
+                    className="h-full w-full object-contain p-4"
+                    style={{ minHeight: "220px" }}
+                  />
+                ) : (
+                  <div
+                    className="flex h-full flex-col items-center justify-center gap-3 text-center"
+                    style={{ minHeight: "220px" }}
+                  >
+                    <Package className="h-12 w-12 text-muted-foreground/20" />
+                    <span className="px-4 text-[11px] text-muted-foreground/60">
+                      Scan an item to preview
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Zone 4: Action buttons (far right strip) */}
+              <div className="w-11 shrink-0 border-l border-border flex flex-col items-center gap-1.5 pt-4 px-1.5">
+                <TooltipProvider delayDuration={100}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        disabled={!lastScannedItem || damagedSkus.has(lastScannedItem?.sku ?? "")}
+                        onClick={onMarkDamaged}
+                        className={cn(
+                          "flex h-8 w-8 items-center justify-center rounded-full border transition-colors",
+                          !lastScannedItem || damagedSkus.has(lastScannedItem?.sku ?? "")
+                            ? "border-border bg-muted/30 text-muted-foreground/40 cursor-not-allowed"
+                            : "border-destructive/40 bg-destructive/5 text-destructive hover:bg-destructive/10",
+                        )}
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="text-xs">
+                      Mark Damaged
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        disabled={unscannedItems.length === 0}
+                        onClick={() => { setNfSelectedSku(""); setNfDialogOpen(true); }}
+                        className={cn(
+                          "flex h-8 w-8 items-center justify-center rounded-full border transition-colors",
+                          unscannedItems.length === 0
+                            ? "border-border bg-muted/30 text-muted-foreground/40 cursor-not-allowed"
+                            : "border-border bg-background text-foreground hover:bg-muted",
+                        )}
+                      >
+                        <SearchX className="h-4 w-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="text-xs">
+                      Not Found
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        disabled={packedItems.length === 0}
+                        className={cn(
+                          "flex h-8 w-8 items-center justify-center rounded-full border transition-colors",
+                          packedItems.length === 0
+                            ? "border-border bg-muted/30 text-muted-foreground/40 cursor-not-allowed"
+                            : "border-border bg-background text-foreground hover:bg-muted",
+                        )}
+                      >
+                        <FileText className="h-4 w-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="text-xs">
+                      View pack summary
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
 
-            {/* Packed items table */}
-            {packedItems.length > 0 && (
-              <Card className="overflow-hidden p-0">
-                <div className="border-b border-border bg-muted/30 px-3 py-2 text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                  Packed items ({packedItems.length})
+            {/* Packaging scan — appears only after all items are scanned */}
+            {allItemsDone && recommended && (
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4 shrink-0 text-primary" />
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Recommended packaging: </span>
+                    <span className="font-semibold">{recommended.name}</span>
+                    <span className="ml-1.5 font-mono text-[11px] text-muted-foreground">
+                      ({recommended.id})
+                    </span>
+                  </div>
                 </div>
-                <div className="[&_th]:px-3 [&_th]:py-2 [&_td]:px-3 [&_td]:py-2 [&_th]:h-auto [&_th]:text-[10px] [&_td]:text-xs">
+                {packagingError && <ErrorBanner message={packagingError} />}
+                <ScanRow
+                  key={`pkg-${scanKey}`}
+                  label="Scan packaging material"
+                  placeholder={`e.g. ${recommended.id}`}
+                  onScan={onPackagingScan}
+                  autoFocus
+                />
+              </div>
+            )}
+
+            {/* All Items table */}
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-foreground">All Items</h2>
+                {packedItems.length > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    {filteredItems.length} of {packedItems.length} item{packedItems.length !== 1 ? "s" : ""}
+                  </span>
+                )}
+              </div>
+              <div className="overflow-hidden rounded-lg border border-border bg-card">
+                <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-muted/20">
-                        <TableHead className="w-12">Image</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Product Code</TableHead>
-                        <TableHead>Box No.</TableHead>
-                        <TableHead className="text-right">Qty</TableHead>
+                      <TableRow className="bg-muted/30 hover:bg-muted/30">
+                        <TableHead className="w-12 text-[11px] font-semibold text-foreground/70">Sr. No.</TableHead>
+                        <TableHead className="text-[11px] font-semibold text-foreground/70">Pack No ↑↓</TableHead>
+                        <TableHead className="text-[11px] font-semibold text-foreground/70">Product Code ↑↓</TableHead>
+                        <TableHead className="w-16 text-[11px] font-semibold text-foreground/70">Image</TableHead>
+                        <TableHead className="text-[11px] font-semibold text-foreground/70">Description ↑↓</TableHead>
+                        <TableHead className="text-[11px] font-semibold text-foreground/70">EAN ↑↓</TableHead>
+                        <TableHead className="text-[11px] font-semibold text-foreground/70 text-right">Qty ↑↓</TableHead>
+                        <TableHead className="text-[11px] font-semibold text-foreground/70">MRP ↑↓</TableHead>
+                        <TableHead className="text-[11px] font-semibold text-foreground/70">Brand ↑↓</TableHead>
+                        <TableHead className="text-[11px] font-semibold text-foreground/70">Colour ↑↓</TableHead>
+                      </TableRow>
+                      {/* Filter row */}
+                      <TableRow className="bg-background hover:bg-background border-b border-border">
+                        <TableHead className="py-1.5" />
+                        <TableHead className="py-1.5">
+                          <Input
+                            value={fPackNo}
+                            onChange={(e) => setFPackNo(e.target.value)}
+                            placeholder="Enter Pack No..."
+                            className="h-7 text-xs font-normal"
+                          />
+                        </TableHead>
+                        <TableHead className="py-1.5">
+                          <Input
+                            value={fProductCode}
+                            onChange={(e) => setFProductCode(e.target.value)}
+                            placeholder="Enter Product Code"
+                            className="h-7 text-xs font-normal"
+                          />
+                        </TableHead>
+                        <TableHead className="py-1.5" />
+                        <TableHead className="py-1.5">
+                          <Input
+                            value={fDescription}
+                            onChange={(e) => setFDescription(e.target.value)}
+                            placeholder="Enter Description..."
+                            className="h-7 text-xs font-normal"
+                          />
+                        </TableHead>
+                        <TableHead className="py-1.5">
+                          <Input
+                            value={fEan}
+                            onChange={(e) => setFEan(e.target.value)}
+                            placeholder="Enter EAN..."
+                            className="h-7 text-xs font-normal"
+                          />
+                        </TableHead>
+                        <TableHead className="py-1.5" />
+                        <TableHead className="py-1.5">
+                          <Input
+                            value={fMrp}
+                            onChange={(e) => setFMrp(e.target.value)}
+                            placeholder="Enter MRP..."
+                            className="h-7 text-xs font-normal"
+                          />
+                        </TableHead>
+                        <TableHead className="py-1.5">
+                          <Input
+                            value={fBrand}
+                            onChange={(e) => setFBrand(e.target.value)}
+                            placeholder="Enter Brand..."
+                            className="h-7 text-xs font-normal"
+                          />
+                        </TableHead>
+                        <TableHead className="py-1.5">
+                          <Input
+                            value={fColour}
+                            onChange={(e) => setFColour(e.target.value)}
+                            placeholder="Enter Colour..."
+                            className="h-7 text-xs font-normal"
+                          />
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {packedItems.map((p) => (
-                        <TableRow key={p.sku}>
-                          <TableCell>
-                            <div className="h-10 w-10 overflow-hidden rounded border border-border bg-muted/30">
-                              <img
-                                src={p.image}
-                                alt={p.name}
-                                className="h-full w-full object-contain p-0.5"
-                              />
+                      {filteredItems.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={10} className="py-16 text-center">
+                            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                              <Package className="h-10 w-10 opacity-20" />
+                              <span className="text-sm">No Records Found</span>
+                              {packedItems.length > 0 && (
+                                <span className="text-xs opacity-70">
+                                  Try clearing the filters above
+                                </span>
+                              )}
                             </div>
                           </TableCell>
-                          <TableCell className="font-medium">{p.name}</TableCell>
-                          <TableCell className="font-mono text-muted-foreground">
-                            {p.sku}
-                          </TableCell>
-                          <TableCell className="font-mono text-[10px]">
-                            {p.box}
-                          </TableCell>
-                          <TableCell className="text-right tabular-nums font-semibold">
-                            {p.qty}
-                          </TableCell>
                         </TableRow>
-                      ))}
+                      ) : (
+                        filteredItems.map((p, idx) => (
+                          <TableRow key={p.sku} className="text-xs">
+                            <TableCell className="text-center tabular-nums text-muted-foreground">
+                              {idx + 1}
+                            </TableCell>
+                            <TableCell className="font-mono text-[11px]">{p.box}</TableCell>
+                            <TableCell className="font-mono text-muted-foreground">{p.sku}</TableCell>
+                            <TableCell>
+                              <div className="h-10 w-10 overflow-hidden rounded border border-border bg-muted/20">
+                                <img
+                                  src={p.image}
+                                  alt={p.name}
+                                  className="h-full w-full object-contain p-0.5"
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-medium">{p.name}</TableCell>
+                            <TableCell className="font-mono text-[11px] text-muted-foreground">{p.ean}</TableCell>
+                            <TableCell className="text-right tabular-nums font-semibold">{p.qty}</TableCell>
+                            <TableCell>{p.mrp}</TableCell>
+                            <TableCell>{p.brand}</TableCell>
+                            <TableCell>{p.color}</TableCell>
+                          </TableRow>
+                        ))
+                      )}
                     </TableBody>
                   </Table>
                 </div>
-              </Card>
-            )}
+              </div>
+            </div>
           </>
         )}
       </div>
@@ -668,11 +793,7 @@ function PackStation() {
             </Select>
           </div>
           <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => setNfDialogOpen(false)}
-            >
+            <Button variant="outline" className="flex-1" onClick={() => setNfDialogOpen(false)}>
               Cancel
             </Button>
             <Button
@@ -703,7 +824,6 @@ function PackStation() {
               <div className="text-xs text-muted-foreground">Documents sent to printer.</div>
             </div>
           </div>
-
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
               <ScanBarcode className="h-3.5 w-3.5" />
@@ -718,7 +838,6 @@ function PackStation() {
               autoFocus
             />
           </div>
-
           <DialogFooter>
             <Button variant="ghost" size="sm" className="w-full" onClick={onClosePrint}>
               Done — no next tote
@@ -730,66 +849,61 @@ function PackStation() {
   );
 }
 
-function OrderCard({
-  order,
-  compact = false,
-}: {
-  order: PackOrder;
-  compact?: boolean;
-}) {
-  return (
-    <Card className="p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="font-mono text-xs font-semibold text-muted-foreground">
-            {order.orderNo}
-          </div>
-          <div className="mt-0.5 truncate text-base font-bold leading-tight text-foreground">
-            {order.seller}
-          </div>
-          <div className="text-[11px] text-muted-foreground">
-            {order.extOrderNo}
-          </div>
-        </div>
-        <span
-          className={cn(
-            "shrink-0 rounded-[4px] border px-3 py-1 font-mono text-xs font-bold uppercase tracking-[0.04em]",
-            channelStyles[order.channel] ??
-              "border-border bg-muted text-muted-foreground",
-          )}
-        >
-          {order.channel}
-        </span>
-      </div>
-      {!compact && (
-        <div className="mt-3 grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
-          <div>
-            <div className="text-muted-foreground">Courier</div>
-            <div className="font-medium">{order.courier}</div>
-          </div>
-          <div>
-            <div className="text-muted-foreground">SLA deadline</div>
-            <div className="font-medium">{slaDeadline(order.sla)}</div>
-          </div>
-        </div>
-      )}
-    </Card>
-  );
-}
-
-function QcRow({
+/** Attribute row in the item details panel — label: value style */
+function AttrRow({
   label,
   value,
   mono = false,
 }: {
   label: string;
-  value: string;
+  value?: string;
   mono?: boolean;
 }) {
   return (
-    <div className="flex gap-1.5">
-      <span className="w-12 shrink-0 text-muted-foreground">{label}</span>
-      <span className={cn("font-medium", mono && "font-mono")}>{value}</span>
+    <div className="flex items-baseline gap-0 border-b border-border/50 py-2 last:border-0">
+      <span className="w-24 shrink-0 text-[12px] font-semibold text-foreground">
+        {label}:
+      </span>
+      <span
+        className={cn(
+          "text-[12px] text-foreground/80",
+          mono && "font-mono",
+          !value && "text-muted-foreground",
+        )}
+      >
+        {value ?? "—"}
+      </span>
+    </div>
+  );
+}
+
+/** Order info row in the left panel */
+function InfoRow({
+  label,
+  value,
+  mono = false,
+  danger = false,
+  done = false,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+  danger?: boolean;
+  done?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2 text-sm">
+      <span className="text-muted-foreground text-[12px]">{label}</span>
+      <span
+        className={cn(
+          "font-semibold text-[12px]",
+          mono && "font-mono",
+          danger && "text-destructive",
+          done && "text-ok",
+        )}
+      >
+        {value}
+      </span>
     </div>
   );
 }
@@ -800,6 +914,48 @@ function ErrorBanner({ message }: { message: string }) {
       <AlertCircle className="h-4 w-4 shrink-0" />
       {message}
     </div>
+  );
+}
+
+/** Scan row with a QR icon button on the right */
+function ScanRowInline({
+  placeholder,
+  onScan,
+  autoFocus,
+}: {
+  placeholder: string;
+  onScan: (value: string) => void;
+  autoFocus?: boolean;
+}) {
+  const [val, setVal] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  return (
+    <form
+      className="flex gap-1.5"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!val.trim()) return;
+        onScan(val);
+        setVal("");
+        inputRef.current?.focus();
+      }}
+    >
+      <Input
+        ref={inputRef}
+        autoFocus={autoFocus}
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        placeholder={placeholder}
+        className="h-10 flex-1 font-mono text-sm"
+      />
+      <button
+        type="submit"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+        tabIndex={-1}
+      >
+        <ScanBarcode className="h-4 w-4" />
+      </button>
+    </form>
   );
 }
 
