@@ -41,11 +41,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
 import {
   allPackagingIds,
@@ -386,151 +381,212 @@ function PackStation() {
         {step === "scan-items" && currentOrder && (
           <>
             <OrderCard order={currentOrder} />
-            <Card className="space-y-3 p-4">
-              {/* Progress */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                    Items
+
+            {/* Progress bar — full width, prominent */}
+            <Card className="p-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                    Packing progress
                   </span>
-                  <span className="font-mono font-semibold text-foreground">
-                    {totalScanned} / {totalItemQty}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-sm font-bold tabular-nums text-foreground">
+                      {totalScanned} / {totalItemQty}
+                    </span>
+                    <span className="text-xs text-muted-foreground">items</span>
+                    {allItemsDone && (
+                      <span className="flex items-center gap-1 rounded-[3px] border border-ok/30 bg-ok-bg px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-ok">
+                        <PackageCheck className="h-3 w-3" />
+                        All scanned
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="h-2 overflow-hidden rounded-[2px] bg-muted">
+                <div className="h-3 overflow-hidden rounded-full bg-muted">
                   <div
-                    className="h-full bg-status-picked transition-all"
+                    className="h-full rounded-full bg-status-picked transition-all duration-300"
                     style={{
                       width: `${totalItemQty === 0 ? 0 : Math.round((totalScanned / totalItemQty) * 100)}%`,
                     }}
                   />
                 </div>
-              </div>
-
-              {/* QC panel: image + attributes + side actions */}
-              <div className="flex gap-3">
-                {/* Image */}
-                <div className="h-28 w-28 shrink-0 overflow-hidden rounded-md border border-border bg-muted/20">
-                  {lastScannedItem ? (
-                    <img
-                      src={lastScannedItem.image}
-                      alt={lastScannedItem.name}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-[11px] text-muted-foreground text-center px-2">
-                      Scan to verify
-                    </div>
-                  )}
-                </div>
-
-                {/* QC attributes */}
-                <div className="min-w-0 flex-1 pr-1">
-                  {lastScannedItem ? (
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5">
-                        <div className="text-sm font-semibold leading-tight">
-                          {lastScannedItem.name}
+                <div className="flex gap-2">
+                  {currentOrder.items.map((it) => {
+                    const scanned = scannedQty[it.sku] ?? 0;
+                    const done = scanned >= it.qty;
+                    const isNf = nfSkus.has(it.sku);
+                    return (
+                      <div
+                        key={it.sku}
+                        className={cn(
+                          "min-w-0 flex-1 rounded-[3px] border px-2 py-1 text-[10px]",
+                          done
+                            ? "border-ok/30 bg-ok-bg text-ok"
+                            : isNf
+                              ? "border-warn/30 bg-warn-bg text-warn"
+                              : "border-border bg-muted/30 text-muted-foreground",
+                        )}
+                      >
+                        <div className="truncate font-medium">{it.name}</div>
+                        <div className="font-mono tabular-nums">
+                          {scanned}/{it.qty}
                         </div>
-                        {damagedSkus.has(lastScannedItem.sku) && (
-                          <span className="shrink-0 rounded-[2px] border border-risk/30 bg-risk-bg px-1.5 py-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.06em] text-risk">
-                            Damaged
-                          </span>
-                        )}
                       </div>
-                      <div className="space-y-0.5 text-[11px]">
-                        <QcRow label="SKU" value={lastScannedItem.sku} mono />
-                        {lastScannedItem.mrp && (
-                          <QcRow label="MRP" value={lastScannedItem.mrp} />
-                        )}
-                        {lastScannedItem.color && (
-                          <QcRow label="Colour" value={lastScannedItem.color} />
-                        )}
-                        {lastScannedItem.size && (
-                          <QcRow label="Size" value={lastScannedItem.size} />
-                        )}
-                        {lastScannedItem.weight && (
-                          <QcRow label="Weight" value={lastScannedItem.weight} />
-                        )}
-                        {lastScannedItem.lot && (
-                          <QcRow label="Lot" value={lastScannedItem.lot} mono />
-                        )}
-                        {lastScannedItem.expiry && (
-                          <QcRow label="Expiry" value={lastScannedItem.expiry} />
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex h-full items-center text-xs text-muted-foreground">
-                      QC details will appear here after scanning.
-                    </div>
-                  )}
-                </div>
-
-                {/* Side actions — Damaged / Not Found */}
-                <div className="flex w-[88px] shrink-0 flex-col gap-1.5">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-full px-2 text-[11px] border-destructive/40 text-destructive hover:bg-destructive/5 hover:text-destructive"
-                    disabled={!lastScannedItem || damagedSkus.has(lastScannedItem.sku)}
-                    onClick={onMarkDamaged}
-                  >
-                    <TriangleAlert className="mr-1 h-3 w-3" />
-                    Damaged
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-full px-2 text-[11px]"
-                    disabled={unscannedItems.length === 0}
-                    onClick={() => {
-                      setNfSelectedSku("");
-                      setNfDialogOpen(true);
-                    }}
-                  >
-                    <SearchX className="mr-1 h-3 w-3" />
-                    Not Found
-                  </Button>
+                    );
+                  })}
                 </div>
               </div>
-
-              {itemError && <ErrorBanner message={itemError} />}
-
-              <ScanRow
-                key={`item-${allItemsDone ? "done" : "live"}-${scanKey}`}
-                label="Scan item"
-                placeholder="Scan SKU…"
-                onScan={onItemScan}
-                autoFocus={!allItemsDone}
-              />
-
-              {/* Packaging scan — appears only after all items are scanned */}
-              {allItemsDone && recommended && (
-                <div className="space-y-2 border-t border-border pt-3">
-                  <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 p-2.5">
-                    <Package className="h-4 w-4 shrink-0 text-primary" />
-                    <div className="min-w-0 text-xs">
-                      <span className="text-muted-foreground">
-                        Recommended packaging:{" "}
-                      </span>
-                      <span className="font-semibold">{recommended.name}</span>
-                      <span className="ml-1 font-mono text-[10px] text-muted-foreground">
-                        ({recommended.id})
-                      </span>
-                    </div>
-                  </div>
-                  {packagingError && <ErrorBanner message={packagingError} />}
-                  <ScanRow
-                    key={`pkg-${scanKey}`}
-                    label="Scan packaging material"
-                    placeholder={`e.g. ${recommended.id}`}
-                    onScan={onPackagingScan}
-                    autoFocus
-                  />
-                </div>
-              )}
             </Card>
+
+            {/* Two-column: controls left, large image right */}
+            <div className="flex gap-3 items-start">
+              {/* Left: QC panel + scan input + packaging */}
+              <div className="min-w-0 flex-1 space-y-3">
+                <Card className="space-y-3 p-4">
+                  {/* QC attributes + actions */}
+                  <div className="space-y-2">
+                    {lastScannedItem ? (
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <div className="text-base font-bold leading-tight">
+                                {lastScannedItem.name}
+                              </div>
+                              {damagedSkus.has(lastScannedItem.sku) && (
+                                <span className="shrink-0 rounded-[2px] border border-risk/30 bg-risk-bg px-1.5 py-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.06em] text-risk">
+                                  Damaged
+                                </span>
+                              )}
+                            </div>
+                            <div className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-0.5 text-[11px]">
+                              <QcRow label="SKU" value={lastScannedItem.sku} mono />
+                              {lastScannedItem.mrp && (
+                                <QcRow label="MRP" value={lastScannedItem.mrp} />
+                              )}
+                              {lastScannedItem.color && (
+                                <QcRow label="Colour" value={lastScannedItem.color} />
+                              )}
+                              {lastScannedItem.size && (
+                                <QcRow label="Size" value={lastScannedItem.size} />
+                              )}
+                              {lastScannedItem.weight && (
+                                <QcRow label="Weight" value={lastScannedItem.weight} />
+                              )}
+                              {lastScannedItem.lot && (
+                                <QcRow label="Lot" value={lastScannedItem.lot} mono />
+                              )}
+                              {lastScannedItem.expiry && (
+                                <QcRow label="Expiry" value={lastScannedItem.expiry} />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex h-16 items-center text-xs text-muted-foreground">
+                        QC details will appear here after scanning an item.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions row */}
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 border-destructive/40 text-destructive hover:bg-destructive/5 hover:text-destructive"
+                      disabled={!lastScannedItem || damagedSkus.has(lastScannedItem.sku)}
+                      onClick={onMarkDamaged}
+                    >
+                      <TriangleAlert className="mr-1.5 h-3.5 w-3.5" />
+                      Mark Damaged
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      disabled={unscannedItems.length === 0}
+                      onClick={() => {
+                        setNfSelectedSku("");
+                        setNfDialogOpen(true);
+                      }}
+                    >
+                      <SearchX className="mr-1.5 h-3.5 w-3.5" />
+                      Not Found
+                    </Button>
+                  </div>
+
+                  {itemError && <ErrorBanner message={itemError} />}
+
+                  <ScanRow
+                    key={`item-${allItemsDone ? "done" : "live"}-${scanKey}`}
+                    label="Scan item"
+                    placeholder="Scan SKU…"
+                    onScan={onItemScan}
+                    autoFocus={!allItemsDone}
+                  />
+
+                  {/* Packaging scan — appears only after all items are scanned */}
+                  {allItemsDone && recommended && (
+                    <div className="space-y-2 border-t border-border pt-3">
+                      <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 p-2.5">
+                        <Package className="h-4 w-4 shrink-0 text-primary" />
+                        <div className="min-w-0 text-xs">
+                          <span className="text-muted-foreground">
+                            Recommended packaging:{" "}
+                          </span>
+                          <span className="font-semibold">{recommended.name}</span>
+                          <span className="ml-1 font-mono text-[10px] text-muted-foreground">
+                            ({recommended.id})
+                          </span>
+                        </div>
+                      </div>
+                      {packagingError && <ErrorBanner message={packagingError} />}
+                      <ScanRow
+                        key={`pkg-${scanKey}`}
+                        label="Scan packaging material"
+                        placeholder={`e.g. ${recommended.id}`}
+                        onScan={onPackagingScan}
+                        autoFocus
+                      />
+                    </div>
+                  )}
+                </Card>
+              </div>
+
+              {/* Right: large product image */}
+              <div className="w-52 shrink-0">
+                <Card className="overflow-hidden p-0">
+                  <div className="h-64 w-full bg-muted/20">
+                    {lastScannedItem ? (
+                      <img
+                        src={lastScannedItem.image}
+                        alt={lastScannedItem.name}
+                        className="h-full w-full object-contain p-3"
+                      />
+                    ) : (
+                      <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+                        <Package className="h-10 w-10 text-muted-foreground/30" />
+                        <span className="px-4 text-[11px] text-muted-foreground">
+                          Scan an item to see its image
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  {lastScannedItem && (
+                    <div className="border-t border-border bg-muted/20 px-3 py-2">
+                      <div className="truncate text-[11px] font-semibold leading-tight text-foreground">
+                        {lastScannedItem.name}
+                      </div>
+                      <div className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+                        {lastScannedItem.sku}
+                      </div>
+                    </div>
+                  )}
+                </Card>
+              </div>
+            </div>
 
             {/* Packed items table */}
             {packedItems.length > 0 && (
@@ -538,57 +594,38 @@ function PackStation() {
                 <div className="border-b border-border bg-muted/30 px-3 py-2 text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
                   Packed items ({packedItems.length})
                 </div>
-                <div className="[&_th]:px-2 [&_th]:py-1.5 [&_td]:px-2 [&_td]:py-1.5 [&_th]:h-auto [&_th]:text-[10px] [&_td]:text-xs">
+                <div className="[&_th]:px-3 [&_th]:py-2 [&_td]:px-3 [&_td]:py-2 [&_th]:h-auto [&_th]:text-[10px] [&_td]:text-xs">
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/20">
-                        <TableHead>Product Code</TableHead>
+                        <TableHead className="w-12">Image</TableHead>
                         <TableHead>Description</TableHead>
+                        <TableHead>Product Code</TableHead>
                         <TableHead>Box No.</TableHead>
                         <TableHead className="text-right">Qty</TableHead>
-                        <TableHead className="w-8 text-center">Img</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {packedItems.map((p) => (
                         <TableRow key={p.sku}>
-                          <TableCell className="font-mono">{p.sku}</TableCell>
-                          <TableCell>{p.name}</TableCell>
+                          <TableCell>
+                            <div className="h-10 w-10 overflow-hidden rounded border border-border bg-muted/30">
+                              <img
+                                src={p.image}
+                                alt={p.name}
+                                className="h-full w-full object-contain p-0.5"
+                              />
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium">{p.name}</TableCell>
+                          <TableCell className="font-mono text-muted-foreground">
+                            {p.sku}
+                          </TableCell>
                           <TableCell className="font-mono text-[10px]">
                             {p.box}
                           </TableCell>
-                          <TableCell className="text-right tabular-nums">
+                          <TableCell className="text-right tabular-nums font-semibold">
                             {p.qty}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <HoverCard openDelay={100} closeDelay={50}>
-                              <HoverCardTrigger asChild>
-                                <button
-                                  type="button"
-                                  aria-label={`Preview image of ${p.name}`}
-                                  className="inline-flex h-6 w-6 items-center justify-center overflow-hidden rounded-sm border border-border bg-muted/40 hover:ring-2 hover:ring-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                                >
-                                  <img
-                                    src={p.image}
-                                    alt={p.name}
-                                    className="h-full w-full object-cover"
-                                  />
-                                </button>
-                              </HoverCardTrigger>
-                              <HoverCardContent
-                                side="left"
-                                className="w-auto p-2"
-                              >
-                                <img
-                                  src={p.image}
-                                  alt={p.name}
-                                  className="h-36 w-36 rounded object-cover"
-                                />
-                                <div className="mt-1.5 max-w-[144px] text-center text-[11px] font-medium leading-tight">
-                                  {p.name}
-                                </div>
-                              </HoverCardContent>
-                            </HoverCard>
                           </TableCell>
                         </TableRow>
                       ))}
