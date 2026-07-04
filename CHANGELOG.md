@@ -1,5 +1,7 @@
 # Changelog
 
+- 2026-07-04: Pack — All Items table: reordered columns to SKU / Description / Qty / MRP / Batch / Box No. / Image; removed filter row and Sr. No. column; removed Payment Mode from order info box; narrowed attribute zone to w-56 fixed width.
+
 - 2026-07-03: Pack — v2 redesign (screenshot-inspired): 4-zone horizontal upper panel (scan+order-info | attribute rows | large image | icon action strip); top bar shows Order Type + Table ID + Close Pack button with ALT+P kbd hint; order info box shows Pending Qty in red/green; progress bar in left panel; "All Items" table always visible with Sr.No/Pack No/Product Code/Image/Description/EAN/Qty/MRP/Brand/Colour columns and per-column filter row; pack-data extended with ean, brand, orderType fields. Saved prior version as git branch pack-redesign-v1.
 
 - 2026-07-03: Pack — redesigned scan-items UX: large product image panel on the right (h-64, object-contain with caption); prominent progress bar card with per-item chips (green/amber/grey); QC attributes in a 2-column grid; Damaged/Not-Found actions as full-width row buttons; packed items table now shows a thumbnail image column inline instead of a hover popover.

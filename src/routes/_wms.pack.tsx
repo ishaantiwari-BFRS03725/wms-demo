@@ -71,14 +71,12 @@ const channelStyles: Record<string, string> = {
 
 type PackedRow = {
   sku: string;
-  ean: string;
   name: string;
   qty: number;
+  mrp: string;
+  lot: string;
   box: string;
   image: string;
-  brand: string;
-  color: string;
-  mrp: string;
 };
 
 function PackStation() {
@@ -99,14 +97,6 @@ function PackStation() {
   const [nfSelectedSku, setNfSelectedSku] = useState("");
   const [scanKey, setScanKey] = useState(0);
 
-  // Table column filters
-  const [fPackNo, setFPackNo] = useState("");
-  const [fProductCode, setFProductCode] = useState("");
-  const [fDescription, setFDescription] = useState("");
-  const [fEan, setFEan] = useState("");
-  const [fMrp, setFMrp] = useState("");
-  const [fBrand, setFBrand] = useState("");
-  const [fColour, setFColour] = useState("");
 
   // Packing material adherence
   const [adhTotal, setAdhTotal] = useState(0);
@@ -147,14 +137,12 @@ function PackStation() {
         ...prev,
         {
           sku: item.sku,
-          ean: item.ean ?? "—",
           name: item.name,
           qty: 1,
+          mrp: item.mrp ?? "—",
+          lot: item.lot ?? "—",
           box,
           image: item.image,
-          brand: item.brand ?? "—",
-          color: item.color ?? "—",
-          mrp: item.mrp ?? "—",
         },
       ];
     });
@@ -176,8 +164,6 @@ function PackStation() {
     setLastScannedItem(null);
     setPackedItems([]);
     setItemError(null);
-    setFPackNo(""); setFProductCode(""); setFDescription("");
-    setFEan(""); setFMrp(""); setFBrand(""); setFColour("");
     setStep("scan-items");
     return true;
   };
@@ -296,17 +282,6 @@ function PackStation() {
     onClosePack();
   };
 
-  // Filtered rows
-  const filteredItems = packedItems.filter((p) => {
-    if (fPackNo && !p.box.toLowerCase().includes(fPackNo.toLowerCase())) return false;
-    if (fProductCode && !p.sku.toLowerCase().includes(fProductCode.toLowerCase())) return false;
-    if (fDescription && !p.name.toLowerCase().includes(fDescription.toLowerCase())) return false;
-    if (fEan && !p.ean.toLowerCase().includes(fEan.toLowerCase())) return false;
-    if (fMrp && !p.mrp.toLowerCase().includes(fMrp.toLowerCase())) return false;
-    if (fBrand && !p.brand.toLowerCase().includes(fBrand.toLowerCase())) return false;
-    if (fColour && !p.color.toLowerCase().includes(fColour.toLowerCase())) return false;
-    return true;
-  });
 
   const progressPct = totalItemQty === 0 ? 0 : Math.round((totalScanned / totalItemQty) * 100);
 
@@ -458,7 +433,6 @@ function PackStation() {
                   />
                   <InfoRow label="Channel" value={currentOrder.channel} />
                   <InfoRow label="Courier" value={currentOrder.courier} />
-                  <InfoRow label="Payment" value={currentOrder.paymentMode} />
                 </div>
 
                 {/* Progress bar */}
@@ -485,7 +459,7 @@ function PackStation() {
               </div>
 
               {/* Zone 2: Item attributes */}
-              <div className="flex-1 border-r border-border p-4">
+              <div className="w-56 shrink-0 border-r border-border p-4">
                 <div className="space-y-0">
                   <AttrRow label="Name" value={lastScannedItem?.name} />
                   <AttrRow label="EAN" value={lastScannedItem?.ean} mono />
@@ -630,133 +604,56 @@ function PackStation() {
                 <h2 className="text-sm font-semibold text-foreground">All Items</h2>
                 {packedItems.length > 0 && (
                   <span className="text-xs text-muted-foreground">
-                    {filteredItems.length} of {packedItems.length} item{packedItems.length !== 1 ? "s" : ""}
+                    {packedItems.length} item{packedItems.length !== 1 ? "s" : ""}
                   </span>
                 )}
               </div>
               <div className="overflow-hidden rounded-lg border border-border bg-card">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted/30 hover:bg-muted/30">
-                        <TableHead className="w-12 text-[11px] font-semibold text-foreground/70">Sr. No.</TableHead>
-                        <TableHead className="text-[11px] font-semibold text-foreground/70">Pack No ↑↓</TableHead>
-                        <TableHead className="text-[11px] font-semibold text-foreground/70">Product Code ↑↓</TableHead>
-                        <TableHead className="w-16 text-[11px] font-semibold text-foreground/70">Image</TableHead>
-                        <TableHead className="text-[11px] font-semibold text-foreground/70">Description ↑↓</TableHead>
-                        <TableHead className="text-[11px] font-semibold text-foreground/70">EAN ↑↓</TableHead>
-                        <TableHead className="text-[11px] font-semibold text-foreground/70 text-right">Qty ↑↓</TableHead>
-                        <TableHead className="text-[11px] font-semibold text-foreground/70">MRP ↑↓</TableHead>
-                        <TableHead className="text-[11px] font-semibold text-foreground/70">Brand ↑↓</TableHead>
-                        <TableHead className="text-[11px] font-semibold text-foreground/70">Colour ↑↓</TableHead>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/30 hover:bg-muted/30">
+                      <TableHead className="text-[11px] font-semibold text-foreground/70">SKU ↑↓</TableHead>
+                      <TableHead className="text-[11px] font-semibold text-foreground/70">Description ↑↓</TableHead>
+                      <TableHead className="text-[11px] font-semibold text-foreground/70 text-right">Qty ↑↓</TableHead>
+                      <TableHead className="text-[11px] font-semibold text-foreground/70">MRP ↑↓</TableHead>
+                      <TableHead className="text-[11px] font-semibold text-foreground/70">Batch ↑↓</TableHead>
+                      <TableHead className="text-[11px] font-semibold text-foreground/70">Box No. ↑↓</TableHead>
+                      <TableHead className="w-16 text-[11px] font-semibold text-foreground/70">Image</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {packedItems.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-16 text-center">
+                          <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                            <Package className="h-10 w-10 opacity-20" />
+                            <span className="text-sm">No Records Found</span>
+                          </div>
+                        </TableCell>
                       </TableRow>
-                      {/* Filter row */}
-                      <TableRow className="bg-background hover:bg-background border-b border-border">
-                        <TableHead className="py-1.5" />
-                        <TableHead className="py-1.5">
-                          <Input
-                            value={fPackNo}
-                            onChange={(e) => setFPackNo(e.target.value)}
-                            placeholder="Enter Pack No..."
-                            className="h-7 text-xs font-normal"
-                          />
-                        </TableHead>
-                        <TableHead className="py-1.5">
-                          <Input
-                            value={fProductCode}
-                            onChange={(e) => setFProductCode(e.target.value)}
-                            placeholder="Enter Product Code"
-                            className="h-7 text-xs font-normal"
-                          />
-                        </TableHead>
-                        <TableHead className="py-1.5" />
-                        <TableHead className="py-1.5">
-                          <Input
-                            value={fDescription}
-                            onChange={(e) => setFDescription(e.target.value)}
-                            placeholder="Enter Description..."
-                            className="h-7 text-xs font-normal"
-                          />
-                        </TableHead>
-                        <TableHead className="py-1.5">
-                          <Input
-                            value={fEan}
-                            onChange={(e) => setFEan(e.target.value)}
-                            placeholder="Enter EAN..."
-                            className="h-7 text-xs font-normal"
-                          />
-                        </TableHead>
-                        <TableHead className="py-1.5" />
-                        <TableHead className="py-1.5">
-                          <Input
-                            value={fMrp}
-                            onChange={(e) => setFMrp(e.target.value)}
-                            placeholder="Enter MRP..."
-                            className="h-7 text-xs font-normal"
-                          />
-                        </TableHead>
-                        <TableHead className="py-1.5">
-                          <Input
-                            value={fBrand}
-                            onChange={(e) => setFBrand(e.target.value)}
-                            placeholder="Enter Brand..."
-                            className="h-7 text-xs font-normal"
-                          />
-                        </TableHead>
-                        <TableHead className="py-1.5">
-                          <Input
-                            value={fColour}
-                            onChange={(e) => setFColour(e.target.value)}
-                            placeholder="Enter Colour..."
-                            className="h-7 text-xs font-normal"
-                          />
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredItems.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={10} className="py-16 text-center">
-                            <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                              <Package className="h-10 w-10 opacity-20" />
-                              <span className="text-sm">No Records Found</span>
-                              {packedItems.length > 0 && (
-                                <span className="text-xs opacity-70">
-                                  Try clearing the filters above
-                                </span>
-                              )}
+                    ) : (
+                      packedItems.map((p) => (
+                        <TableRow key={p.sku} className="text-xs">
+                          <TableCell className="font-mono text-muted-foreground">{p.sku}</TableCell>
+                          <TableCell className="font-medium">{p.name}</TableCell>
+                          <TableCell className="text-right tabular-nums font-semibold">{p.qty}</TableCell>
+                          <TableCell>{p.mrp}</TableCell>
+                          <TableCell className="font-mono text-[11px] text-muted-foreground">{p.lot}</TableCell>
+                          <TableCell className="font-mono text-[11px]">{p.box}</TableCell>
+                          <TableCell>
+                            <div className="h-10 w-10 overflow-hidden rounded border border-border bg-muted/20">
+                              <img
+                                src={p.image}
+                                alt={p.name}
+                                className="h-full w-full object-contain p-0.5"
+                              />
                             </div>
                           </TableCell>
                         </TableRow>
-                      ) : (
-                        filteredItems.map((p, idx) => (
-                          <TableRow key={p.sku} className="text-xs">
-                            <TableCell className="text-center tabular-nums text-muted-foreground">
-                              {idx + 1}
-                            </TableCell>
-                            <TableCell className="font-mono text-[11px]">{p.box}</TableCell>
-                            <TableCell className="font-mono text-muted-foreground">{p.sku}</TableCell>
-                            <TableCell>
-                              <div className="h-10 w-10 overflow-hidden rounded border border-border bg-muted/20">
-                                <img
-                                  src={p.image}
-                                  alt={p.name}
-                                  className="h-full w-full object-contain p-0.5"
-                                />
-                              </div>
-                            </TableCell>
-                            <TableCell className="font-medium">{p.name}</TableCell>
-                            <TableCell className="font-mono text-[11px] text-muted-foreground">{p.ean}</TableCell>
-                            <TableCell className="text-right tabular-nums font-semibold">{p.qty}</TableCell>
-                            <TableCell>{p.mrp}</TableCell>
-                            <TableCell>{p.brand}</TableCell>
-                            <TableCell>{p.color}</TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
               </div>
             </div>
           </>
