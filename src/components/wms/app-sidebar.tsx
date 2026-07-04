@@ -136,7 +136,6 @@ const sections: NavSection[] = [
       { title: "RTV · Vendor", url: "/returns-rtv", icon: Building2 },
       { title: "CIR · Customer", url: "/returns-cir", icon: MessagesSquare },
       { title: "QC Station", url: "/qc-station", icon: ScanLine },
-      { title: "Cycle Count", url: "/cycle-count", icon: ClipboardCheck },
     ],
   },
   {
@@ -259,6 +258,7 @@ const sections: NavSection[] = [
         ],
       },
       { title: "Approvals", url: "/approvals", icon: BadgeCheck },
+      { title: "Cycle Count", url: "/cycle-count", icon: ClipboardCheck },
       { title: "Replenishment", url: "/replenishment", icon: PackagePlus },
       {
         title: "Slotting",

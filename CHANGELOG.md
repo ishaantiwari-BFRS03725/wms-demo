@@ -1,5 +1,27 @@
 # Changelog
 
+- 2026-07-04: Pack — hid the "Close Pack" button in the top bar (added `hidden` class; code left intact for easy re-enable).
+
+- 2026-07-04: Pack — removed the "View pack summary" action button from the image action strip (and its now-unused FileText import).
+
+- 2026-07-04: Pack — order details Channel row now renders a small brand-logo lockup (Amazon smile wordmark, Flipkart blue chip, Shopify green bag, Myntra pink wordmark) instead of the plain channel name. No logo assets existed, so these are self-contained inline marks using brand colours.
+
+- 2026-07-04: Pack — added a scanned-items counter (e.g. 3/5) next to the "Progress" label above the progress bar; removed the Order Qty and Pending Qty rows from the order details box.
+
+- 2026-07-04: Pack — All Items table: kept full width but made rows shorter (tighter row padding [&>td]:py-1, thumbnail 40px→32px); added a right-aligned search bar above it (filters by SKU/description/box no.); removed the ↑↓ sort indicators from every column header.
+
+- 2026-07-04: Pack — pulled the progress bar out of the left panel (Zone 1) into its own full-width card row between the item details card and the All Items table; added a little top spacing to push the table down.
+
+- 2026-07-04: Pack — nudged the colour swatch up from h-3/w-3 to h-3.5/w-3.5 for better visibility.
+
+- 2026-07-04: Pack — added a colour swatch (small circle filled with the product colour) next to the Colour value in the item attributes.
+
+- 2026-07-04: Pack — moved the Damaged/Not-Found/Summary action buttons out of the image overlay into a dedicated strip to the right of the image so they no longer overlap it; bumped the image width from w-64 to w-72.
+
+- 2026-07-04: Pack — image zone changed from a wide flex-1 landscape strip to a fixed w-64 portrait crop (object-cover) so it no longer overflows the panel; attribute zone now takes the freed horizontal space (flex-1); click-to-expand preserved. Removed the EAN row from the item attributes.
+
+- 2026-07-04: Pack — capped upper panel height (max-h-300, Zone 1 scrolls) so the All Items table stays on screen; product image fills flush to the card's right edge (object-cover) and now crops cleanly in line with the table; moved the Damaged/Not-Found/Summary action buttons into a top-right overlay on the image; image is click-to-expand into a full-size dialog (object-contain).
+
 - 2026-07-04: Pack — All Items table: reordered columns to SKU / Description / Qty / MRP / Batch / Box No. / Image; removed filter row and Sr. No. column; removed Payment Mode from order info box; narrowed attribute zone to w-56 fixed width.
 
 - 2026-07-03: Pack — v2 redesign (screenshot-inspired): 4-zone horizontal upper panel (scan+order-info | attribute rows | large image | icon action strip); top bar shows Order Type + Table ID + Close Pack button with ALT+P kbd hint; order info box shows Pending Qty in red/green; progress bar in left panel; "All Items" table always visible with Sr.No/Pack No/Product Code/Image/Description/EAN/Qty/MRP/Brand/Colour columns and per-column filter row; pack-data extended with ean, brand, orderType fields. Saved prior version as git branch pack-redesign-v1.

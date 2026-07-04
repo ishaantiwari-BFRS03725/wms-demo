@@ -3,11 +3,13 @@ import { useRef, useState } from "react";
 import {
   AlertCircle,
   CheckCircle2,
-  FileText,
+  Maximize2,
   Package,
   PackageCheck,
   ScanBarcode,
+  Search,
   SearchX,
+  ShoppingBag,
   TriangleAlert,
   X,
 } from "lucide-react";
@@ -96,6 +98,8 @@ function PackStation() {
   const [nfDialogOpen, setNfDialogOpen] = useState(false);
   const [nfSelectedSku, setNfSelectedSku] = useState("");
   const [scanKey, setScanKey] = useState(0);
+  const [zoomOpen, setZoomOpen] = useState(false);
+  const [itemSearch, setItemSearch] = useState("");
 
 
   // Packing material adherence
@@ -109,7 +113,6 @@ function PackStation() {
   const totalItemQty =
     currentOrder?.items.reduce((s, it) => s + it.qty, 0) ?? 0;
   const totalScanned = Object.values(scannedQty).reduce((s, n) => s + n, 0);
-  const pendingQty = totalItemQty - totalScanned;
 
   const unscannedItems =
     currentOrder?.items.filter(
@@ -285,6 +288,14 @@ function PackStation() {
 
   const progressPct = totalItemQty === 0 ? 0 : Math.round((totalScanned / totalItemQty) * 100);
 
+  const filteredPacked = itemSearch.trim()
+    ? packedItems.filter((p) =>
+        [p.sku, p.name, p.box].some((f) =>
+          f.toLowerCase().includes(itemSearch.trim().toLowerCase()),
+        ),
+      )
+    : packedItems;
+
   return (
     <div className="flex h-full flex-col">
       {/* ── Top bar ── */}
@@ -350,7 +361,7 @@ function PackStation() {
             <Button
               variant="outline"
               size="sm"
-              className="h-8 gap-1.5 text-xs"
+              className="hidden h-8 gap-1.5 text-xs"
               onClick={onClosePack}
             >
               <Package className="h-3.5 w-3.5" />
@@ -403,10 +414,10 @@ function PackStation() {
         {step === "scan-items" && currentOrder && (
           <>
             {/* Upper panel: scan + order info | item attributes | image | actions */}
-            <div className="flex overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+            <div className="flex max-h-[300px] overflow-hidden rounded-lg border border-border bg-card shadow-sm">
 
               {/* Zone 1: Scan input + order info */}
-              <div className="w-64 shrink-0 border-r border-border p-4 space-y-4">
+              <div className="w-64 shrink-0 overflow-y-auto border-r border-border p-4 space-y-4">
                 {/* Scan input */}
                 <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-foreground">
@@ -424,47 +435,20 @@ function PackStation() {
                 {/* Order info box */}
                 <div className="rounded border border-border bg-muted/20 p-3 space-y-2 text-sm">
                   <InfoRow label="Order No" value={currentOrder.orderNo} mono />
-                  <InfoRow label="Order Qty" value={String(totalItemQty)} />
-                  <InfoRow
-                    label="Pending Qty"
-                    value={String(pendingQty)}
-                    danger={pendingQty > 0}
-                    done={pendingQty === 0}
-                  />
-                  <InfoRow label="Channel" value={currentOrder.channel} />
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <span className="text-muted-foreground text-[12px]">Channel</span>
+                    <ChannelLogo channel={currentOrder.channel} />
+                  </div>
                   <InfoRow label="Courier" value={currentOrder.courier} />
-                </div>
-
-                {/* Progress bar */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                    <span>Progress</span>
-                    <span className="font-mono font-semibold text-foreground">
-                      {progressPct}%
-                    </span>
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full bg-status-picked transition-all duration-300"
-                      style={{ width: `${progressPct}%` }}
-                    />
-                  </div>
-                  {allItemsDone && (
-                    <div className="flex items-center gap-1 text-[11px] font-medium text-ok">
-                      <PackageCheck className="h-3 w-3" />
-                      All items scanned
-                    </div>
-                  )}
                 </div>
               </div>
 
               {/* Zone 2: Item attributes */}
-              <div className="w-56 shrink-0 border-r border-border p-4">
+              <div className="min-w-0 flex-1 border-r border-border p-4">
                 <div className="space-y-0">
                   <AttrRow label="Name" value={lastScannedItem?.name} />
-                  <AttrRow label="EAN" value={lastScannedItem?.ean} mono />
                   <AttrRow label="SKU" value={lastScannedItem?.sku} mono />
-                  <AttrRow label="Colour" value={lastScannedItem?.color} />
+                  <AttrRow label="Colour" value={lastScannedItem?.color} swatch />
                   <AttrRow label="Brand" value={lastScannedItem?.brand} />
                   <AttrRow label="Size" value={lastScannedItem?.size} />
                   <AttrRow label="MRP" value={lastScannedItem?.mrp} />
@@ -484,93 +468,115 @@ function PackStation() {
                 )}
               </div>
 
-              {/* Zone 3: Large product image */}
-              <div className="w-56 shrink-0 bg-muted/10">
-                {lastScannedItem ? (
-                  <img
-                    src={lastScannedItem.image}
-                    alt={lastScannedItem.name}
-                    className="h-full w-full object-contain p-4"
-                    style={{ minHeight: "220px" }}
-                  />
-                ) : (
-                  <div
-                    className="flex h-full flex-col items-center justify-center gap-3 text-center"
-                    style={{ minHeight: "220px" }}
-                  >
-                    <Package className="h-12 w-12 text-muted-foreground/20" />
-                    <span className="px-4 text-[11px] text-muted-foreground/60">
-                      Scan an item to preview
-                    </span>
-                  </div>
-                )}
+              {/* Zone 3: Product image (portrait crop) + separate action strip */}
+              <div className="flex shrink-0 border-l border-border">
+                <div className="group relative w-72 shrink-0 bg-muted/10">
+                  {lastScannedItem ? (
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setZoomOpen(true)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") setZoomOpen(true);
+                      }}
+                      className="h-full w-full cursor-zoom-in overflow-hidden"
+                      title="Click to expand"
+                    >
+                      <img
+                        src={lastScannedItem.image}
+                        alt={lastScannedItem.name}
+                        className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                      />
+                      <span className="pointer-events-none absolute bottom-2 left-2 flex items-center gap-1 rounded-md bg-black/45 px-1.5 py-1 text-[10px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
+                        <Maximize2 className="h-3 w-3" />
+                        Expand
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+                      <Package className="h-12 w-12 text-muted-foreground/20" />
+                      <span className="px-4 text-[11px] text-muted-foreground/60">
+                        Scan an item to preview
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action button strip (right of image) */}
+                <div className="flex flex-col gap-1.5 border-l border-border p-2">
+                  <TooltipProvider delayDuration={100}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          disabled={!lastScannedItem || damagedSkus.has(lastScannedItem?.sku ?? "")}
+                          onClick={onMarkDamaged}
+                          className={cn(
+                            "flex h-8 w-8 items-center justify-center rounded-full border shadow-sm backdrop-blur transition-colors",
+                            !lastScannedItem || damagedSkus.has(lastScannedItem?.sku ?? "")
+                              ? "border-border bg-background/70 text-muted-foreground/40 cursor-not-allowed"
+                              : "border-destructive/40 bg-background/90 text-destructive hover:bg-destructive/10",
+                          )}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="text-xs">
+                        Mark Damaged
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          disabled={unscannedItems.length === 0}
+                          onClick={() => { setNfSelectedSku(""); setNfDialogOpen(true); }}
+                          className={cn(
+                            "flex h-8 w-8 items-center justify-center rounded-full border shadow-sm backdrop-blur transition-colors",
+                            unscannedItems.length === 0
+                              ? "border-border bg-background/70 text-muted-foreground/40 cursor-not-allowed"
+                              : "border-border bg-background/90 text-foreground hover:bg-background",
+                          )}
+                        >
+                          <SearchX className="h-4 w-4" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="text-xs">
+                        Not Found
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               </div>
+            </div>
 
-              {/* Zone 4: Action buttons (far right strip) */}
-              <div className="w-11 shrink-0 border-l border-border flex flex-col items-center gap-1.5 pt-4 px-1.5">
-                <TooltipProvider delayDuration={100}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        disabled={!lastScannedItem || damagedSkus.has(lastScannedItem?.sku ?? "")}
-                        onClick={onMarkDamaged}
-                        className={cn(
-                          "flex h-8 w-8 items-center justify-center rounded-full border transition-colors",
-                          !lastScannedItem || damagedSkus.has(lastScannedItem?.sku ?? "")
-                            ? "border-border bg-muted/30 text-muted-foreground/40 cursor-not-allowed"
-                            : "border-destructive/40 bg-destructive/5 text-destructive hover:bg-destructive/10",
-                        )}
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="left" className="text-xs">
-                      Mark Damaged
-                    </TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        disabled={unscannedItems.length === 0}
-                        onClick={() => { setNfSelectedSku(""); setNfDialogOpen(true); }}
-                        className={cn(
-                          "flex h-8 w-8 items-center justify-center rounded-full border transition-colors",
-                          unscannedItems.length === 0
-                            ? "border-border bg-muted/30 text-muted-foreground/40 cursor-not-allowed"
-                            : "border-border bg-background text-foreground hover:bg-muted",
-                        )}
-                      >
-                        <SearchX className="h-4 w-4" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="left" className="text-xs">
-                      Not Found
-                    </TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        disabled={packedItems.length === 0}
-                        className={cn(
-                          "flex h-8 w-8 items-center justify-center rounded-full border transition-colors",
-                          packedItems.length === 0
-                            ? "border-border bg-muted/30 text-muted-foreground/40 cursor-not-allowed"
-                            : "border-border bg-background text-foreground hover:bg-muted",
-                        )}
-                      >
-                        <FileText className="h-4 w-4" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="left" className="text-xs">
-                      View pack summary
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+            {/* Progress bar — full-width row between the details card and the table */}
+            <div className="rounded-lg border border-border bg-card p-4 space-y-1.5">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-medium">Progress</span>
+                  <span className="font-mono font-semibold text-foreground tabular-nums">
+                    {totalScanned}/{totalItemQty}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {allItemsDone && (
+                    <span className="flex items-center gap-1 font-medium text-ok">
+                      <PackageCheck className="h-3.5 w-3.5" />
+                      All items scanned
+                    </span>
+                  )}
+                  <span className="font-mono font-semibold text-foreground">
+                    {progressPct}%
+                  </span>
+                </div>
+              </div>
+              <div className="h-2.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-status-picked transition-all duration-300"
+                  style={{ width: `${progressPct}%` }}
+                />
               </div>
             </div>
 
@@ -599,30 +605,34 @@ function PackStation() {
             )}
 
             {/* All Items table */}
-            <div>
-              <div className="mb-2 flex items-center justify-between">
+            <div className="pt-2">
+              <div className="mb-2 flex items-center justify-between gap-3">
                 <h2 className="text-sm font-semibold text-foreground">All Items</h2>
-                {packedItems.length > 0 && (
-                  <span className="text-xs text-muted-foreground">
-                    {packedItems.length} item{packedItems.length !== 1 ? "s" : ""}
-                  </span>
-                )}
+                <div className="relative w-64">
+                  <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={itemSearch}
+                    onChange={(e) => setItemSearch(e.target.value)}
+                    placeholder="Search items…"
+                    className="h-8 pl-8 text-xs"
+                  />
+                </div>
               </div>
               <div className="overflow-hidden rounded-lg border border-border bg-card">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/30 hover:bg-muted/30">
-                      <TableHead className="text-[11px] font-semibold text-foreground/70">SKU ↑↓</TableHead>
-                      <TableHead className="text-[11px] font-semibold text-foreground/70">Description ↑↓</TableHead>
-                      <TableHead className="text-[11px] font-semibold text-foreground/70 text-right">Qty ↑↓</TableHead>
-                      <TableHead className="text-[11px] font-semibold text-foreground/70">MRP ↑↓</TableHead>
-                      <TableHead className="text-[11px] font-semibold text-foreground/70">Batch ↑↓</TableHead>
-                      <TableHead className="text-[11px] font-semibold text-foreground/70">Box No. ↑↓</TableHead>
+                      <TableHead className="text-[11px] font-semibold text-foreground/70">SKU</TableHead>
+                      <TableHead className="text-[11px] font-semibold text-foreground/70">Description</TableHead>
+                      <TableHead className="text-[11px] font-semibold text-foreground/70 text-right">Qty</TableHead>
+                      <TableHead className="text-[11px] font-semibold text-foreground/70">MRP</TableHead>
+                      <TableHead className="text-[11px] font-semibold text-foreground/70">Batch</TableHead>
+                      <TableHead className="text-[11px] font-semibold text-foreground/70">Box No.</TableHead>
                       <TableHead className="w-16 text-[11px] font-semibold text-foreground/70">Image</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {packedItems.length === 0 ? (
+                    {filteredPacked.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={7} className="py-16 text-center">
                           <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -632,8 +642,8 @@ function PackStation() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      packedItems.map((p) => (
-                        <TableRow key={p.sku} className="text-xs">
+                      filteredPacked.map((p) => (
+                        <TableRow key={p.sku} className="text-xs [&>td]:py-1">
                           <TableCell className="font-mono text-muted-foreground">{p.sku}</TableCell>
                           <TableCell className="font-medium">{p.name}</TableCell>
                           <TableCell className="text-right tabular-nums font-semibold">{p.qty}</TableCell>
@@ -641,7 +651,7 @@ function PackStation() {
                           <TableCell className="font-mono text-[11px] text-muted-foreground">{p.lot}</TableCell>
                           <TableCell className="font-mono text-[11px]">{p.box}</TableCell>
                           <TableCell>
-                            <div className="h-10 w-10 overflow-hidden rounded border border-border bg-muted/20">
+                            <div className="h-8 w-8 overflow-hidden rounded border border-border bg-muted/20">
                               <img
                                 src={p.image}
                                 alt={p.name}
@@ -705,6 +715,27 @@ function PackStation() {
         </DialogContent>
       </Dialog>
 
+      {/* ── Image zoom ── */}
+      <Dialog open={zoomOpen} onOpenChange={setZoomOpen}>
+        <DialogContent className="max-w-xl p-2">
+          {lastScannedItem && (
+            <div className="space-y-2">
+              <img
+                src={lastScannedItem.image}
+                alt={lastScannedItem.name}
+                className="max-h-[70vh] w-full rounded-md object-contain"
+              />
+              <div className="px-1 pb-1 text-center">
+                <div className="text-sm font-semibold">{lastScannedItem.name}</div>
+                <div className="font-mono text-xs text-muted-foreground">
+                  {lastScannedItem.sku}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* ── Print confirmation + next tote ── */}
       <Dialog open={printOpen} onOpenChange={() => {}}>
         <DialogContent
@@ -751,10 +782,12 @@ function AttrRow({
   label,
   value,
   mono = false,
+  swatch = false,
 }: {
   label: string;
   value?: string;
   mono?: boolean;
+  swatch?: boolean;
 }) {
   return (
     <div className="flex items-baseline gap-0 border-b border-border/50 py-2 last:border-0">
@@ -763,11 +796,17 @@ function AttrRow({
       </span>
       <span
         className={cn(
-          "text-[12px] text-foreground/80",
+          "flex items-center gap-1.5 text-[12px] text-foreground/80",
           mono && "font-mono",
           !value && "text-muted-foreground",
         )}
       >
+        {swatch && value && (
+          <span
+            className="inline-block h-3.5 w-3.5 shrink-0 rounded-full border border-border"
+            style={{ backgroundColor: value.toLowerCase() }}
+          />
+        )}
         {value ?? "—"}
       </span>
     </div>
@@ -803,6 +842,53 @@ function InfoRow({
       </span>
     </div>
   );
+}
+
+/** Small brand-logo lockup for the sales channel */
+function ChannelLogo({ channel }: { channel: string }) {
+  switch (channel) {
+    case "Amazon":
+      return (
+        <span className="inline-flex flex-col items-center leading-none">
+          <span className="text-[13px] font-bold lowercase tracking-tight text-[#232F3E]">
+            amazon
+          </span>
+          <svg width="44" height="6" viewBox="0 0 44 6" fill="none" aria-hidden>
+            <path
+              d="M1 1.4 C 14 5.8, 30 5.8, 43 1.4"
+              stroke="#FF9900"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              fill="none"
+            />
+          </svg>
+        </span>
+      );
+    case "Flipkart":
+      return (
+        <span className="inline-flex items-center gap-1 rounded-[3px] bg-[#2874F0] px-1.5 py-0.5">
+          <ShoppingBag className="h-3 w-3 text-[#FFE11B]" />
+          <span className="text-[12px] font-semibold italic text-white">Flipkart</span>
+        </span>
+      );
+    case "Shopify":
+      return (
+        <span className="inline-flex items-center gap-1">
+          <span className="flex h-4 w-4 items-center justify-center rounded-[3px] bg-[#95BF47]">
+            <ShoppingBag className="h-2.5 w-2.5 text-white" />
+          </span>
+          <span className="text-[12px] font-bold text-[#5E8E3E]">Shopify</span>
+        </span>
+      );
+    case "Myntra":
+      return (
+        <span className="text-[13px] font-extrabold italic tracking-tight text-[#FF3F6C]">
+          Myntra
+        </span>
+      );
+    default:
+      return <span className="text-[12px] font-semibold">{channel}</span>;
+  }
 }
 
 function ErrorBanner({ message }: { message: string }) {
