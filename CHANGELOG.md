@@ -1,5 +1,7 @@
 # Changelog
 
+- 2026-07-04: Nav — hid the Cycle Count item from the sidebar (commented out) since the screen is a WIP/incorrect; route left intact.
+
 - 2026-07-04: Pack — hid the "Close Pack" button in the top bar (added `hidden` class; code left intact for easy re-enable).
 
 - 2026-07-04: Pack — removed the "View pack summary" action button from the image action strip (and its now-unused FileText import).
