@@ -201,6 +201,11 @@ export const GRN_TASKS: GrnTask[] = ["BOX-7F3A-001", "BOX-22C9-004", "BOX-9011-0
 let grnSeq = 4471;
 export const genGrnDocId = () => `GRN-2024-${String(grnSeq++).padStart(6, "0")}`;
 
+// USN (Unique Serial Number) — one per rejected unit. The barcode is printed
+// once the box GRN is completed so each bad piece can be tracked individually.
+let usnSeq = 90001;
+export const genUsn = () => `USN-${String(usnSeq++).padStart(7, "0")}`;
+
 // Barcode pattern for printed GRN documents.
 export const grnBarcodePattern = (seed: string): number[] => {
   let h = 0;

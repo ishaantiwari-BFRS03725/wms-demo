@@ -2,21 +2,21 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
-  Boxes,
   CheckCircle2,
   ClipboardCheck,
   ClipboardList,
   Layers,
-  PackageSearch,
+  Minus,
+  Plus,
   Printer,
   ScanBarcode,
   ScanText,
-  Search,
   ThumbsDown,
   ThumbsUp,
   Video,
   XCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -43,15 +43,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { qcRejectReasons } from "@/lib/wms/inbound-data";
 import {
   boxConsignment,
   genGrnDocId,
+  genUsn,
   grnBarcodePattern,
   GRN_TASKS,
   type BoxConsignment,
   type GrnItem,
 } from "@/lib/wms/grn-data";
+
+// Rejection reasons offered on the GRN QC screen.
+const GRN_REJECT_REASONS = ["Damaged", "Expired", "Torn", "Faded"] as const;
 
 export const Route = createFileRoute("/_wms/grn")({
   head: () => ({
@@ -63,10 +66,8 @@ export const Route = createFileRoute("/_wms/grn")({
 type Step =
   | "scan-qc-table"
   | "select-box"
-  | "scan-good-lpn"
-  | "scan-bad-lpn"
+  | "scan-bin"
   | "scan-items"
-  | "done"
   | "session-done";
 
 type QcMode = "good" | "bad";
@@ -91,6 +92,7 @@ interface QcItemRow {
   mode: QcMode;
   reason?: string;
   batch?: Batch;
+  usn?: string; // unique serial, assigned per rejected unit
 }
 
 interface GrnDoc {
@@ -110,24 +112,24 @@ function Grn() {
 
   // Session-level (retained till logout)
   const [qcTable, setQcTable] = useState<string | null>(null);
-  const [goodLpn, setGoodLpn] = useState<string | null>(null);
-  const [badLpn, setBadLpn] = useState<string | null>(null);
   const [grnDocs, setGrnDocs] = useState<GrnDoc[]>([]);
 
-  // Per-box
+  // Per-box: one QC bin, with a QC status assigned on the item screen.
   const [box, setBox] = useState<BoxConsignment | null>(null);
+  const [binLpn, setBinLpn] = useState<string | null>(null);
+  const [binQc, setBinQc] = useState<QcMode>("good");
+  const [changingBin, setChangingBin] = useState(false);
   const [qcItems, setQcItems] = useState<QcItemRow[]>([]);
   const [pendingItem, setPendingItem] = useState<PendingItem | null>(null);
+  const [qcQty, setQcQty] = useState(1);
   const [batch, setBatch] = useState<Batch>(emptyBatch);
   const [paramFails, setParamFails] = useState<Record<string, boolean>>({});
-  const [lastDoc, setLastDoc] = useState<GrnDoc | null>(null);
   const [recordingStart, setRecordingStart] = useState<Date | null>(null);
 
   const [scanError, setScanError] = useState<string | null>(null);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
-  const [pendencyOpen, setPendencyOpen] = useState(false);
-  const [pendencySearch, setPendencySearch] = useState("");
+  const [usnPrintRows, setUsnPrintRows] = useState<QcItemRow[]>([]);
   const [scanKey, setScanKey] = useState(0);
 
   const scannedBySku = useMemo(() => {
@@ -150,12 +152,49 @@ function Grn() {
 
   const batchReady = !!(batch.lot && batch.mfg && batch.expiry && batch.mrp);
 
+  // Bin QC status is editable until the first item is committed into THIS bin.
+  // A pending (scanned but not yet confirmed) item — or items in a previous
+  // bin — do not lock it, so a freshly changed bin starts unlocked.
+  const binLocked = qcItems.some((r) => r.lpn === binLpn);
+
+  // How many units of the pending item remain open — the operator can QC a
+  // whole batch at once by entering a quantity (defaults to 1).
+  const pendingCommitted = pendingItem
+    ? qcItems.filter((r) => r.sku === pendingItem.sku).length
+    : 0;
+  const pendingMax = pendingItem
+    ? Math.max(1, pendingItem.expected.qty - pendingCommitted)
+    : 1;
+
   // ---- Handlers ----
   const onQcTableScan = (val: string) => {
     const v = val.trim().toUpperCase();
     if (!v) return;
     setQcTable(v);
     setStep("select-box");
+    setScanKey((k) => k + 1);
+  };
+
+  const onBinScan = (val: string) => {
+    const v = val.trim().toUpperCase();
+    if (!v) return;
+    setScanError(null);
+    setBinLpn(v);
+    if (changingBin) {
+      setChangingBin(false);
+      setStep("scan-items");
+      setScanKey((k) => k + 1);
+      return;
+    }
+    setBinQc("good");
+    setStep("scan-items");
+    setScanKey((k) => k + 1);
+  };
+
+  const changeBin = () => {
+    setChangingBin(true);
+    setScanError(null);
+    setStep("scan-bin");
     setScanKey((k) => k + 1);
   };
 
@@ -169,35 +208,7 @@ function Grn() {
     setParamFails({});
     setScanError(null);
     setRecordingStart(new Date());
-    setStep(goodLpn && badLpn ? "scan-items" : "scan-good-lpn");
-    setScanKey((k) => k + 1);
-  };
-
-  const onGoodLpnScan = (val: string) => {
-    const v = val.trim().toUpperCase();
-    if (!v) return;
-    if (v === badLpn) {
-      setScanError("Good LPN must be different from the Bad LPN.");
-      setScanKey((k) => k + 1);
-      return;
-    }
-    setScanError(null);
-    setGoodLpn(v);
-    setStep("scan-bad-lpn");
-    setScanKey((k) => k + 1);
-  };
-
-  const onBadLpnScan = (val: string) => {
-    const v = val.trim().toUpperCase();
-    if (!v) return;
-    if (v === goodLpn) {
-      setScanError("Bad LPN must be different from the Good LPN.");
-      setScanKey((k) => k + 1);
-      return;
-    }
-    setScanError(null);
-    setBadLpn(v);
-    setStep("scan-items");
+    setStep("scan-bin");
     setScanKey((k) => k + 1);
   };
 
@@ -222,6 +233,7 @@ function Grn() {
     }
     setScanError(null);
     setPendingItem({ sku: v, name: expected.name, expected });
+    setQcQty(1);
     setBatch(emptyBatch);
     setScanKey((k) => k + 1);
   };
@@ -233,36 +245,38 @@ function Grn() {
   };
 
   const commitGood = () => {
-    if (!pendingItem || !goodLpn || !batchReady) return;
-    setQcItems((prev) => [
-      ...prev,
-      {
-        sku: pendingItem.sku,
-        name: pendingItem.name,
-        lpn: goodLpn,
-        mode: "good",
-        batch,
-      },
-    ]);
+    if (!pendingItem || !binLpn || !batchReady) return;
+    const n = Math.min(Math.max(1, qcQty), pendingMax);
+    const rows: QcItemRow[] = Array.from({ length: n }, () => ({
+      sku: pendingItem.sku,
+      name: pendingItem.name,
+      lpn: binLpn,
+      mode: "good" as const,
+      batch,
+    }));
+    setQcItems((prev) => [...prev, ...rows]);
     setPendingItem(null);
+    setQcQty(1);
     setBatch(emptyBatch);
     setScanKey((k) => k + 1);
   };
 
   const confirmReject = () => {
-    if (!pendingItem || !badLpn || !rejectReason) return;
-    setQcItems((prev) => [
-      ...prev,
-      {
-        sku: pendingItem.sku,
-        name: pendingItem.name,
-        lpn: badLpn,
-        mode: "bad",
-        reason: rejectReason,
-        batch: batchReady ? batch : undefined,
-      },
-    ]);
+    if (!pendingItem || !binLpn || !rejectReason) return;
+    const n = Math.min(Math.max(1, qcQty), pendingMax);
+    const rows: QcItemRow[] = Array.from({ length: n }, () => ({
+      sku: pendingItem.sku,
+      name: pendingItem.name,
+      lpn: binLpn,
+      mode: "bad" as const,
+      reason: rejectReason,
+      batch: batchReady ? batch : undefined,
+      usn: genUsn(),
+    }));
+    setQcItems((prev) => [...prev, ...rows]);
+    setUsnPrintRows(rows); // pop the USN print modal for these units
     setPendingItem(null);
+    setQcQty(1);
     setBatch(emptyBatch);
     setRejectReason("");
     setRejectOpen(false);
@@ -281,12 +295,17 @@ function Grn() {
       rows: qcItems,
     };
     setGrnDocs((prev) => [...prev, doc]);
-    setLastDoc(doc);
-    setStep("done");
+    toast.success(`GRN generated · ${doc.grnId}`, {
+      description: `${doc.boxId} — ${doc.good} good · ${doc.bad} bad. GRN & USN labels sent to printer.`,
+    });
+    // No done screen — go straight back to scanning the next box.
+    nextBox();
   };
 
   const nextBox = () => {
     setBox(null);
+    setBinLpn(null);
+    setBinQc("good");
     setQcItems([]);
     setPendingItem(null);
     setBatch(emptyBatch);
@@ -300,15 +319,14 @@ function Grn() {
   const resetSession = () => {
     setStep("scan-qc-table");
     setQcTable(null);
-    setGoodLpn(null);
-    setBadLpn(null);
     setGrnDocs([]);
     setBox(null);
+    setBinLpn(null);
+    setBinQc("good");
     setQcItems([]);
     setPendingItem(null);
     setBatch(emptyBatch);
     setParamFails({});
-    setLastDoc(null);
     setScanError(null);
     setRecordingStart(null);
     setScanKey((k) => k + 1);
@@ -324,22 +342,6 @@ function Grn() {
     }
     return Array.from(map.values());
   }, [qcItems]);
-
-  // Pendency = expected units not yet QC'd.
-  const pendingUnits = items.reduce(
-    (s, it) => s + Math.max(0, it.qty - (scannedBySku[it.sku] ?? 0)),
-    0,
-  );
-  const totalUnits = items.reduce((s, it) => s + it.qty, 0);
-
-  const filteredItems = useMemo(() => {
-    const q = pendencySearch.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter(
-      (it) =>
-        it.name.toLowerCase().includes(q) || it.sku.toLowerCase().includes(q),
-    );
-  }, [items, pendencySearch]);
 
   const failedParams = box ? box.qcParams.filter((p) => paramFails[p]) : [];
 
@@ -379,10 +381,7 @@ function Grn() {
       <div className="flex gap-6 p-6">
         <div className="flex-1 max-w-[640px] space-y-2">
           {/* Box context chip */}
-          {box &&
-            (step === "scan-good-lpn" ||
-              step === "scan-bad-lpn" ||
-              step === "scan-items") && (
+          {box && step === "scan-items" && (
               <Card className="flex items-center justify-between gap-3 p-2.5">
                 <div className="min-w-0">
                   <div className="text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
@@ -397,21 +396,6 @@ function Grn() {
                   <div className="truncate text-sm font-semibold">
                     {box.seller}
                   </div>
-                </div>
-                <div className="shrink-0 text-right">
-                  <div className="text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                    Mode
-                  </div>
-                  <span
-                    className={cn(
-                      "rounded-[2px] px-1.5 py-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.06em]",
-                      box.sellerFirst
-                        ? "bg-primary/10 text-primary"
-                        : "bg-muted text-muted-foreground",
-                    )}
-                  >
-                    {box.sellerFirst ? "Seller-first" : "Seller-agnostic"}
-                  </span>
                 </div>
               </Card>
             )}
@@ -445,8 +429,8 @@ function Grn() {
                   Scan Box ID
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  GRN is done at box level. The WMS fetches the ASN from the Box
-                  ID.
+                  GRN is done at box level. Scan a pending Box ID to start — the
+                  WMS fetches the ASN from it. You&apos;ll scan the GRN bin next.
                 </p>
                 <ScanRow
                   key={`box-${scanKey}`}
@@ -459,7 +443,7 @@ function Grn() {
               <Card className="overflow-hidden p-0">
                 <div className="flex items-center gap-1.5 border-b border-border bg-muted/30 px-3 py-2 text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
                   <ClipboardList className="h-3.5 w-3.5" />
-                  Or pick a task from unloading
+                  Pending boxes from unloading
                 </div>
                 <div className="divide-y divide-border">
                   {GRN_TASKS.map((t) => (
@@ -483,74 +467,130 @@ function Grn() {
                   ))}
                 </div>
               </Card>
+
+              {grnDocs.length > 0 && (
+                <Button
+                  variant="outline"
+                  className="h-11 w-full"
+                  onClick={() => setStep("session-done")}
+                >
+                  <Layers className="mr-2 h-4 w-4" />
+                  Complete GRN session ({grnDocs.length})
+                </Button>
+              )}
             </>
           )}
 
-          {/* Step — Good LPN */}
-          {step === "scan-good-lpn" && (
-            <Card className="space-y-3 p-4">
-              <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-status-picked">
-                <ThumbsUp className="h-3.5 w-3.5" />
-                Scan GOOD QC bin LPN
-              </div>
-              <p className="text-[11px] text-muted-foreground">
-                Collects all items that pass QC. Retained for the session.
-              </p>
-              {scanError && <ErrorBanner message={scanError} />}
-              <ScanRow
-                key={`good-${scanKey}`}
-                placeholder="Scan Good QC LPN…"
-                onScan={onGoodLpnScan}
-                autoFocus
-              />
-            </Card>
-          )}
+          {/* Step — QC bin */}
+          {step === "scan-bin" && (
+            <>
+              {box && (
+                <Card className="flex items-center justify-between gap-3 p-2.5">
+                  <div className="min-w-0">
+                    <div className="text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                      Box
+                    </div>
+                    <div className="font-mono text-sm font-bold">
+                      {box.boxId}
+                    </div>
+                  </div>
+                  <div className="min-w-0 text-right">
+                    <div className="text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                      Seller
+                    </div>
+                    <div className="truncate text-sm font-semibold">
+                      {box.seller}
+                    </div>
+                  </div>
+                </Card>
+              )}
 
-          {/* Step — Bad LPN */}
-          {step === "scan-bad-lpn" && (
-            <Card className="space-y-3 p-4">
-              <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-destructive">
-                <ThumbsDown className="h-3.5 w-3.5" />
-                Scan BAD QC bin LPN
-              </div>
-              <p className="text-[11px] text-muted-foreground">
-                Collects any items rejected during QC. Must differ from the Good
-                LPN.
-              </p>
-              {scanError && <ErrorBanner message={scanError} />}
-              <ScanRow
-                key={`bad-${scanKey}`}
-                placeholder="Scan Bad QC LPN…"
-                onScan={onBadLpnScan}
-                autoFocus
-              />
-            </Card>
+              <Card className="space-y-3 p-4">
+                <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                  <ScanBarcode className="h-3.5 w-3.5" />
+                  Scan GRN bin LPN
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Scan the GRN bin for this box, then scan its items. You&apos;ll
+                  set the bin&apos;s QC status (Good by default) on the item
+                  screen — it can be changed until the first item is scanned.
+                  Good and bad items can&apos;t share a bin.
+                </p>
+                {scanError && <ErrorBanner message={scanError} />}
+                <ScanRow
+                  key={`bin-${scanKey}`}
+                  placeholder="Scan GRN bin LPN…"
+                  onScan={onBinScan}
+                  autoFocus
+                />
+              </Card>
+            </>
           )}
 
           {/* Step — Item QC */}
-          {step === "scan-items" && box && goodLpn && badLpn && (
+          {step === "scan-items" && box && binLpn && (
             <>
-              {/* Bin strip */}
-              <div className="grid grid-cols-2 gap-1.5">
-                <div className="flex items-center gap-1.5 rounded-md border border-status-picked/30 bg-status-picked/5 px-2 py-1 text-[10px]">
-                  <ThumbsUp className="h-3 w-3 text-status-picked" />
-                  <span className="font-mono uppercase tracking-[0.06em] text-muted-foreground">
+              {/* Bin strip — single bin with an assignable QC status */}
+              <div
+                className={cn(
+                  "flex items-center gap-2 rounded-md border px-2.5 py-1.5",
+                  binQc === "good"
+                    ? "border-status-picked/30 bg-status-picked/5"
+                    : "border-destructive/30 bg-destructive/5",
+                )}
+              >
+                <span className="font-mono text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground">
+                  QC Bin
+                </span>
+                <span className="truncate font-mono text-xs font-bold">
+                  {binLpn}
+                </span>
+                <button
+                  type="button"
+                  onClick={changeBin}
+                  className="ml-auto flex items-center gap-1 rounded border border-border bg-background px-2 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-muted/60"
+                >
+                  <ScanBarcode className="h-3 w-3" />
+                  Change bin
+                </button>
+                <div className="inline-flex rounded-md border border-border bg-background p-0.5">
+                  <button
+                    type="button"
+                    disabled={binLocked}
+                    onClick={() => setBinQc("good")}
+                    className={cn(
+                      "flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors",
+                      binQc === "good"
+                        ? "bg-status-picked text-white"
+                        : "text-muted-foreground hover:bg-muted/60",
+                      binLocked && "cursor-not-allowed opacity-60",
+                    )}
+                  >
+                    <ThumbsUp className="h-3 w-3" />
                     Good
-                  </span>
-                  <span className="ml-auto truncate font-mono font-semibold">
-                    {goodLpn}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 rounded-md border border-destructive/30 bg-destructive/5 px-2 py-1 text-[10px]">
-                  <ThumbsDown className="h-3 w-3 text-destructive" />
-                  <span className="font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                  </button>
+                  <button
+                    type="button"
+                    disabled={binLocked}
+                    onClick={() => setBinQc("bad")}
+                    className={cn(
+                      "flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors",
+                      binQc === "bad"
+                        ? "bg-destructive text-white"
+                        : "text-muted-foreground hover:bg-muted/60",
+                      binLocked && "cursor-not-allowed opacity-60",
+                    )}
+                  >
+                    <ThumbsDown className="h-3 w-3" />
                     Bad
-                  </span>
-                  <span className="ml-auto truncate font-mono font-semibold">
-                    {badLpn}
-                  </span>
+                  </button>
                 </div>
               </div>
+              <p className="-mt-1 text-[10px] text-muted-foreground">
+                {binLocked
+                  ? "QC status locked — an item has been confirmed into this bin."
+                  : "Set the bin QC status. You can still change it while nothing is confirmed; it locks once the first item is confirmed."}
+              </p>
 
               {/* Focused item card */}
               {!allItemsDone || pendingItem ? (
@@ -609,6 +649,58 @@ function Grn() {
                     </div>
                   </div>
 
+                  {/* Quantity to QC — bulk-QC a whole batch in one go */}
+                  {pendingItem && (
+                    <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/20 px-2.5 py-2">
+                      <div className="min-w-0">
+                        <div className="text-[10px] font-semibold font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                          Quantity to QC
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {pendingMax} unit{pendingMax === 1 ? "" : "s"} open for
+                          this SKU
+                        </div>
+                      </div>
+                      <div className="inline-flex items-center gap-1">
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="outline"
+                          className="h-8 w-8"
+                          onClick={() => setQcQty((q) => Math.max(1, q - 1))}
+                          disabled={qcQty <= 1}
+                        >
+                          <Minus className="h-3.5 w-3.5" />
+                        </Button>
+                        <Input
+                          value={qcQty}
+                          onChange={(e) => {
+                            const n = parseInt(
+                              e.target.value.replace(/\D/g, ""),
+                              10,
+                            );
+                            if (Number.isNaN(n)) return setQcQty(1);
+                            setQcQty(Math.min(Math.max(1, n), pendingMax));
+                          }}
+                          inputMode="numeric"
+                          className="h-8 w-14 text-center font-mono text-sm"
+                        />
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="outline"
+                          className="h-8 w-8"
+                          onClick={() =>
+                            setQcQty((q) => Math.min(pendingMax, q + 1))
+                          }
+                          disabled={qcQty >= pendingMax}
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Batch / variant capture */}
                   {pendingItem && (
                     <div className="space-y-2 rounded-md border border-border bg-muted/20 p-2.5">
@@ -658,23 +750,24 @@ function Grn() {
                     </div>
                   )}
 
-                  {/* Good / Bad */}
-                  <div className="grid grid-cols-2 gap-1.5">
+                  {/* Confirm — routed to the bin's assigned QC status */}
+                  {binQc === "good" ? (
                     <Button
                       type="button"
                       size="sm"
-                      className="h-8 bg-status-picked text-[11px] text-white hover:bg-status-picked/90"
+                      className="h-8 w-full bg-status-picked text-[11px] text-white hover:bg-status-picked/90"
                       onClick={commitGood}
                       disabled={!pendingItem || !batchReady}
                     >
                       <ThumbsUp className="mr-1 h-3 w-3" />
-                      Good QC
+                      Confirm — Good QC{qcQty > 1 ? ` (${qcQty})` : ""}
                     </Button>
+                  ) : (
                     <Button
                       type="button"
                       size="sm"
                       variant="outline"
-                      className="h-8 border-destructive/40 text-[11px] text-destructive hover:bg-destructive/5 hover:text-destructive"
+                      className="h-8 w-full border-destructive/40 text-[11px] text-destructive hover:bg-destructive/5 hover:text-destructive"
                       onClick={() => {
                         setRejectReason("");
                         setRejectOpen(true);
@@ -682,9 +775,9 @@ function Grn() {
                       disabled={!pendingItem}
                     >
                       <ThumbsDown className="mr-1 h-3 w-3" />
-                      Bad QC
+                      Confirm — Bad QC{qcQty > 1 ? ` (${qcQty})` : ""}
                     </Button>
-                  </div>
+                  )}
 
                   {scanError && <ErrorBanner message={scanError} />}
                   <ScanRow
@@ -715,6 +808,7 @@ function Grn() {
                       <TableHeader>
                         <TableRow className="bg-muted/20">
                           <TableHead>Item</TableHead>
+                          <TableHead>GRN bin</TableHead>
                           <TableHead className="text-right">Qty</TableHead>
                           <TableHead>Batch</TableHead>
                           <TableHead>QC</TableHead>
@@ -728,8 +822,11 @@ function Grn() {
                                 {r.name}
                               </div>
                               <div className="font-mono text-[10px] text-muted-foreground">
-                                {r.sku} · {r.lpn}
+                                {r.sku}
                               </div>
+                            </TableCell>
+                            <TableCell className="font-mono text-[11px]">
+                              {r.lpn}
                             </TableCell>
                             <TableCell className="text-right font-mono tabular-nums">
                               {r.qty}
@@ -765,39 +862,7 @@ function Grn() {
                 onClick={finishBox}
               >
                 <Printer className="mr-2 h-4 w-4" />
-                Finish box &amp; generate GRN
-              </Button>
-            </>
-          )}
-
-          {/* Step — Box done */}
-          {step === "done" && lastDoc && (
-            <>
-              <Card className="space-y-2 p-4 text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-status-picked/15 text-status-picked">
-                  <CheckCircle2 className="h-6 w-6" />
-                </div>
-                <div>
-                  <div className="text-base font-semibold">Box GRN complete</div>
-                  <div className="text-xs text-muted-foreground">
-                    A GRN document was created for this box.
-                  </div>
-                </div>
-              </Card>
-
-              <GrnDocSticker doc={lastDoc} />
-
-              <Button className="h-11 w-full" onClick={nextBox}>
-                <Boxes className="mr-2 h-4 w-4" />
-                GRN next box
-              </Button>
-              <Button
-                variant="outline"
-                className="h-11 w-full"
-                onClick={() => setStep("session-done")}
-              >
-                <Layers className="mr-2 h-4 w-4" />
-                Complete GRN session ({grnDocs.length})
+                Confirm &amp; submit
               </Button>
             </>
           )}
@@ -827,60 +892,9 @@ function Grn() {
           )}
         </div>
 
-        {/* Right column — pendency, QC params, camera */}
+        {/* Right column — QC params, camera */}
         {step === "scan-items" && box && (
           <div className="w-[240px] shrink-0 space-y-2">
-            {/* Pendency */}
-            <Card className="p-3">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <div className="text-[11px] font-semibold font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                  ASN pendency
-                </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="h-7 text-[11px]"
-                  onClick={() => {
-                    setPendencySearch("");
-                    setPendencyOpen(true);
-                  }}
-                >
-                  <PackageSearch className="mr-1 h-3 w-3" />
-                  {pendingUnits}/{totalUnits} left
-                </Button>
-              </div>
-              <div className="space-y-1">
-                {items.map((it) => {
-                  const count = scannedBySku[it.sku] ?? 0;
-                  const done = count >= it.qty;
-                  return (
-                    <div
-                      key={it.sku}
-                      className={cn(
-                        "flex items-center justify-between gap-2 rounded border px-1.5 py-1 text-[11px]",
-                        done
-                          ? "border-status-picked/30 bg-status-picked/5"
-                          : "border-border bg-background",
-                      )}
-                    >
-                      <span className="min-w-0 flex-1 truncate font-medium">
-                        {it.name}
-                      </span>
-                      <span
-                        className={cn(
-                          "shrink-0 font-mono font-bold tabular-nums",
-                          done && "text-status-picked",
-                        )}
-                      >
-                        {count}/{it.qty}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
-
             {/* Seller QC parameters — mark any that don't match as failed */}
             {box.sellerFirst && box.qcParams.length > 0 && (
               <Card className="p-3">
@@ -941,77 +955,6 @@ function Grn() {
         )}
       </div>
 
-      {/* Pendency modal */}
-      <Dialog open={pendencyOpen} onOpenChange={setPendencyOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <PackageSearch className="h-4 w-4" />
-              ASN pendency
-              {box && (
-                <span className="font-mono text-xs font-normal text-muted-foreground">
-                  {box.asn}
-                </span>
-              )}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              autoFocus
-              value={pendencySearch}
-              onChange={(e) => setPendencySearch(e.target.value)}
-              placeholder="Search by name or SKU…"
-              className="h-9 pl-8 text-sm"
-            />
-          </div>
-          <div className="max-h-[320px] space-y-1 overflow-y-auto">
-            {filteredItems.length === 0 && (
-              <div className="py-6 text-center text-xs text-muted-foreground">
-                No matching items.
-              </div>
-            )}
-            {filteredItems.map((it) => {
-              const count = scannedBySku[it.sku] ?? 0;
-              const done = count >= it.qty;
-              return (
-                <div
-                  key={it.sku}
-                  className={cn(
-                    "flex items-center justify-between gap-3 rounded-md border px-2.5 py-1.5",
-                    done
-                      ? "border-status-picked/30 bg-status-picked/5"
-                      : "border-border bg-background",
-                  )}
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold leading-tight">
-                      {it.name}
-                    </div>
-                    <div className="font-mono text-[10px] text-muted-foreground">
-                      {it.sku} · {it.mrp}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={cn(
-                        "font-mono text-sm font-bold tabular-nums",
-                        done && "text-status-picked",
-                      )}
-                    >
-                      {count}/{it.qty}
-                    </span>
-                    {done && (
-                      <CheckCircle2 className="h-4 w-4 text-status-picked" />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </DialogContent>
-      </Dialog>
-
       {/* Reject dialog */}
       <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
         <DialogContent className="max-w-sm">
@@ -1022,20 +965,34 @@ function Grn() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
-            <div className="rounded-md border border-border bg-muted/30 p-2.5">
-              <div className="text-[10px] uppercase text-muted-foreground">
-                SKU
+            <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/30 p-2.5">
+              <div>
+                <div className="text-[10px] uppercase text-muted-foreground">
+                  SKU
+                </div>
+                <div className="font-mono text-sm font-semibold">
+                  {pendingItem?.sku}
+                </div>
               </div>
-              <div className="font-mono text-sm font-semibold">
-                {pendingItem?.sku}
+              <div className="text-right">
+                <div className="text-[10px] uppercase text-muted-foreground">
+                  Qty to reject
+                </div>
+                <div className="font-mono text-sm font-semibold">
+                  {Math.min(Math.max(1, qcQty), pendingMax)}
+                </div>
               </div>
             </div>
+            <p className="text-[11px] text-muted-foreground">
+              A unique serial number (USN) is generated for each rejected unit;
+              the USN barcodes print once the box GRN is completed.
+            </p>
             <Select value={rejectReason} onValueChange={setRejectReason}>
               <SelectTrigger className="h-11">
                 <SelectValue placeholder="Select reason…" />
               </SelectTrigger>
               <SelectContent>
-                {qcRejectReasons.map((r) => (
+                {GRN_REJECT_REASONS.map((r) => (
                   <SelectItem key={r} value={r}>
                     {r}
                   </SelectItem>
@@ -1062,6 +1019,9 @@ function Grn() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* USN print modal — shown right after a rejection is confirmed */}
+      <UsnPrintModal rows={usnPrintRows} onClose={() => setUsnPrintRows([])} />
     </div>
   );
 }
@@ -1090,39 +1050,97 @@ function BatchField({
   );
 }
 
-function GrnDocSticker({ doc }: { doc: GrnDoc }) {
-  const bars = useMemo(() => grnBarcodePattern(doc.grnId), [doc.grnId]);
+// Pops up right after a rejection is confirmed: shows the USN barcode label(s)
+// for the just-rejected unit(s). Operator hits Print, then closes.
+function UsnPrintModal({
+  rows,
+  onClose,
+}: {
+  rows: QcItemRow[];
+  onClose: () => void;
+}) {
+  const [printed, setPrinted] = useState(false);
+  const open = rows.length > 0;
+
+  // Reset the printed state whenever a fresh set of labels comes in.
+  useEffect(() => {
+    if (rows.length > 0) setPrinted(false);
+  }, [rows]);
+
   return (
-    <div className="rounded-md border-2 border-dashed border-border bg-background p-4">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-[10px] font-semibold font-mono uppercase tracking-[0.06em]r text-muted-foreground">
-          GRN Document
-        </span>
-        <span className="text-[10px] font-mono text-muted-foreground">
-          {doc.boxId}
-        </span>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-xs gap-0 overflow-hidden p-0">
+        <DialogHeader className="space-y-0 border-b border-border px-4 py-3">
+          <DialogTitle className="flex items-center gap-2 text-sm">
+            <ThumbsDown className="h-4 w-4 text-destructive" />
+            {rows.length > 1 ? `${rows.length} USN labels` : "USN label"}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="max-h-[55vh] space-y-3 overflow-y-auto bg-neutral-800 px-6 py-5">
+          {rows.map((r) => (
+            <PrintedUsnLabel key={r.usn} row={r} />
+          ))}
+        </div>
+
+        <div className="border-t border-border px-4 py-3">
+          {printed ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-status-picked">
+                <CheckCircle2 className="h-4 w-4" />
+                Sent to label printer
+              </div>
+              <Button
+                variant="outline"
+                className="h-9 w-full"
+                onClick={onClose}
+              >
+                Close
+              </Button>
+            </div>
+          ) : (
+            <Button className="h-9 w-full" onClick={() => setPrinted(true)}>
+              <Printer className="mr-2 h-4 w-4" />
+              Print {rows.length > 1 ? `${rows.length} labels` : "label"}
+            </Button>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// A single label as it appears on the thermal paper (white stock, black print).
+function PrintedUsnLabel({ row }: { row: QcItemRow }) {
+  const bars = useMemo(() => grnBarcodePattern(row.usn ?? row.sku), [row]);
+  return (
+    <div className="rounded-sm bg-white p-3 text-black shadow-lg ring-1 ring-black/10">
+      <div className="mb-1 text-center font-mono text-[9px] font-bold uppercase tracking-[0.08em]">
+        Rejected unit · USN
       </div>
       <div className="flex flex-col items-center">
         <div className="flex items-end gap-px">
           {bars.map((w, i) => (
             <div
               key={i}
-              style={{ width: `${w * 2}px` }}
-              className={cn("h-12", i % 2 === 0 ? "bg-foreground" : "bg-transparent")}
+              style={{ width: `${w * 1.4}px` }}
+              className={cn("h-10", i % 2 === 0 ? "bg-black" : "bg-transparent")}
             />
           ))}
         </div>
-        <div className="mt-1 font-mono text-sm font-bold tracking-wider">
-          {doc.grnId}
+        <div className="mt-1 font-mono text-sm font-bold tracking-[0.15em]">
+          {row.usn}
         </div>
       </div>
-      <div className="my-3 border-t border-dashed border-border" />
-      <dl className="space-y-1 text-xs">
-        <Row label="ASN" value={doc.asn} mono />
-        <Row label="Seller" value={doc.seller} />
-        <Row label="Good QC" value={String(doc.good)} />
-        <Row label="Bad QC" value={String(doc.bad)} />
-      </dl>
+      <div className="mt-2 border-t border-dashed border-neutral-300 pt-1.5 text-[10px] leading-tight">
+        <div className="flex items-center justify-between gap-2">
+          <span className="truncate font-semibold">{row.name}</span>
+          <span className="shrink-0 rounded-[2px] border border-black/70 px-1 py-0.5 font-mono text-[8.5px] font-bold uppercase">
+            {row.reason ?? "Bad"}
+          </span>
+        </div>
+        <div className="font-mono text-[9px] text-neutral-600">{row.sku}</div>
+      </div>
     </div>
   );
 }
@@ -1173,25 +1191,6 @@ function SessionSummary({
         </Table>
       </div>
     </Card>
-  );
-}
-
-function Row({
-  label,
-  value,
-  mono = false,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
-  return (
-    <div className="flex items-baseline gap-3">
-      <dt className="w-16 shrink-0 text-[10px] font-mono uppercase tracking-[0.06em]r text-muted-foreground">
-        {label}
-      </dt>
-      <dd className={cn("flex-1 font-medium", mono && "font-mono")}>{value}</dd>
-    </div>
   );
 }
 

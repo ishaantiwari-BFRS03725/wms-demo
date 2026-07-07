@@ -1,5 +1,35 @@
 # Changelog
 
+- 2026-07-07: Putaway — assign card title is now just "Self assign GRN bins" and the helper text under the scan field is removed. Scanned-bins list shows SKU + unit counts as pill labels (like the old modal) instead of plain text. On completion, a centered green success modal ("Putaway complete", bin count, Close button) replaces the toast.
+
+- 2026-07-07: Putaway — dropped the "Assigned to you" quantity modal; Proceed now goes straight into putaway. The scanned-bins list now shows SKU + unit counts (`n SKUs · n units`) per bin. In the work step's suggested-zone card, removed the "· n units from <seller>" line (now just "<category> stock") and trimmed ", then scan the suggested location." to just "Navigate to <zone>".
+
+- 2026-07-07: Putaway — removed the "Bin n of n" progress line (work step) and the "n done" counter (top bar); cleaned up the now-unused `index`/`total` props and `doneCount` state.
+
+- 2026-07-07: Putaway — (1) Assign step no longer shows a worklist: the operator self-assigns by scanning GRN bins one at a time into their list (scan field only, with a running "Assigned to you" list + remove). Any scanned code resolves to a bin — known demo bins keep curated contents, others are synthesised deterministically (`resolvePutawayBin` in putaway-data.ts). (2) In Item Putaway, the tappable item list now has a margin annotation (dot → dashed connector line → amber sticky note) reading "Only for simulation — these items won't be displayed in the real app…", shown on `lg`+ screens; removed the device frame's `overflow-hidden` so the note can escape into the margin.
+
+- 2026-07-07: Putaway — reworked into a GRN-bin flow. (1) Assign step: operator multi-selects GRN bins awaiting putaway and assigns them to themselves. (2) A modal then suggests the unit quantity per assigned bin. (3) Work step per bin: shows a suggested zone derived from the bin's dominant item category (apparel→Zone A, electronics→Zone D Aisle 3, beauty→Zone B, home→Zone C) + suggested storage location. A toggle switches between "Item Putaway" (from bin, to bin, to location + per-item scan with progress) and "Complete Bin Putaway" (from bin + to location only). Scan fields validate against the suggested value; tap "Suggested: …" to simulate a scan. New `src/lib/wms/putaway-data.ts` (`PUTAWAY_BINS`, `GrnBin`, `getPutawayBin`); rewrote `_wms.putaway.tsx`. Note: the old USN/GRN-LPN single-scan putaway screen was replaced.
+
+- 2026-07-07: GRN — removed the box-done screen entirely. "Confirm & submit" now fires a success toast (`GRN generated · <id>`, good/bad counts) and returns straight to box scanning — no GRN-doc barcode or USN barcode summary is shown afterwards (USN labels are still printed at reject time via the modal). Moved "Complete GRN session (n)" onto the box-selection step (shows once ≥1 box is done). Cleaned up the now-dead `done` step, `lastDoc` state, and the `GrnDocSticker`/`UsnStickers`/`UsnSticker`/`Row` components + `Boxes` import.
+
+- 2026-07-07: GRN — simplified the printed USN label: removed the "1/1" index/total indicator (each label is its own single unit) and the bin line; the "Rejected unit · USN" header is now centered and the footer shows just item name + reason and SKU.
+
+- 2026-07-07: GRN — USN printing is now an on-screen modal that pops up immediately after a rejection is confirmed (on Confirm in the reject-reason dialog), showing a thermal-style label with the barcode + USN for each just-rejected unit; the operator clicks "Print" (→ "Sent to label printer") then "Close". Replaced the old `window.print()` / done-step print dialog; the box-done screen now just keeps a static record of the USN labels printed.
+
+- 2026-07-07: GRN — fixed the bin QC lock to be per-bin: the Good/Bad toggle is now locked only when an item is confirmed into the *current* bin (`qcItems.some(r => r.lpn === binLpn)`), so after "Change bin" the fresh bin starts unlocked even though earlier bins already have confirmed items.
+
+- 2026-07-07: GRN — QC/rejection improvements: (1) bin Good/Bad toggle now stays editable while nothing is confirmed into the bin — a merely-scanned (pending) item no longer locks it; it locks only once the first item is confirmed. (2) Rejection now uses a focused reason list (Damaged, Expired, Torn, Faded) via a new local GRN_REJECT_REASONS, and the reject dialog shows the qty being rejected. (3) Each rejected unit gets a USN (Unique Serial Number, `genUsn` in grn-data); on the box-done screen a "USN labels" card prints one dashed barcode sticker per rejected unit (SKU, bin, reason).
+
+- 2026-07-07: GRN — flipped the scan flow back to box-first: QC table → scan Box ID (pending boxes shown) → scan GRN bin → scan items. Scanning the QC table now lands on the Box ID step; picking/scanning a box starts the process and moves to the GRN bin scan; the bin step now shows the chosen box/seller context. "GRN next box" returns to box selection (fresh box, then bin).
+
+- 2026-07-07: GRN — item QC screen now offers a "Quantity to QC" stepper/input alongside the OCR capture, so an operator can QC a whole batch of a SKU in one go (defaults to 1, capped at the units still open for that SKU); Confirm buttons show the count. Added a dedicated "GRN bin" column to the QC'd items table (bin LPN moved out of the item subtitle).
+
+- 2026-07-06: GRN — screen cleanup: removed the "Mode (Seller-first)" chip from the box context card; added a "Change bin" button on the item screen (re-scan a new QC bin mid-box, returns to item scanning); removed the "ASN pendency" right-column card and its search modal; renamed the "Finish box & generate GRN" button to "Confirm & submit".
+
+- 2026-07-06: GRN — reordered the scan flow so the Box ID scan comes after the QC bin scan and before item scan: QC table → scan QC bin → scan Box ID → scan items. "GRN next box" now returns to the bin scan (fresh bin per box). Added a QC-bin indicator to the Box ID step; bin QC status is still assigned/locked on the item screen.
+
+- 2026-07-05: GRN — replaced the two upfront Good/Bad bin scans with a single QC bin scan. The bin's QC status is now assigned on the item screen (Good by default) via a Good/Bad toggle, editable until the first item is scanned, then locked. All items in a bin take the bin's status, so good/bad items still can't mix. Per-item Good/Bad buttons became one status-driven Confirm button (Bad still prompts for a reject reason).
+
 - 2026-07-04: Nav — hid the Cycle Count item from the sidebar (commented out) since the screen is a WIP/incorrect; route left intact.
 
 - 2026-07-04: Pack — hid the "Close Pack" button in the top bar (added `hidden` class; code left intact for easy re-enable).
