@@ -6,14 +6,16 @@ import {
   ClipboardCheck,
   ClipboardList,
   Layers,
+  Maximize2,
   Minus,
+  Package,
   Plus,
   Printer,
   ScanBarcode,
   ScanText,
+  Search,
   ThumbsDown,
   ThumbsUp,
-  Video,
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -124,13 +126,14 @@ function Grn() {
   const [qcQty, setQcQty] = useState(1);
   const [batch, setBatch] = useState<Batch>(emptyBatch);
   const [paramFails, setParamFails] = useState<Record<string, boolean>>({});
-  const [recordingStart, setRecordingStart] = useState<Date | null>(null);
 
   const [scanError, setScanError] = useState<string | null>(null);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [usnPrintRows, setUsnPrintRows] = useState<QcItemRow[]>([]);
   const [scanKey, setScanKey] = useState(0);
+  const [zoomOpen, setZoomOpen] = useState(false);
+  const [itemSearch, setItemSearch] = useState("");
 
   const scannedBySku = useMemo(() => {
     const map: Record<string, number> = {};
@@ -207,7 +210,6 @@ function Grn() {
     setBatch(emptyBatch);
     setParamFails({});
     setScanError(null);
-    setRecordingStart(new Date());
     setStep("scan-bin");
     setScanKey((k) => k + 1);
   };
@@ -311,7 +313,6 @@ function Grn() {
     setBatch(emptyBatch);
     setParamFails({});
     setScanError(null);
-    setRecordingStart(null);
     setStep("select-box");
     setScanKey((k) => k + 1);
   };
@@ -328,7 +329,6 @@ function Grn() {
     setBatch(emptyBatch);
     setParamFails({});
     setScanError(null);
-    setRecordingStart(null);
     setScanKey((k) => k + 1);
   };
 
@@ -345,64 +345,61 @@ function Grn() {
 
   const failedParams = box ? box.qcParams.filter((p) => paramFails[p]) : [];
 
+  const imageForSku = (sku: string) =>
+    box?.items.find((it) => it.sku === sku)?.image;
+
+  const filteredQcRows = itemSearch.trim()
+    ? qcTableRows.filter((r) =>
+        [r.sku, r.name, r.lpn].some((f) =>
+          f.toLowerCase().includes(itemSearch.trim().toLowerCase()),
+        ),
+      )
+    : qcTableRows;
+
   return (
-    <div className="pb-8">
+    <div className="flex h-full flex-col">
       {/* Top bar */}
-      <div className="flex items-center justify-between gap-3 border-b border-border bg-background px-6 py-3">
-        <div className="flex items-center gap-1.5 text-sm font-semibold">
-          <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
-          GRN · Inbound QC
-        </div>
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          {qcTable && (
-            <div className="text-right">
-              QC Table{" "}
-              <span className="font-mono font-semibold text-foreground">
-                {qcTable}
+      <div className="flex items-center justify-between gap-3 border-b border-border bg-background px-4 py-2.5">
+        <div className="flex items-center gap-3 text-sm">
+          <div className="flex items-center gap-1.5">
+            <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium text-muted-foreground">GRN</span>
+          </div>
+          {box && (
+            <>
+              <span className="text-border">|</span>
+              <span className="text-sm">
+                <span className="text-muted-foreground">Seller: </span>
+                <span className="font-bold">{box.seller}</span>
               </span>
-            </div>
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          {qcTable && (
+            <span className="text-sm">
+              <span className="text-muted-foreground">QC Table: </span>
+              <span className="font-bold font-mono">{qcTable}</span>
+            </span>
           )}
           {box && (
-            <div className="text-right">
-              ASN{" "}
-              <span className="font-mono font-semibold text-foreground">
-                {box.asn}
-              </span>
-            </div>
+            <span className="text-sm">
+              <span className="text-muted-foreground">ASN: </span>
+              <span className="font-bold font-mono">{box.asn}</span>
+            </span>
           )}
           {grnDocs.length > 0 && (
-            <div className="rounded-[2px] bg-status-picked/15 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-status-picked">
+            <span className="rounded-[2px] border border-status-picked/30 bg-status-picked/15 px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-status-picked">
               {grnDocs.length} GRN{grnDocs.length === 1 ? "" : "s"} done
-            </div>
+            </span>
           )}
         </div>
       </div>
 
-      <div className="flex gap-6 p-6">
-        <div className="flex-1 max-w-[640px] space-y-2">
-          {/* Box context chip */}
-          {box && step === "scan-items" && (
-              <Card className="flex items-center justify-between gap-3 p-2.5">
-                <div className="min-w-0">
-                  <div className="text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                    Box
-                  </div>
-                  <div className="font-mono text-sm font-bold">{box.boxId}</div>
-                </div>
-                <div className="min-w-0 text-right">
-                  <div className="text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                    Seller
-                  </div>
-                  <div className="truncate text-sm font-semibold">
-                    {box.seller}
-                  </div>
-                </div>
-              </Card>
-            )}
-
+      <div className="flex-1 overflow-auto p-4 space-y-4">
           {/* Step — QC Table */}
           {step === "scan-qc-table" && (
-            <Card className="space-y-3 p-4">
+            <Card className="max-w-md space-y-3 p-4">
               <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
                 <ScanBarcode className="h-3.5 w-3.5" />
                 Scan QC Table
@@ -422,7 +419,7 @@ function Grn() {
 
           {/* Step — Select / scan box */}
           {step === "select-box" && (
-            <>
+            <div className="max-w-md space-y-2">
               <Card className="space-y-3 p-4">
                 <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
                   <ScanBarcode className="h-3.5 w-3.5" />
@@ -478,12 +475,12 @@ function Grn() {
                   Complete GRN session ({grnDocs.length})
                 </Button>
               )}
-            </>
+            </div>
           )}
 
           {/* Step — QC bin */}
           {step === "scan-bin" && (
-            <>
+            <div className="max-w-md space-y-2">
               {box && (
                 <Card className="flex items-center justify-between gap-3 p-2.5">
                   <div className="min-w-0">
@@ -524,314 +521,417 @@ function Grn() {
                   autoFocus
                 />
               </Card>
-            </>
+            </div>
           )}
 
           {/* Step — Item QC */}
           {step === "scan-items" && box && binLpn && (
             <>
-              {/* Bin strip — single bin with an assignable QC status */}
-              <div
-                className={cn(
-                  "flex items-center gap-2 rounded-md border px-2.5 py-1.5",
-                  binQc === "good"
-                    ? "border-status-picked/30 bg-status-picked/5"
-                    : "border-destructive/30 bg-destructive/5",
+              {/* Upper details card: scan + context | attributes | image */}
+              <div className="flex h-[400px] overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                {/* Zone 1: scan input + quantity + context + QC bin */}
+                <div className="w-96 shrink-0 space-y-3 overflow-y-auto border-r border-border p-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-foreground">
+                      Scan Item ID<span className="text-destructive">*</span>
+                    </label>
+                    <ScanRow
+                      key={`item-${scanKey}`}
+                      placeholder={pendingItem ? "Finish current item…" : "Scan item SKU…"}
+                      onScan={onItemScan}
+                      autoFocus
+                    />
+                    {scanError && <ErrorBanner message={scanError} />}
+                  </div>
+
+                  {/* Quantity to QC — pulled up next to the scan input */}
+                  {pendingItem && (
+                    <div className="rounded-md border border-border bg-muted/20 p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[11px] font-semibold font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                          Quantity
+                        </span>
+                        <div className="inline-flex items-center gap-1">
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="outline"
+                            className="h-8 w-8"
+                            onClick={() => setQcQty((q) => Math.max(1, q - 1))}
+                            disabled={qcQty <= 1}
+                          >
+                            <Minus className="h-3.5 w-3.5" />
+                          </Button>
+                          <Input
+                            value={qcQty}
+                            onChange={(e) => {
+                              const n = parseInt(
+                                e.target.value.replace(/\D/g, ""),
+                                10,
+                              );
+                              if (Number.isNaN(n)) return setQcQty(1);
+                              setQcQty(Math.min(Math.max(1, n), pendingMax));
+                            }}
+                            inputMode="numeric"
+                            className="h-8 w-14 text-center font-mono text-sm"
+                          />
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="outline"
+                            className="h-8 w-8"
+                            onClick={() =>
+                              setQcQty((q) => Math.min(pendingMax, q + 1))
+                            }
+                            disabled={qcQty >= pendingMax}
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Context info */}
+                  <div className="space-y-2 rounded border border-border bg-muted/20 p-3">
+                    <InfoRow label="Box" value={box.boxId} mono />
+                    <InfoRow label="Seller" value={box.seller} />
+                  </div>
+
+                  {/* QC bin + status toggle */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                        QC Bin
+                      </span>
+                      <button
+                        type="button"
+                        onClick={changeBin}
+                        className="flex items-center gap-1 rounded border border-border bg-background px-2 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-muted/60"
+                      >
+                        <ScanBarcode className="h-3 w-3" />
+                        Change bin
+                      </button>
+                    </div>
+                    <div
+                      className={cn(
+                        "flex items-center rounded-md border px-2.5 py-1.5",
+                        binQc === "good"
+                          ? "border-status-picked/30 bg-status-picked/5"
+                          : "border-destructive/30 bg-destructive/5",
+                      )}
+                    >
+                      <span className="truncate font-mono text-xs font-bold">
+                        {binLpn}
+                      </span>
+                    </div>
+                    <div className="inline-flex w-full rounded-md border border-border bg-background p-0.5">
+                      <button
+                        type="button"
+                        disabled={binLocked}
+                        onClick={() => setBinQc("good")}
+                        className={cn(
+                          "flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors",
+                          binQc === "good"
+                            ? "bg-status-picked text-white"
+                            : "text-muted-foreground hover:bg-muted/60",
+                          binLocked && "cursor-not-allowed opacity-60",
+                        )}
+                      >
+                        <ThumbsUp className="h-3 w-3" />
+                        Good
+                      </button>
+                      <button
+                        type="button"
+                        disabled={binLocked}
+                        onClick={() => setBinQc("bad")}
+                        className={cn(
+                          "flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors",
+                          binQc === "bad"
+                            ? "bg-destructive text-white"
+                            : "text-muted-foreground hover:bg-muted/60",
+                          binLocked && "cursor-not-allowed opacity-60",
+                        )}
+                      >
+                        <ThumbsDown className="h-3 w-3" />
+                        Bad
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      {binLocked
+                        ? "QC status locked — an item is confirmed into this bin."
+                        : "Locks once the first item is confirmed."}
+                    </p>
+                  </div>
+
+                </div>
+
+                {/* Zone 2: item attributes */}
+                <div className="min-w-0 flex-1 overflow-y-auto border-r border-border p-4">
+                  {pendingItem ? (
+                    <div className="space-y-0">
+                      <AttrRow label="Name" value={pendingItem.name} />
+                      <AttrRow label="SKU" value={pendingItem.sku} mono />
+                      <AttrRow label="MRP" value={pendingItem.expected.mrp} />
+                      {pendingItem.expected.size && (
+                        <AttrRow label="Size" value={pendingItem.expected.size} />
+                      )}
+                      {pendingItem.expected.color && (
+                        <AttrRow
+                          label="Colour"
+                          value={pendingItem.expected.color}
+                          swatch
+                        />
+                      )}
+                      {pendingItem.expected.weight && (
+                        <AttrRow label="Weight" value={pendingItem.expected.weight} />
+                      )}
+                    </div>
+                  ) : (
+                    <div className="px-2 py-4 text-center text-[12px] text-muted-foreground">
+                      Scan an item SKU to begin QC. Verify against the image and
+                      parameters.
+                    </div>
+                  )}
+                </div>
+
+                {/* Zone 2b: seller QC params — vertical column beside details */}
+                {box.sellerFirst && box.qcParams.length > 0 && (
+                  <div className="w-60 shrink-0 space-y-1.5 overflow-y-auto border-r border-border p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold font-mono uppercase tracking-[0.06em] text-primary">
+                        Seller QC params
+                      </span>
+                      {failedParams.length > 0 && (
+                        <span className="rounded-[2px] bg-destructive/15 px-1.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase tracking-[0.06em] text-destructive">
+                          {failedParams.length} failed
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      {box.qcParams.map((p) => {
+                        const failed = !!paramFails[p];
+                        return (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() =>
+                              setParamFails((prev) => ({
+                                ...prev,
+                                [p]: !prev[p],
+                              }))
+                            }
+                            className={cn(
+                              "flex items-center justify-between gap-2 rounded border px-2 py-1.5 text-left text-[11px] transition-colors",
+                              failed
+                                ? "border-destructive/40 bg-destructive/10 text-destructive"
+                                : "border-border bg-background text-foreground hover:bg-muted/40",
+                            )}
+                          >
+                            <span className="min-w-0 flex-1 truncate">{p}</span>
+                            {failed ? (
+                              <span className="flex shrink-0 items-center gap-0.5 font-semibold">
+                                <XCircle className="h-3 w-3" />
+                                Failed
+                              </span>
+                            ) : (
+                              <span className="flex shrink-0 items-center gap-0.5 text-status-picked">
+                                <CheckCircle2 className="h-3 w-3" />
+                                Match
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
-              >
-                <span className="font-mono text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground">
-                  QC Bin
-                </span>
-                <span className="truncate font-mono text-xs font-bold">
-                  {binLpn}
-                </span>
-                <button
-                  type="button"
-                  onClick={changeBin}
-                  className="ml-auto flex items-center gap-1 rounded border border-border bg-background px-2 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-muted/60"
-                >
-                  <ScanBarcode className="h-3 w-3" />
-                  Change bin
-                </button>
-                <div className="inline-flex rounded-md border border-border bg-background p-0.5">
-                  <button
-                    type="button"
-                    disabled={binLocked}
-                    onClick={() => setBinQc("good")}
-                    className={cn(
-                      "flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors",
-                      binQc === "good"
-                        ? "bg-status-picked text-white"
-                        : "text-muted-foreground hover:bg-muted/60",
-                      binLocked && "cursor-not-allowed opacity-60",
-                    )}
-                  >
-                    <ThumbsUp className="h-3 w-3" />
-                    Good
-                  </button>
-                  <button
-                    type="button"
-                    disabled={binLocked}
-                    onClick={() => setBinQc("bad")}
-                    className={cn(
-                      "flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors",
-                      binQc === "bad"
-                        ? "bg-destructive text-white"
-                        : "text-muted-foreground hover:bg-muted/60",
-                      binLocked && "cursor-not-allowed opacity-60",
-                    )}
-                  >
-                    <ThumbsDown className="h-3 w-3" />
-                    Bad
-                  </button>
+
+                {/* Zone 3: product image */}
+                <div className="group relative w-64 shrink-0 self-stretch overflow-hidden bg-muted/10">
+                  {pendingItem ? (
+                    <button
+                      type="button"
+                      onClick={() => setZoomOpen(true)}
+                      className="absolute inset-0 h-full w-full cursor-zoom-in"
+                      title="Click to expand"
+                    >
+                      <img
+                        src={pendingItem.expected.image}
+                        alt={pendingItem.name}
+                        className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                      />
+                      <span className="pointer-events-none absolute bottom-2 left-2 flex items-center gap-1 rounded-md bg-black/45 px-1.5 py-1 text-[10px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
+                        <Maximize2 className="h-3 w-3" />
+                        Expand
+                      </span>
+                    </button>
+                  ) : (
+                    <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+                      <Package className="h-12 w-12 text-muted-foreground/20" />
+                      <span className="px-4 text-[11px] text-muted-foreground/60">
+                        Scan an item to preview
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
-              <p className="-mt-1 text-[10px] text-muted-foreground">
-                {binLocked
-                  ? "QC status locked — an item has been confirmed into this bin."
-                  : "Set the bin QC status. You can still change it while nothing is confirmed; it locks once the first item is confirmed."}
-              </p>
 
-              {/* Focused item card */}
-              {!allItemsDone || pendingItem ? (
-                <Card className="space-y-2 p-3">
-                  <div className="flex gap-2.5">
-                    <div className="h-24 w-24 shrink-0 overflow-hidden rounded-md border border-border bg-muted/20">
-                      {pendingItem ? (
-                        <img
-                          src={pendingItem.expected.image}
-                          alt={pendingItem.name}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center px-2 text-center text-[10px] text-muted-foreground">
-                          Scan to verify
-                        </div>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1 space-y-1">
-                      {pendingItem ? (
-                        <>
-                          <div className="text-xs font-bold leading-tight">
-                            {pendingItem.name}
-                          </div>
-                          <div className="font-mono text-[10px] text-muted-foreground">
-                            {pendingItem.sku}
-                          </div>
-                          <div className="grid grid-cols-2 gap-x-1.5 text-[10px]">
-                            <QcRow label="MRP" value={pendingItem.expected.mrp} />
-                            {pendingItem.expected.size && (
-                              <QcRow
-                                label="Size"
-                                value={pendingItem.expected.size}
-                              />
-                            )}
-                            {pendingItem.expected.color && (
-                              <QcRow
-                                label="Colour"
-                                value={pendingItem.expected.color}
-                              />
-                            )}
-                            {pendingItem.expected.weight && (
-                              <QcRow
-                                label="Wt"
-                                value={pendingItem.expected.weight}
-                              />
-                            )}
-                          </div>
-                        </>
-                      ) : (
-                        <div className="flex h-full items-center text-[11px] text-muted-foreground">
-                          Scan an item SKU to begin QC. Verify against the image
-                          and parameters.
-                        </div>
-                      )}
-                    </div>
+              {/* QC action card — quantity + batch + confirm (while an item is pending) */}
+              {pendingItem ? (
+                <div className="space-y-3 rounded-lg border border-border bg-card p-4">
+                  <div className="flex flex-wrap items-center justify-end gap-3">
+                    {/* Confirm — routed to the bin's assigned QC status */}
+                    {binQc === "good" ? (
+                      <Button
+                        type="button"
+                        className="h-9 bg-status-picked text-white hover:bg-status-picked/90"
+                        onClick={commitGood}
+                        disabled={!batchReady}
+                      >
+                        <ThumbsUp className="mr-1.5 h-4 w-4" />
+                        Confirm — Good QC{qcQty > 1 ? ` (${qcQty})` : ""}
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-9 border-destructive/40 text-destructive hover:bg-destructive/5 hover:text-destructive"
+                        onClick={() => {
+                          setRejectReason("");
+                          setRejectOpen(true);
+                        }}
+                      >
+                        <ThumbsDown className="mr-1.5 h-4 w-4" />
+                        Confirm — Bad QC{qcQty > 1 ? ` (${qcQty})` : ""}
+                      </Button>
+                    )}
                   </div>
-
-                  {/* Quantity to QC — bulk-QC a whole batch in one go */}
-                  {pendingItem && (
-                    <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/20 px-2.5 py-2">
-                      <div className="min-w-0">
-                        <div className="text-[10px] font-semibold font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                          Quantity to QC
-                        </div>
-                        <div className="text-[10px] text-muted-foreground">
-                          {pendingMax} unit{pendingMax === 1 ? "" : "s"} open for
-                          this SKU
-                        </div>
-                      </div>
-                      <div className="inline-flex items-center gap-1">
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="outline"
-                          className="h-8 w-8"
-                          onClick={() => setQcQty((q) => Math.max(1, q - 1))}
-                          disabled={qcQty <= 1}
-                        >
-                          <Minus className="h-3.5 w-3.5" />
-                        </Button>
-                        <Input
-                          value={qcQty}
-                          onChange={(e) => {
-                            const n = parseInt(
-                              e.target.value.replace(/\D/g, ""),
-                              10,
-                            );
-                            if (Number.isNaN(n)) return setQcQty(1);
-                            setQcQty(Math.min(Math.max(1, n), pendingMax));
-                          }}
-                          inputMode="numeric"
-                          className="h-8 w-14 text-center font-mono text-sm"
-                        />
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="outline"
-                          className="h-8 w-8"
-                          onClick={() =>
-                            setQcQty((q) => Math.min(pendingMax, q + 1))
-                          }
-                          disabled={qcQty >= pendingMax}
-                        >
-                          <Plus className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Batch / variant capture */}
-                  {pendingItem && (
-                    <div className="space-y-2 rounded-md border border-border bg-muted/20 p-2.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-semibold font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                          Batch / variant details
-                        </span>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-[11px]"
-                          onClick={ocrCapture}
-                        >
-                          <ScanText className="mr-1 h-3 w-3" />
-                          Capture via OCR
-                        </Button>
-                      </div>
-                      <div className="grid grid-cols-2 gap-1.5">
-                        <BatchField
-                          label="MRP"
-                          value={batch.mrp}
-                          onChange={(v) => setBatch((b) => ({ ...b, mrp: v }))}
-                        />
-                        <BatchField
-                          label="Lot"
-                          value={batch.lot}
-                          onChange={(v) => setBatch((b) => ({ ...b, lot: v }))}
-                        />
-                        <BatchField
-                          label="MFG"
-                          value={batch.mfg}
-                          onChange={(v) => setBatch((b) => ({ ...b, mfg: v }))}
-                        />
-                        <BatchField
-                          label="Expiry"
-                          value={batch.expiry}
-                          onChange={(v) =>
-                            setBatch((b) => ({ ...b, expiry: v }))
-                          }
-                        />
-                      </div>
-                      <p className="text-[10px] text-muted-foreground">
-                        OCR auto-fills from the label; edit any field for manual
-                        entry.
-                      </p>
+                  <div className="space-y-2 rounded-md border border-border bg-muted/20 p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                        Batch / variant details
+                      </span>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-[11px]"
+                        onClick={ocrCapture}
+                      >
+                        <ScanText className="mr-1 h-3 w-3" />
+                        Capture via OCR
+                      </Button>
                     </div>
-                  )}
-
-                  {/* Confirm — routed to the bin's assigned QC status */}
-                  {binQc === "good" ? (
-                    <Button
-                      type="button"
-                      size="sm"
-                      className="h-8 w-full bg-status-picked text-[11px] text-white hover:bg-status-picked/90"
-                      onClick={commitGood}
-                      disabled={!pendingItem || !batchReady}
-                    >
-                      <ThumbsUp className="mr-1 h-3 w-3" />
-                      Confirm — Good QC{qcQty > 1 ? ` (${qcQty})` : ""}
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      className="h-8 w-full border-destructive/40 text-[11px] text-destructive hover:bg-destructive/5 hover:text-destructive"
-                      onClick={() => {
-                        setRejectReason("");
-                        setRejectOpen(true);
-                      }}
-                      disabled={!pendingItem}
-                    >
-                      <ThumbsDown className="mr-1 h-3 w-3" />
-                      Confirm — Bad QC{qcQty > 1 ? ` (${qcQty})` : ""}
-                    </Button>
-                  )}
-
-                  {scanError && <ErrorBanner message={scanError} />}
-                  <ScanRow
-                    key={`item-${scanKey}`}
-                    placeholder={pendingItem ? "Finish current item…" : "Scan item SKU…"}
-                    onScan={onItemScan}
-                    autoFocus
-                  />
-                </Card>
-              ) : (
-                <Card className="flex items-center gap-2 border-status-picked/30 bg-status-picked/5 p-2.5">
+                    <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                      <BatchField
+                        label="MRP"
+                        value={batch.mrp}
+                        onChange={(v) => setBatch((b) => ({ ...b, mrp: v }))}
+                      />
+                      <BatchField
+                        label="Lot"
+                        value={batch.lot}
+                        onChange={(v) => setBatch((b) => ({ ...b, lot: v }))}
+                      />
+                      <BatchField
+                        label="MFG"
+                        value={batch.mfg}
+                        onChange={(v) => setBatch((b) => ({ ...b, mfg: v }))}
+                      />
+                      <BatchField
+                        label="Expiry"
+                        value={batch.expiry}
+                        onChange={(v) => setBatch((b) => ({ ...b, expiry: v }))}
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      OCR auto-fills from the label; edit any field for manual
+                      entry.
+                    </p>
+                  </div>
+                </div>
+              ) : allItemsDone ? (
+                <div className="flex items-center gap-2 rounded-lg border border-status-picked/30 bg-status-picked/5 p-4">
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-status-picked" />
                   <div className="text-xs font-medium text-status-picked">
-                    All expected items QC'd — finish to generate the GRN
-                    document.
+                    All expected items QC'd — finish to generate the GRN document.
                   </div>
-                </Card>
-              )}
+                </div>
+              ) : null}
 
-              {/* QC'd table */}
-              {qcTableRows.length > 0 && (
-                <Card className="overflow-hidden p-0">
-                  <div className="border-b border-border bg-muted/30 px-3 py-2 text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                    QC'd items ({qcTableRows.length})
+              {/* QC'd items table — Pack-style */}
+              <div className="pt-2">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <h2 className="text-sm font-semibold text-foreground">
+                    QC&apos;d Items
+                  </h2>
+                  <div className="relative w-64">
+                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      value={itemSearch}
+                      onChange={(e) => setItemSearch(e.target.value)}
+                      placeholder="Search items…"
+                      className="h-8 pl-8 text-xs"
+                    />
                   </div>
-                  <div className="[&_th]:px-2 [&_th]:py-1.5 [&_td]:px-2 [&_td]:py-1.5 [&_th]:h-auto [&_th]:text-[10px] [&_td]:text-xs">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-muted/20">
-                          <TableHead>Item</TableHead>
-                          <TableHead>GRN bin</TableHead>
-                          <TableHead className="text-right">Qty</TableHead>
-                          <TableHead>Batch</TableHead>
-                          <TableHead>QC</TableHead>
+                </div>
+                <div className="overflow-hidden rounded-lg border border-border bg-card">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/30 hover:bg-muted/30">
+                        <TableHead className="text-[11px] font-semibold text-foreground/70">
+                          SKU
+                        </TableHead>
+                        <TableHead className="text-[11px] font-semibold text-foreground/70">
+                          Description
+                        </TableHead>
+                        <TableHead className="text-right text-[11px] font-semibold text-foreground/70">
+                          Qty
+                        </TableHead>
+                        <TableHead className="text-[11px] font-semibold text-foreground/70">
+                          GRN Bin
+                        </TableHead>
+                        <TableHead className="text-[11px] font-semibold text-foreground/70">
+                          Batch
+                        </TableHead>
+                        <TableHead className="text-[11px] font-semibold text-foreground/70">
+                          QC
+                        </TableHead>
+                        <TableHead className="w-16 text-[11px] font-semibold text-foreground/70">
+                          Image
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredQcRows.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="py-16 text-center">
+                            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                              <Package className="h-10 w-10 opacity-20" />
+                              <span className="text-sm">No Records Found</span>
+                            </div>
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {qcTableRows.map((r, idx) => (
-                          <TableRow key={`${r.lpn}-${r.sku}-${idx}`}>
-                            <TableCell>
-                              <div className="font-medium leading-tight">
-                                {r.name}
-                              </div>
-                              <div className="font-mono text-[10px] text-muted-foreground">
-                                {r.sku}
-                              </div>
+                      ) : (
+                        filteredQcRows.map((r, idx) => (
+                          <TableRow
+                            key={`${r.lpn}-${r.sku}-${idx}`}
+                            className="text-xs [&>td]:py-1"
+                          >
+                            <TableCell className="font-mono text-muted-foreground">
+                              {r.sku}
+                            </TableCell>
+                            <TableCell className="font-medium">{r.name}</TableCell>
+                            <TableCell className="text-right font-semibold tabular-nums">
+                              {r.qty}
                             </TableCell>
                             <TableCell className="font-mono text-[11px]">
                               {r.lpn}
                             </TableCell>
-                            <TableCell className="text-right font-mono tabular-nums">
-                              {r.qty}
-                            </TableCell>
-                            <TableCell className="text-[10px] text-muted-foreground">
+                            <TableCell className="text-[11px] text-muted-foreground">
                               {r.batch
                                 ? `${r.batch.lot} · Exp ${r.batch.expiry}`
                                 : "—"}
@@ -848,13 +948,24 @@ function Grn() {
                                 {r.mode === "good" ? "Good" : r.reason ?? "Bad"}
                               </span>
                             </TableCell>
+                            <TableCell>
+                              <div className="h-8 w-8 overflow-hidden rounded border border-border bg-muted/20">
+                                {imageForSku(r.sku) && (
+                                  <img
+                                    src={imageForSku(r.sku)}
+                                    alt={r.name}
+                                    className="h-full w-full object-contain p-0.5"
+                                  />
+                                )}
+                              </div>
+                            </TableCell>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </Card>
-              )}
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
 
               <Button
                 className="h-10 w-full"
@@ -869,7 +980,7 @@ function Grn() {
 
           {/* Step — Session summary */}
           {step === "session-done" && (
-            <>
+            <div className="max-w-md space-y-2">
               <Card className="space-y-2 p-4 text-center">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-status-dispatched/15 text-status-dispatched">
                   <CheckCircle2 className="h-6 w-6" />
@@ -888,71 +999,8 @@ function Grn() {
               <Button className="h-11 w-full" onClick={resetSession}>
                 Start new session
               </Button>
-            </>
+            </div>
           )}
-        </div>
-
-        {/* Right column — QC params, camera */}
-        {step === "scan-items" && box && (
-          <div className="w-[240px] shrink-0 space-y-2">
-            {/* Seller QC parameters — mark any that don't match as failed */}
-            {box.sellerFirst && box.qcParams.length > 0 && (
-              <Card className="p-3">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="text-[11px] font-semibold font-mono uppercase tracking-[0.06em] text-primary">
-                    Seller QC params
-                  </div>
-                  {failedParams.length > 0 && (
-                    <span className="rounded-[2px] bg-destructive/15 px-1.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase tracking-[0.06em] text-destructive">
-                      {failedParams.length} failed
-                    </span>
-                  )}
-                </div>
-                <div className="space-y-1">
-                  {box.qcParams.map((p) => {
-                    const failed = !!paramFails[p];
-                    return (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() =>
-                          setParamFails((prev) => ({ ...prev, [p]: !prev[p] }))
-                        }
-                        className={cn(
-                          "flex w-full items-center justify-between gap-2 rounded border px-2 py-1 text-left text-[11px] transition-colors",
-                          failed
-                            ? "border-destructive/40 bg-destructive/10 text-destructive"
-                            : "border-border bg-background text-foreground hover:bg-muted/40",
-                        )}
-                      >
-                        <span className="min-w-0 flex-1 truncate">{p}</span>
-                        {failed ? (
-                          <span className="flex shrink-0 items-center gap-0.5 font-semibold">
-                            <XCircle className="h-3 w-3" />
-                            Failed
-                          </span>
-                        ) : (
-                          <span className="flex shrink-0 items-center gap-0.5 text-status-picked">
-                            <CheckCircle2 className="h-3 w-3" />
-                            Match
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="mt-1.5 text-[10px] text-muted-foreground">
-                  Tap a parameter to mark it failed if it doesn't match.
-                </p>
-              </Card>
-            )}
-
-            {/* Camera */}
-            {recordingStart && (
-              <CameraPanel startedAt={recordingStart} stationId={qcTable} />
-            )}
-          </div>
-        )}
       </div>
 
       {/* Reject dialog */}
@@ -1017,6 +1065,27 @@ function Grn() {
               Confirm
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image zoom */}
+      <Dialog open={zoomOpen} onOpenChange={setZoomOpen}>
+        <DialogContent className="max-w-xl p-2">
+          {pendingItem && (
+            <div className="space-y-2">
+              <img
+                src={pendingItem.expected.image}
+                alt={pendingItem.name}
+                className="max-h-[70vh] w-full rounded-md object-contain"
+              />
+              <div className="px-1 pb-1 text-center">
+                <div className="text-sm font-semibold">{pendingItem.name}</div>
+                <div className="font-mono text-xs text-muted-foreground">
+                  {pendingItem.sku}
+                </div>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -1194,7 +1263,44 @@ function SessionSummary({
   );
 }
 
-function QcRow({
+/** Attribute row in the item details panel — label: value style (Pack parity) */
+function AttrRow({
+  label,
+  value,
+  mono = false,
+  swatch = false,
+}: {
+  label: string;
+  value?: string;
+  mono?: boolean;
+  swatch?: boolean;
+}) {
+  return (
+    <div className="flex items-baseline gap-0 border-b border-border/50 py-2 last:border-0">
+      <span className="w-24 shrink-0 text-[12px] font-semibold text-foreground">
+        {label}:
+      </span>
+      <span
+        className={cn(
+          "flex items-center gap-1.5 text-[12px] text-foreground/80",
+          mono && "font-mono",
+          !value && "text-muted-foreground",
+        )}
+      >
+        {swatch && value && (
+          <span
+            className="inline-block h-3.5 w-3.5 shrink-0 rounded-full border border-border"
+            style={{ backgroundColor: value.toLowerCase() }}
+          />
+        )}
+        {value ?? "—"}
+      </span>
+    </div>
+  );
+}
+
+/** Context info row in the left panel — label / value */
+function InfoRow({
   label,
   value,
   mono = false,
@@ -1204,77 +1310,16 @@ function QcRow({
   mono?: boolean;
 }) {
   return (
-    <div className="flex gap-1.5">
-      <span className="w-14 shrink-0 text-muted-foreground">{label}</span>
-      <span className={cn("font-medium", mono && "font-mono")}>{value}</span>
-    </div>
-  );
-}
-
-function CameraPanel({
-  startedAt,
-  stationId,
-}: {
-  startedAt: Date;
-  stationId: string | null;
-}) {
-  const [, force] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => force((t) => t + 1), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const elapsedSec = Math.max(
-    0,
-    Math.floor((Date.now() - startedAt.getTime()) / 1000),
-  );
-  const mm = String(Math.floor(elapsedSec / 60)).padStart(2, "0");
-  const ss = String(elapsedSec % 60).padStart(2, "0");
-  const now = new Date().toLocaleTimeString("en-IN", { hour12: false });
-
-  return (
-    <div className="sticky top-4 space-y-1.5">
-      <div className="overflow-hidden rounded-md border border-border bg-black">
-        <div className="relative aspect-square bg-black">
-          <img
-            src="https://picsum.photos/seed/grn-bench-cam/400/400"
-            alt="GRN bench live feed"
-            className="h-full w-full object-cover opacity-70 grayscale"
-          />
-
-          <div className="absolute left-1.5 top-1.5 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] text-white backdrop-blur">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-red-500" />
-            </span>
-            <span className="font-bold font-mono uppercase tracking-[0.06em]r">Rec</span>
-            <span className="font-mono">
-              {mm}:{ss}
-            </span>
-          </div>
-
-          <div className="absolute right-1.5 top-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-mono text-white backdrop-blur">
-            {now}
-          </div>
-
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="h-8 w-8 rounded-full border border-white/30" />
-          </div>
-
-          <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between gap-1.5 text-[9px] text-white">
-            <span className="truncate rounded bg-black/70 px-1.5 py-0.5 backdrop-blur">
-              Cam 05{stationId ? ` · ${stationId}` : ""}
-            </span>
-            <span className="shrink-0 rounded bg-black/70 px-1.5 py-0.5 font-mono backdrop-blur">
-              1080p
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center gap-1 border-t border-border bg-background px-2 py-1 text-[10px] text-muted-foreground">
-          <Video className="h-2.5 w-2.5" />
-          GRN session · recording
-        </div>
-      </div>
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-[12px] text-muted-foreground">{label}</span>
+      <span
+        className={cn(
+          "truncate text-[12px] font-semibold text-foreground",
+          mono && "font-mono",
+        )}
+      >
+        {value}
+      </span>
     </div>
   );
 }

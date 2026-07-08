@@ -77,6 +77,7 @@ import { Route as WmsViewPicklistIndexRouteImport } from './routes/_wms.view-pic
 import { Route as WmsViewPackIndexRouteImport } from './routes/_wms.view-pack.index'
 import { Route as WmsViewGrnIndexRouteImport } from './routes/_wms.view-grn.index'
 import { Route as WmsSortIndexRouteImport } from './routes/_wms.sort.index'
+import { Route as WmsPurchaseReturnIndexRouteImport } from './routes/_wms.purchase-return.index'
 import { Route as WmsPickIndexRouteImport } from './routes/_wms.pick.index'
 import { Route as WmsOrdersIndexRouteImport } from './routes/_wms.orders.index'
 import { Route as WmsViewPutawayPutawayIdRouteImport } from './routes/_wms.view-putaway.$putawayId'
@@ -84,6 +85,7 @@ import { Route as WmsViewPicklistPicklistIdRouteImport } from './routes/_wms.vie
 import { Route as WmsViewPackPacklistIdRouteImport } from './routes/_wms.view-pack.$packlistId'
 import { Route as WmsViewGrnGrnIdRouteImport } from './routes/_wms.view-grn.$grnId'
 import { Route as WmsSortTaskIdRouteImport } from './routes/_wms.sort.$taskId'
+import { Route as WmsPurchaseReturnRtvNoRouteImport } from './routes/_wms.purchase-return.$rtvNo'
 import { Route as WmsPickPicklistIdRouteImport } from './routes/_wms.pick.$picklistId'
 import { Route as WmsOrdersOrderNoRouteImport } from './routes/_wms.orders.$orderNo'
 
@@ -427,6 +429,11 @@ const WmsSortIndexRoute = WmsSortIndexRouteImport.update({
   path: '/sort/',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsPurchaseReturnIndexRoute = WmsPurchaseReturnIndexRouteImport.update({
+  id: '/purchase-return/',
+  path: '/purchase-return/',
+  getParentRoute: () => WmsRoute,
+} as any)
 const WmsPickIndexRoute = WmsPickIndexRouteImport.update({
   id: '/pick/',
   path: '/pick/',
@@ -461,6 +468,11 @@ const WmsViewGrnGrnIdRoute = WmsViewGrnGrnIdRouteImport.update({
 const WmsSortTaskIdRoute = WmsSortTaskIdRouteImport.update({
   id: '/sort/$taskId',
   path: '/sort/$taskId',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsPurchaseReturnRtvNoRoute = WmsPurchaseReturnRtvNoRouteImport.update({
+  id: '/purchase-return/$rtvNo',
+  path: '/purchase-return/$rtvNo',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsPickPicklistIdRoute = WmsPickPicklistIdRouteImport.update({
@@ -539,6 +551,7 @@ export interface FileRoutesByFullPath {
   '/wave-creation': typeof WmsWaveCreationRoute
   '/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/pick/$picklistId': typeof WmsPickPicklistIdRoute
+  '/purchase-return/$rtvNo': typeof WmsPurchaseReturnRtvNoRoute
   '/sort/$taskId': typeof WmsSortTaskIdRoute
   '/view-grn/$grnId': typeof WmsViewGrnGrnIdRoute
   '/view-pack/$packlistId': typeof WmsViewPackPacklistIdRoute
@@ -546,6 +559,7 @@ export interface FileRoutesByFullPath {
   '/view-putaway/$putawayId': typeof WmsViewPutawayPutawayIdRoute
   '/orders/': typeof WmsOrdersIndexRoute
   '/pick/': typeof WmsPickIndexRoute
+  '/purchase-return/': typeof WmsPurchaseReturnIndexRoute
   '/sort/': typeof WmsSortIndexRoute
   '/view-grn/': typeof WmsViewGrnIndexRoute
   '/view-pack/': typeof WmsViewPackIndexRoute
@@ -617,6 +631,7 @@ export interface FileRoutesByTo {
   '/wave-creation': typeof WmsWaveCreationRoute
   '/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/pick/$picklistId': typeof WmsPickPicklistIdRoute
+  '/purchase-return/$rtvNo': typeof WmsPurchaseReturnRtvNoRoute
   '/sort/$taskId': typeof WmsSortTaskIdRoute
   '/view-grn/$grnId': typeof WmsViewGrnGrnIdRoute
   '/view-pack/$packlistId': typeof WmsViewPackPacklistIdRoute
@@ -624,6 +639,7 @@ export interface FileRoutesByTo {
   '/view-putaway/$putawayId': typeof WmsViewPutawayPutawayIdRoute
   '/orders': typeof WmsOrdersIndexRoute
   '/pick': typeof WmsPickIndexRoute
+  '/purchase-return': typeof WmsPurchaseReturnIndexRoute
   '/sort': typeof WmsSortIndexRoute
   '/view-grn': typeof WmsViewGrnIndexRoute
   '/view-pack': typeof WmsViewPackIndexRoute
@@ -697,6 +713,7 @@ export interface FileRoutesById {
   '/_wms/wave-creation': typeof WmsWaveCreationRoute
   '/_wms/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/_wms/pick/$picklistId': typeof WmsPickPicklistIdRoute
+  '/_wms/purchase-return/$rtvNo': typeof WmsPurchaseReturnRtvNoRoute
   '/_wms/sort/$taskId': typeof WmsSortTaskIdRoute
   '/_wms/view-grn/$grnId': typeof WmsViewGrnGrnIdRoute
   '/_wms/view-pack/$packlistId': typeof WmsViewPackPacklistIdRoute
@@ -704,6 +721,7 @@ export interface FileRoutesById {
   '/_wms/view-putaway/$putawayId': typeof WmsViewPutawayPutawayIdRoute
   '/_wms/orders/': typeof WmsOrdersIndexRoute
   '/_wms/pick/': typeof WmsPickIndexRoute
+  '/_wms/purchase-return/': typeof WmsPurchaseReturnIndexRoute
   '/_wms/sort/': typeof WmsSortIndexRoute
   '/_wms/view-grn/': typeof WmsViewGrnIndexRoute
   '/_wms/view-pack/': typeof WmsViewPackIndexRoute
@@ -777,6 +795,7 @@ export interface FileRouteTypes {
     | '/wave-creation'
     | '/orders/$orderNo'
     | '/pick/$picklistId'
+    | '/purchase-return/$rtvNo'
     | '/sort/$taskId'
     | '/view-grn/$grnId'
     | '/view-pack/$packlistId'
@@ -784,6 +803,7 @@ export interface FileRouteTypes {
     | '/view-putaway/$putawayId'
     | '/orders/'
     | '/pick/'
+    | '/purchase-return/'
     | '/sort/'
     | '/view-grn/'
     | '/view-pack/'
@@ -855,6 +875,7 @@ export interface FileRouteTypes {
     | '/wave-creation'
     | '/orders/$orderNo'
     | '/pick/$picklistId'
+    | '/purchase-return/$rtvNo'
     | '/sort/$taskId'
     | '/view-grn/$grnId'
     | '/view-pack/$packlistId'
@@ -862,6 +883,7 @@ export interface FileRouteTypes {
     | '/view-putaway/$putawayId'
     | '/orders'
     | '/pick'
+    | '/purchase-return'
     | '/sort'
     | '/view-grn'
     | '/view-pack'
@@ -934,6 +956,7 @@ export interface FileRouteTypes {
     | '/_wms/wave-creation'
     | '/_wms/orders/$orderNo'
     | '/_wms/pick/$picklistId'
+    | '/_wms/purchase-return/$rtvNo'
     | '/_wms/sort/$taskId'
     | '/_wms/view-grn/$grnId'
     | '/_wms/view-pack/$packlistId'
@@ -941,6 +964,7 @@ export interface FileRouteTypes {
     | '/_wms/view-putaway/$putawayId'
     | '/_wms/orders/'
     | '/_wms/pick/'
+    | '/_wms/purchase-return/'
     | '/_wms/sort/'
     | '/_wms/view-grn/'
     | '/_wms/view-pack/'
@@ -1431,6 +1455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsSortIndexRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/purchase-return/': {
+      id: '/_wms/purchase-return/'
+      path: '/purchase-return'
+      fullPath: '/purchase-return/'
+      preLoaderRoute: typeof WmsPurchaseReturnIndexRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/pick/': {
       id: '/_wms/pick/'
       path: '/pick'
@@ -1478,6 +1509,13 @@ declare module '@tanstack/react-router' {
       path: '/sort/$taskId'
       fullPath: '/sort/$taskId'
       preLoaderRoute: typeof WmsSortTaskIdRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/purchase-return/$rtvNo': {
+      id: '/_wms/purchase-return/$rtvNo'
+      path: '/purchase-return/$rtvNo'
+      fullPath: '/purchase-return/$rtvNo'
+      preLoaderRoute: typeof WmsPurchaseReturnRtvNoRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/pick/$picklistId': {
@@ -1561,6 +1599,7 @@ interface WmsRouteChildren {
   WmsWaveCreationRoute: typeof WmsWaveCreationRoute
   WmsOrdersOrderNoRoute: typeof WmsOrdersOrderNoRoute
   WmsPickPicklistIdRoute: typeof WmsPickPicklistIdRoute
+  WmsPurchaseReturnRtvNoRoute: typeof WmsPurchaseReturnRtvNoRoute
   WmsSortTaskIdRoute: typeof WmsSortTaskIdRoute
   WmsViewGrnGrnIdRoute: typeof WmsViewGrnGrnIdRoute
   WmsViewPackPacklistIdRoute: typeof WmsViewPackPacklistIdRoute
@@ -1568,6 +1607,7 @@ interface WmsRouteChildren {
   WmsViewPutawayPutawayIdRoute: typeof WmsViewPutawayPutawayIdRoute
   WmsOrdersIndexRoute: typeof WmsOrdersIndexRoute
   WmsPickIndexRoute: typeof WmsPickIndexRoute
+  WmsPurchaseReturnIndexRoute: typeof WmsPurchaseReturnIndexRoute
   WmsSortIndexRoute: typeof WmsSortIndexRoute
   WmsViewGrnIndexRoute: typeof WmsViewGrnIndexRoute
   WmsViewPackIndexRoute: typeof WmsViewPackIndexRoute
@@ -1639,6 +1679,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsWaveCreationRoute: WmsWaveCreationRoute,
   WmsOrdersOrderNoRoute: WmsOrdersOrderNoRoute,
   WmsPickPicklistIdRoute: WmsPickPicklistIdRoute,
+  WmsPurchaseReturnRtvNoRoute: WmsPurchaseReturnRtvNoRoute,
   WmsSortTaskIdRoute: WmsSortTaskIdRoute,
   WmsViewGrnGrnIdRoute: WmsViewGrnGrnIdRoute,
   WmsViewPackPacklistIdRoute: WmsViewPackPacklistIdRoute,
@@ -1646,6 +1687,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsViewPutawayPutawayIdRoute: WmsViewPutawayPutawayIdRoute,
   WmsOrdersIndexRoute: WmsOrdersIndexRoute,
   WmsPickIndexRoute: WmsPickIndexRoute,
+  WmsPurchaseReturnIndexRoute: WmsPurchaseReturnIndexRoute,
   WmsSortIndexRoute: WmsSortIndexRoute,
   WmsViewGrnIndexRoute: WmsViewGrnIndexRoute,
   WmsViewPackIndexRoute: WmsViewPackIndexRoute,

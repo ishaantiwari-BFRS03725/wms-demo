@@ -134,6 +134,7 @@ const sections: NavSection[] = [
       { title: "Returns Evaluation", url: "/returns-evaluation", icon: UserRoundCheck },
       { title: "RTO · Origin", url: "/returns-rto", icon: RotateCcw },
       { title: "RTV · Vendor", url: "/returns-rtv", icon: Building2 },
+      { title: "Purchase Return", url: "/purchase-return", icon: Undo2 },
       { title: "CIR · Customer", url: "/returns-cir", icon: MessagesSquare },
       { title: "QC Station", url: "/qc-station", icon: ScanLine },
     ],
