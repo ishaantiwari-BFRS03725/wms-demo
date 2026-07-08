@@ -1,5 +1,15 @@
 # Changelog
 
+- 2026-07-08: Cycle Count — operator HHT screen no longer shows the "N ACTIVE · N AWAITING REVIEW · N SUSPENSE OPEN" stats in the page subtitle (now just "INVENTORY"); those stats remain on the supervisor view.
+
+- 2026-07-08: Cycle Count — detail page bin table renamed the "Pack" column to "Pack Size" and added MFG, Expiry, and MRP columns (after Lot).
+
+- 2026-07-08: Cycle Count — full suspense ledger gained four trailing columns: Created By, Timestamp, Cycle Count ID (from the entry's `source`), and Storage Type (Pickline / Bulkline / Pickline Bulk). Added optional `createdBy`/`createdAt`/`storageType` to `SuspenseEntry` and seeded them on the three initial entries; the ledger and its CSV export both include the new columns, with Storage Type falling back to binType when unset.
+
+- 2026-07-08: Cycle Count — split the single-file module into real routes and shared logic. Extracted types/seed-data/`runReconciliation`/tag components into `src/lib/cycle-count.tsx`. Supervisor now lives at `_wms.cycle-count.index.tsx`: task rows navigate to a new detail page (removed inline expansion and the "Schedule New" button); the suspense-ledger sidebar keeps a summary + "View Full Ledger" button. New `_wms.cycle-count.$taskId.tsx` detail page shows the bin-count table with two CTAs — "Adjust" (runs reconciliation + log, marks reconciled) and "Reject & Rescan" (toasts + returns to list). New `_wms.cycle-count.ledger.tsx` full suspense ledger (columns: SKU, Description, Lot, MFG, Expiry Date, MRP, Expected Quantity, Found Quantity, Status [Excess/Suspense], Ref. Bin) with a CSV Export button. Operator HHT redesigned for true blind counting: no expected/short/excess feedback; operator scans an item, picks its batch from a dropdown, enters quantity, and adds as many lines as wanted per bin before submitting to advance.
+
+- 2026-07-08: Sidebar — unhid the Cycle Count module (`/cycle-count`), restored under the Inventory section after Approvals.
+
 - 2026-07-08: Purchase Return — RTV detail Processing Status now maps to the allowed set only (Pending, Confirm, Picked, Packed, Manifest, Shipped); removed "Approved" (created → Pending) and renamed "Ready for Dispatch"/"Dispatched" → Manifest/Shipped.
 
 - 2026-07-08: Purchase Return — the RTV detail journey stepper now uses an RTV-specific step list (built locally in `_wms.purchase-return.$rtvNo.tsx` instead of the shared `journeyHistory`, so the order detail page is unaffected): dropped "Sorted" and added "Documents Received" between Packed and Manifested.

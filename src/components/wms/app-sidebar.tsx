@@ -259,8 +259,7 @@ const sections: NavSection[] = [
         ],
       },
       { title: "Approvals", url: "/approvals", icon: BadgeCheck },
-      // Hidden: Cycle Count screen is a work-in-progress / incorrect — keep off nav for now
-      // { title: "Cycle Count", url: "/cycle-count", icon: ClipboardCheck },
+      { title: "Cycle Count", url: "/cycle-count", icon: ClipboardCheck },
       { title: "Replenishment", url: "/replenishment", icon: PackagePlus },
       {
         title: "Slotting",
