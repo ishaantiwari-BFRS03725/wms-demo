@@ -1,5 +1,7 @@
 # Changelog
 
+- 2026-07-09: Cycle Count — added a warehouse-level Cycle Count Configuration screen (`/cycle-count-config`) with 4 tabs (Task Generation, SLA & Assignment, Thresholds & Approval, Priority Signals). Task Generation: SKU-wise/Bin-wise mode switches, coverage target with live daily-target/per-operator calculator, coverage window (7/n days) + wall-to-wall note, commingling/bin-density weight slider. SLA & Assignment: SLA duration, bins-per-operator, and an operators × bins/op = assignable-bins calculator. Thresholds & Approval: ₹500 bin-level value threshold with below/above-threshold behavior, ageing days, and reconciliation-path toggle. Priority Signals: 8 emergency signals (high-movement, recently-adjusted, PNF, ageing, returns, high-value, NTE, empty-tote) each with enable + weight slider. Reset/Save footer with "Saved" indicator + toast. Registered the route and added a "Cycle Count" sidebar group (Tasks + Cycle Count Config), mirroring the Slotting/Slotting Config pattern.
+
 - 2026-07-08: Cycle Count — operator HHT screen no longer shows the "N ACTIVE · N AWAITING REVIEW · N SUSPENSE OPEN" stats in the page subtitle (now just "INVENTORY"); those stats remain on the supervisor view.
 
 - 2026-07-08: Cycle Count — detail page bin table renamed the "Pack" column to "Pack Size" and added MFG, Expiry, and MRP columns (after Lot).

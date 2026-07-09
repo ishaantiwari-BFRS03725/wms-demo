@@ -61,6 +61,7 @@ import { Route as WmsDockManagementRouteImport } from './routes/_wms.dock-manage
 import { Route as WmsDispatchRouteImport } from './routes/_wms.dispatch'
 import { Route as WmsDetailedInventoryViewRouteImport } from './routes/_wms.detailed-inventory-view'
 import { Route as WmsDashboardRouteImport } from './routes/_wms.dashboard'
+import { Route as WmsCycleCountConfigRouteImport } from './routes/_wms.cycle-count-config'
 import { Route as WmsCustomerDisputesRouteImport } from './routes/_wms.customer-disputes'
 import { Route as WmsControlTowerRouteImport } from './routes/_wms.control-tower'
 import { Route as WmsCarrierScorecardsRouteImport } from './routes/_wms.carrier-scorecards'
@@ -351,6 +352,11 @@ const WmsDashboardRoute = WmsDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsCycleCountConfigRoute = WmsCycleCountConfigRouteImport.update({
+  id: '/cycle-count-config',
+  path: '/cycle-count-config',
+  getParentRoute: () => WmsRoute,
+} as any)
 const WmsCustomerDisputesRoute = WmsCustomerDisputesRouteImport.update({
   id: '/customer-disputes',
   path: '/customer-disputes',
@@ -510,6 +516,7 @@ export interface FileRoutesByFullPath {
   '/carrier-scorecards': typeof WmsCarrierScorecardsRoute
   '/control-tower': typeof WmsControlTowerRoute
   '/customer-disputes': typeof WmsCustomerDisputesRoute
+  '/cycle-count-config': typeof WmsCycleCountConfigRoute
   '/dashboard': typeof WmsDashboardRoute
   '/detailed-inventory-view': typeof WmsDetailedInventoryViewRoute
   '/dispatch': typeof WmsDispatchRoute
@@ -592,6 +599,7 @@ export interface FileRoutesByTo {
   '/carrier-scorecards': typeof WmsCarrierScorecardsRoute
   '/control-tower': typeof WmsControlTowerRoute
   '/customer-disputes': typeof WmsCustomerDisputesRoute
+  '/cycle-count-config': typeof WmsCycleCountConfigRoute
   '/dashboard': typeof WmsDashboardRoute
   '/detailed-inventory-view': typeof WmsDetailedInventoryViewRoute
   '/dispatch': typeof WmsDispatchRoute
@@ -676,6 +684,7 @@ export interface FileRoutesById {
   '/_wms/carrier-scorecards': typeof WmsCarrierScorecardsRoute
   '/_wms/control-tower': typeof WmsControlTowerRoute
   '/_wms/customer-disputes': typeof WmsCustomerDisputesRoute
+  '/_wms/cycle-count-config': typeof WmsCycleCountConfigRoute
   '/_wms/dashboard': typeof WmsDashboardRoute
   '/_wms/detailed-inventory-view': typeof WmsDetailedInventoryViewRoute
   '/_wms/dispatch': typeof WmsDispatchRoute
@@ -760,6 +769,7 @@ export interface FileRouteTypes {
     | '/carrier-scorecards'
     | '/control-tower'
     | '/customer-disputes'
+    | '/cycle-count-config'
     | '/dashboard'
     | '/detailed-inventory-view'
     | '/dispatch'
@@ -842,6 +852,7 @@ export interface FileRouteTypes {
     | '/carrier-scorecards'
     | '/control-tower'
     | '/customer-disputes'
+    | '/cycle-count-config'
     | '/dashboard'
     | '/detailed-inventory-view'
     | '/dispatch'
@@ -925,6 +936,7 @@ export interface FileRouteTypes {
     | '/_wms/carrier-scorecards'
     | '/_wms/control-tower'
     | '/_wms/customer-disputes'
+    | '/_wms/cycle-count-config'
     | '/_wms/dashboard'
     | '/_wms/detailed-inventory-view'
     | '/_wms/dispatch'
@@ -1367,6 +1379,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsDashboardRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/cycle-count-config': {
+      id: '/_wms/cycle-count-config'
+      path: '/cycle-count-config'
+      fullPath: '/cycle-count-config'
+      preLoaderRoute: typeof WmsCycleCountConfigRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/customer-disputes': {
       id: '/_wms/customer-disputes'
       path: '/customer-disputes'
@@ -1584,6 +1603,7 @@ interface WmsRouteChildren {
   WmsCarrierScorecardsRoute: typeof WmsCarrierScorecardsRoute
   WmsControlTowerRoute: typeof WmsControlTowerRoute
   WmsCustomerDisputesRoute: typeof WmsCustomerDisputesRoute
+  WmsCycleCountConfigRoute: typeof WmsCycleCountConfigRoute
   WmsDashboardRoute: typeof WmsDashboardRoute
   WmsDetailedInventoryViewRoute: typeof WmsDetailedInventoryViewRoute
   WmsDispatchRoute: typeof WmsDispatchRoute
@@ -1666,6 +1686,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsCarrierScorecardsRoute: WmsCarrierScorecardsRoute,
   WmsControlTowerRoute: WmsControlTowerRoute,
   WmsCustomerDisputesRoute: WmsCustomerDisputesRoute,
+  WmsCycleCountConfigRoute: WmsCycleCountConfigRoute,
   WmsDashboardRoute: WmsDashboardRoute,
   WmsDetailedInventoryViewRoute: WmsDetailedInventoryViewRoute,
   WmsDispatchRoute: WmsDispatchRoute,

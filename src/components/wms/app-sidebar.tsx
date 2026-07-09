@@ -259,7 +259,14 @@ const sections: NavSection[] = [
         ],
       },
       { title: "Approvals", url: "/approvals", icon: BadgeCheck },
-      { title: "Cycle Count", url: "/cycle-count", icon: ClipboardCheck },
+      {
+        title: "Cycle Count",
+        icon: ClipboardCheck,
+        children: [
+          { title: "Tasks", url: "/cycle-count", icon: ClipboardCheck },
+          { title: "Cycle Count Config", url: "/cycle-count-config", icon: Settings2 },
+        ],
+      },
       { title: "Replenishment", url: "/replenishment", icon: PackagePlus },
       {
         title: "Slotting",
