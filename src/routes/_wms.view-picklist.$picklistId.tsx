@@ -374,7 +374,7 @@ function PickedSkuTable() {
     const q = query.trim().toLowerCase();
     if (!q) return PICKED_SKUS;
     return PICKED_SKUS.filter((s) =>
-      `${s.pickNo} ${s.orderNo} ${s.storageLocation} ${s.bin} ${s.pickLpn} ${s.productCode} ${s.description} ${s.lotNo} ${s.mrp} ${s.mfg} ${s.expiry} ${s.pickerName}`
+      `${s.orderNo} ${s.storageLocation} ${s.bin} ${s.pickLpn} ${s.productCode} ${s.description} ${s.lotNo} ${s.mrp} ${s.mfg} ${s.expiry} ${s.pickerName}`
         .toLowerCase()
         .includes(q),
     );
@@ -391,7 +391,6 @@ function PickedSkuTable() {
         <Table>
         <TableHeader>
           <TableRow className="bg-muted [&>th]:sticky [&>th]:top-0 [&>th]:z-20 [&>th]:bg-muted [&>th]:shadow-[inset_0_-1px_0_hsl(var(--border))]">
-            <TableHead>Pick No</TableHead>
             <TableHead>Order No</TableHead>
             <TableHead>Storage Location</TableHead>
             <TableHead>Bin</TableHead>
@@ -411,7 +410,7 @@ function PickedSkuTable() {
           {visible.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={14}
+                colSpan={13}
                 className="py-12 text-center text-sm text-muted-foreground"
               >
                 No picked SKUs match your search.
@@ -419,10 +418,10 @@ function PickedSkuTable() {
             </TableRow>
           ) : (
             visible.map((s) => (
-            <TableRow key={s.pickNo}>
-              <TableCell className="font-mono text-xs font-medium">
-                {s.pickNo}
-              </TableCell>
+            <TableRow
+              key={s.pickLpn}
+              className={cn(s.pnaQty > 0 && "bg-warn-bg/40 hover:bg-warn-bg/50")}
+            >
               <TableCell className="font-mono text-xs">{s.orderNo}</TableCell>
               <TableCell className="font-mono text-xs">
                 {s.storageLocation}

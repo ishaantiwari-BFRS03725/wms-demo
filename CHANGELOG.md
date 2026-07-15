@@ -1,5 +1,7 @@
 # Changelog
 
+- 2026-07-09: Picklist Detail (Picked SKU Details tab) — removed the leading "Pick No" column. Rows with a PNA quantity (> 0) now get a faded amber row background to gently flag them without being gaudy.
+
 - 2026-07-09: View Picklists — the multi-seller indicator now shows as plain "Multi" text like any other seller name, instead of a styled badge.
 
 - 2026-07-09: View Picklists — closed picklists now show a "Closed In" column (Complete/Hold tabs only) reporting how long the picklist took to close (created → last updated). Cancelled picklists show "—". Mirrors the "Open Since" column used on the Open/In Progress tabs.
