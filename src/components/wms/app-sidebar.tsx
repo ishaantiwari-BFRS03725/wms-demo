@@ -177,9 +177,15 @@ const sections: NavSection[] = [
           { title: "Zone Insights", url: "/lane-congestion", icon: Footprints },
         ],
       },
-      { title: "Sort", url: "/sort", icon: ShuffleIcon },
-      { title: "Empty Pigeonhole", url: "/sort/empty", icon: PackageOpen },
-      { title: "Putwall", url: "/putwall", icon: LayoutGrid },
+      {
+        title: "Sorting",
+        icon: ShuffleIcon,
+        children: [
+          { title: "Sort", url: "/sort", icon: ShuffleIcon },
+          { title: "Putwall Management", url: "/putwall", icon: LayoutGrid },
+          { title: "Putwall Transfer", url: "/sort/empty", icon: PackageOpen },
+        ],
+      },
       {
         title: "Packing",
         icon: Boxes,

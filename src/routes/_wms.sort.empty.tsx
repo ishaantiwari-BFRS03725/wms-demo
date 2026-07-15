@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   ChevronRight,
   Inbox,
-  Layers,
   Package,
   PackageOpen,
   ScanBarcode,
@@ -74,12 +73,8 @@ function EmptyPigeonhole() {
     setStage("scan-pigeonhole");
   };
 
-  const subtitle = allDone
-    ? "All pigeonholes emptied"
-    : `${pending.length} pigeonhole${pending.length === 1 ? "" : "s"} ready`;
-
   return (
-    <ScreenShell subtitle={subtitle}>
+    <ScreenShell>
       {allDone ? (
         <Card className="space-y-4 p-6 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-status-dispatched/15 text-status-dispatched">
@@ -191,10 +186,6 @@ function EmptyPigeonhole() {
                           <Package className="h-3 w-3" />
                           {p.items}
                         </span>
-                        <span className="inline-flex items-center gap-1">
-                          <Layers className="h-3 w-3" />
-                          {p.wave}
-                        </span>
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
@@ -221,13 +212,7 @@ function EmptyPigeonhole() {
   );
 }
 
-function ScreenShell({
-  subtitle,
-  children,
-}: {
-  subtitle: string;
-  children: React.ReactNode;
-}) {
+function ScreenShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-[calc(100vh-3rem)] bg-muted/40 py-4">
       <div className="mx-auto w-full max-w-[420px] overflow-hidden rounded-md border border-border bg-background">
@@ -241,9 +226,6 @@ function ScreenShell({
           </Link>
           <div className="text-right">
             <div className="text-sm font-semibold">Empty Pigeonhole</div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.06em] text-muted-foreground">
-              {subtitle}
-            </div>
           </div>
         </div>
         <div className="p-4 pb-6">{children}</div>
