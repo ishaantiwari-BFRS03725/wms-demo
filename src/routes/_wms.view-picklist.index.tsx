@@ -113,7 +113,7 @@ const INITIAL_PICKLISTS: PicklistRow[] = [
   {
     id: "PL-48203",
     status: "In Progress",
-    seller: "—",
+    seller: "Multi",
     channel: "Shopify",
     orderType: "Kit Order",
     totalQty: 48,
@@ -127,7 +127,7 @@ const INITIAL_PICKLISTS: PicklistRow[] = [
   {
     id: "PL-48204",
     status: "Part Picked",
-    seller: "—",
+    seller: "Multi",
     channel: "—",
     orderType: "RTV",
     totalQty: 90,
@@ -294,6 +294,13 @@ function ViewPicklistPage() {
   }, [baseFiltered]);
 
   const visible = baseFiltered.filter((r) => r.state === tab);
+
+  // "Open Since" is only meaningful while a picklist is still working —
+  // shown for Open & In Progress tabs, hidden once complete/on hold.
+  const showOpenSince = tab === "open" || tab === "in_progress";
+  // Closed tabs instead show "Closed In" — how long the picklist took to close
+  // (created → last updated).
+  const showClosedIn = tab === "complete" || tab === "hold";
 
   const openAssign = (row: PicklistRow) => {
     setAssignRow(row);
@@ -563,6 +570,8 @@ function ViewPicklistPage() {
                 <TableHead className="text-right">Remaining Qty</TableHead>
                 <TableHead>Method</TableHead>
                 <TableHead>Created At</TableHead>
+                {showOpenSince && <TableHead>Open Since</TableHead>}
+                {showClosedIn && <TableHead>Closed In</TableHead>}
                 <TableHead>Assigned To</TableHead>
                 <TableHead>Last Updated</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -572,7 +581,7 @@ function ViewPicklistPage() {
               {visible.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={12}
+                    colSpan={showOpenSince || showClosedIn ? 13 : 12}
                     className="py-12 text-center text-sm text-muted-foreground"
                   >
                     No picklists in this tab.
@@ -621,6 +630,18 @@ function ViewPicklistPage() {
                     <TableCell className="whitespace-nowrap font-mono text-xs">
                       {r.createdAt}
                     </TableCell>
+                    {showOpenSince && (
+                      <TableCell className="whitespace-nowrap font-mono text-xs tabular-nums text-muted-foreground">
+                        {elapsedSince(r.createdAt)}
+                      </TableCell>
+                    )}
+                    {showClosedIn && (
+                      <TableCell className="whitespace-nowrap font-mono text-xs tabular-nums text-muted-foreground">
+                        {r.status === "Cancelled"
+                          ? "—"
+                          : durationBetween(r.createdAt, r.updatedAt)}
+                      </TableCell>
+                    )}
                     <TableCell>
                       {r.assignedTo ?? (
                         <span className="text-muted-foreground">Unassigned</span>
@@ -728,6 +749,43 @@ function PickFilterField({
       {children}
     </div>
   );
+}
+
+// Reference "now" for the demo, aligned with the mock createdAt dates so the
+// "Open Since" durations read realistically instead of showing weeks.
+const NOW_REF = new Date(2026, 5, 16, 11, 30); // 16/06/2026 11:30
+
+// Parse "dd/mm/yyyy HH:mm" into a Date.
+function parseStamp(s: string): Date | null {
+  const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/);
+  if (!m) return null;
+  const [, dd, mm, yyyy, hh, min] = m;
+  return new Date(+yyyy, +mm - 1, +dd, +hh, +min);
+}
+
+// Human-readable duration for a minute count.
+function humanizeMins(mins: number): string {
+  if (mins < 0) mins = 0;
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ${mins % 60}m`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ${hrs % 24}h`;
+}
+
+// Human-readable elapsed time since a "dd/mm/yyyy HH:mm" stamp.
+function elapsedSince(createdAt: string): string {
+  const created = parseStamp(createdAt);
+  if (!created) return "—";
+  return humanizeMins(Math.floor((NOW_REF.getTime() - created.getTime()) / 60000));
+}
+
+// Human-readable duration between two "dd/mm/yyyy HH:mm" stamps.
+function durationBetween(from: string, to: string): string {
+  const a = parseStamp(from);
+  const b = parseStamp(to);
+  if (!a || !b) return "—";
+  return humanizeMins(Math.floor((b.getTime() - a.getTime()) / 60000));
 }
 
 function nowStamp() {

@@ -1,5 +1,11 @@
 # Changelog
 
+- 2026-07-09: View Picklists — the multi-seller indicator now shows as plain "Multi" text like any other seller name, instead of a styled badge.
+
+- 2026-07-09: View Picklists — closed picklists now show a "Closed In" column (Complete/Hold tabs only) reporting how long the picklist took to close (created → last updated). Cancelled picklists show "—". Mirrors the "Open Since" column used on the Open/In Progress tabs.
+
+- 2026-07-09: View Picklists — picklists spanning multiple sellers now show a "Multi" seller badge instead of a single seller name. Added an "Open Since" column (after Created At) that shows how long a picklist has been open; it's only visible on the Open and In Progress tabs (hidden for Complete/Hold). Elapsed time is computed against a demo reference "now" so durations read realistically.
+
 - 2026-07-09: Cycle Count — added a warehouse-level Cycle Count Configuration screen (`/cycle-count-config`) with 4 tabs (Task Generation, SLA & Assignment, Thresholds & Approval, Priority Signals). Task Generation: SKU-wise/Bin-wise mode switches, coverage target with live daily-target/per-operator calculator, coverage window (7/n days) + wall-to-wall note, commingling/bin-density weight slider. SLA & Assignment: SLA duration, bins-per-operator, and an operators × bins/op = assignable-bins calculator. Thresholds & Approval: ₹500 bin-level value threshold with below/above-threshold behavior, ageing days, and reconciliation-path toggle. Priority Signals: 8 emergency signals (high-movement, recently-adjusted, PNF, ageing, returns, high-value, NTE, empty-tote) each with enable + weight slider. Reset/Save footer with "Saved" indicator + toast. Registered the route and added a "Cycle Count" sidebar group (Tasks + Cycle Count Config), mirroring the Slotting/Slotting Config pattern.
 
 - 2026-07-08: Cycle Count — operator HHT screen no longer shows the "N ACTIVE · N AWAITING REVIEW · N SUSPENSE OPEN" stats in the page subtitle (now just "INVENTORY"); those stats remain on the supervisor view.
