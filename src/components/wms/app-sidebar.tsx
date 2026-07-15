@@ -178,6 +178,7 @@ const sections: NavSection[] = [
         ],
       },
       { title: "Sort", url: "/sort", icon: ShuffleIcon },
+      { title: "Empty Pigeonhole", url: "/sort/empty", icon: PackageOpen },
       { title: "Putwall", url: "/putwall", icon: LayoutGrid },
       {
         title: "Packing",

@@ -85,6 +85,7 @@ import { Route as WmsViewPutawayPutawayIdRouteImport } from './routes/_wms.view-
 import { Route as WmsViewPicklistPicklistIdRouteImport } from './routes/_wms.view-picklist.$picklistId'
 import { Route as WmsViewPackPacklistIdRouteImport } from './routes/_wms.view-pack.$packlistId'
 import { Route as WmsViewGrnGrnIdRouteImport } from './routes/_wms.view-grn.$grnId'
+import { Route as WmsSortEmptyRouteImport } from './routes/_wms.sort.empty'
 import { Route as WmsSortTaskIdRouteImport } from './routes/_wms.sort.$taskId'
 import { Route as WmsPurchaseReturnRtvNoRouteImport } from './routes/_wms.purchase-return.$rtvNo'
 import { Route as WmsPickPicklistIdRouteImport } from './routes/_wms.pick.$picklistId'
@@ -473,6 +474,11 @@ const WmsViewGrnGrnIdRoute = WmsViewGrnGrnIdRouteImport.update({
   path: '/view-grn/$grnId',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsSortEmptyRoute = WmsSortEmptyRouteImport.update({
+  id: '/sort/empty',
+  path: '/sort/empty',
+  getParentRoute: () => WmsRoute,
+} as any)
 const WmsSortTaskIdRoute = WmsSortTaskIdRouteImport.update({
   id: '/sort/$taskId',
   path: '/sort/$taskId',
@@ -573,6 +579,7 @@ export interface FileRoutesByFullPath {
   '/pick/$picklistId': typeof WmsPickPicklistIdRoute
   '/purchase-return/$rtvNo': typeof WmsPurchaseReturnRtvNoRoute
   '/sort/$taskId': typeof WmsSortTaskIdRoute
+  '/sort/empty': typeof WmsSortEmptyRoute
   '/view-grn/$grnId': typeof WmsViewGrnGrnIdRoute
   '/view-pack/$packlistId': typeof WmsViewPackPacklistIdRoute
   '/view-picklist/$picklistId': typeof WmsViewPicklistPicklistIdRoute
@@ -656,6 +663,7 @@ export interface FileRoutesByTo {
   '/pick/$picklistId': typeof WmsPickPicklistIdRoute
   '/purchase-return/$rtvNo': typeof WmsPurchaseReturnRtvNoRoute
   '/sort/$taskId': typeof WmsSortTaskIdRoute
+  '/sort/empty': typeof WmsSortEmptyRoute
   '/view-grn/$grnId': typeof WmsViewGrnGrnIdRoute
   '/view-pack/$packlistId': typeof WmsViewPackPacklistIdRoute
   '/view-picklist/$picklistId': typeof WmsViewPicklistPicklistIdRoute
@@ -741,6 +749,7 @@ export interface FileRoutesById {
   '/_wms/pick/$picklistId': typeof WmsPickPicklistIdRoute
   '/_wms/purchase-return/$rtvNo': typeof WmsPurchaseReturnRtvNoRoute
   '/_wms/sort/$taskId': typeof WmsSortTaskIdRoute
+  '/_wms/sort/empty': typeof WmsSortEmptyRoute
   '/_wms/view-grn/$grnId': typeof WmsViewGrnGrnIdRoute
   '/_wms/view-pack/$packlistId': typeof WmsViewPackPacklistIdRoute
   '/_wms/view-picklist/$picklistId': typeof WmsViewPicklistPicklistIdRoute
@@ -826,6 +835,7 @@ export interface FileRouteTypes {
     | '/pick/$picklistId'
     | '/purchase-return/$rtvNo'
     | '/sort/$taskId'
+    | '/sort/empty'
     | '/view-grn/$grnId'
     | '/view-pack/$packlistId'
     | '/view-picklist/$picklistId'
@@ -909,6 +919,7 @@ export interface FileRouteTypes {
     | '/pick/$picklistId'
     | '/purchase-return/$rtvNo'
     | '/sort/$taskId'
+    | '/sort/empty'
     | '/view-grn/$grnId'
     | '/view-pack/$packlistId'
     | '/view-picklist/$picklistId'
@@ -993,6 +1004,7 @@ export interface FileRouteTypes {
     | '/_wms/pick/$picklistId'
     | '/_wms/purchase-return/$rtvNo'
     | '/_wms/sort/$taskId'
+    | '/_wms/sort/empty'
     | '/_wms/view-grn/$grnId'
     | '/_wms/view-pack/$packlistId'
     | '/_wms/view-picklist/$picklistId'
@@ -1547,6 +1559,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsViewGrnGrnIdRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/sort/empty': {
+      id: '/_wms/sort/empty'
+      path: '/sort/empty'
+      fullPath: '/sort/empty'
+      preLoaderRoute: typeof WmsSortEmptyRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/sort/$taskId': {
       id: '/_wms/sort/$taskId'
       path: '/sort/$taskId'
@@ -1660,6 +1679,7 @@ interface WmsRouteChildren {
   WmsPickPicklistIdRoute: typeof WmsPickPicklistIdRoute
   WmsPurchaseReturnRtvNoRoute: typeof WmsPurchaseReturnRtvNoRoute
   WmsSortTaskIdRoute: typeof WmsSortTaskIdRoute
+  WmsSortEmptyRoute: typeof WmsSortEmptyRoute
   WmsViewGrnGrnIdRoute: typeof WmsViewGrnGrnIdRoute
   WmsViewPackPacklistIdRoute: typeof WmsViewPackPacklistIdRoute
   WmsViewPicklistPicklistIdRoute: typeof WmsViewPicklistPicklistIdRoute
@@ -1743,6 +1763,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsPickPicklistIdRoute: WmsPickPicklistIdRoute,
   WmsPurchaseReturnRtvNoRoute: WmsPurchaseReturnRtvNoRoute,
   WmsSortTaskIdRoute: WmsSortTaskIdRoute,
+  WmsSortEmptyRoute: WmsSortEmptyRoute,
   WmsViewGrnGrnIdRoute: WmsViewGrnGrnIdRoute,
   WmsViewPackPacklistIdRoute: WmsViewPackPacklistIdRoute,
   WmsViewPicklistPicklistIdRoute: WmsViewPicklistPicklistIdRoute,

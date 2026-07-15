@@ -1,5 +1,13 @@
 # Changelog
 
+- 2026-07-15: Sort list screen (`/sort`) — converted to the HHT-first card layout used by the rest of the sort flow: centered `max-w-[420px]` card with an in-card header (task count) and a divided, tappable task list (replacing the full-width PageHeader + stacked cards). Added an empty-state fallback.
+
+- 2026-07-15: New Empty Pigeonhole HHT screen (`/sort/empty`, "Empty Pigeonhole" in the Outbound sidebar). Operators scan a sorted pigeonhole ID, then scan a pick bin to empty it; a ready-to-empty list (tap or scan) and a per-session emptied count are shown. Seeded by a new `sortedPigeonholes` mock list. The old in-task "Transfer putwall to tote" dialog was removed from the sort task screen — its completed-pigeonhole card is now display-only, since emptying is a separate activity.
+
+- 2026-07-15: Sort task detail screen — removed the task ID and "Step X of Y" indicators from the header. New orders are now auto-directed to the next available empty pigeonhole by the system instead of asking the operator to scan/choose one; repeat items for an order already in progress are directed back to the same pigeonhole as before. The putwall scan now validates against this system-directed pigeonhole (with an "Auto" fill button), rather than accepting any `PW-#` format.
+
+- 2026-07-15: Sort task detail screen — wrapped in the same mobile-first centered card layout (`max-w-[420px]` phone-card shell) used by the Picking and Item Movement screens, instead of a flat full-width page.
+
 - 2026-07-09: Picklist Detail (Picked SKU Details tab) — removed the leading "Pick No" column. Rows with a PNA quantity (> 0) now get a faded amber row background to gently flag them without being gaudy.
 
 - 2026-07-09: View Picklists — the multi-seller indicator now shows as plain "Multi" text like any other seller name, instead of a styled badge.
