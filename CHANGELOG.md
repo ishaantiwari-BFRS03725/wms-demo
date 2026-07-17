@@ -1,5 +1,11 @@
 # Changelog
 
+- 2026-07-17: Cycle Count Config (`/cycle-count-config`) — Thresholds & Approval → Value Threshold & Approval: added a "Threshold-based auto-adjustment" toggle, off by default. When on, below-threshold discrepancies auto-adjust and higher-value ones need approval; when off (default), the value-threshold field greys out and every bin discrepancy routes through supervisor approval regardless of value.
+
+- 2026-07-17: Cycle Count Config (`/cycle-count-config`) — removed the "Task Modes" toggle section (SKU-wise / Bin-Location-wise) from Task Generation; the PRD only describes a bin-level blind-count flow (task on bin scan, all SKUs in it counted together, reconciliation done at bin level), so there's no real alternate execution mode to toggle. SKU-wise Coverage Target section stays as-is (still a valid coverage-quota planning input), just no longer gated behind the removed toggle.
+
+- 2026-07-17: Cycle Count Config (`/cycle-count-config`) — Task Generation → SKU-wise Coverage Target: Total Inventory Volume is now a read-only, greyed-out display (pulled from current inventory) instead of an editable field; moved Active Operators out to the SLA & Assignment → Task SLA section, alongside Target Task Duration and Bins per Operator.
+
 - 2026-07-17: Cycle Count Config (`/cycle-count-config`) — Priority Signals tab replaced with an SOS Task Trigger mechanism: each signal (High-movement bins, PNF, ageing, etc.) is now a button ("Create SOS Task") instead of an enable-toggle + weight slider. Clicking a signal's button immediately fires an emergency cycle count task for its flagged bins (mock bin counts shown per signal) and shows a session trigger count, rather than configuring a background priority weight.
 
 - 2026-07-15: Added `docs/PRD-GRN-QC.md` — a shareable PRD for the box-level GRN QC flow (bin-driven Good/Bad mode, WID vs USN label rules, full step flow, business rules, states/screens, data model, edge cases, open questions, and acceptance criteria) for tech + business review.

@@ -7,7 +7,6 @@ import {
   Clock,
   History,
   IndianRupee,
-  Layers,
   PackageCheck,
   RotateCcw,
   Save,
@@ -18,6 +17,7 @@ import {
   TriangleAlert,
   Undo2,
   Users,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -45,9 +45,6 @@ interface PrioritySignal {
 }
 
 interface Config {
-  // Task modes
-  modeSku: boolean;
-  modeBin: boolean;
   // SKU-wise coverage target
   totalUnits: string;
   reviewCycleDays: string;
@@ -59,6 +56,7 @@ interface Config {
   binsPerOperator: string;
   previewOperators: number;
   // Thresholds & approval
+  autoAdjustEnabled: boolean;
   valueThreshold: string;
   belowThresholdReconcile: boolean;
   ageingDays: string;
@@ -80,8 +78,6 @@ const DEFAULT_SIGNALS: PrioritySignal[] = [
 ];
 
 const DEFAULTS: Config = {
-  modeSku: true,
-  modeBin: true,
   totalUnits: "5000000",
   reviewCycleDays: "20",
   activeOperators: "8",
@@ -89,6 +85,7 @@ const DEFAULTS: Config = {
   slaMinutes: "20",
   binsPerOperator: "5",
   previewOperators: 4,
+  autoAdjustEnabled: false,
   valueThreshold: "500",
   belowThresholdReconcile: true,
   ageingDays: "15",
@@ -165,49 +162,18 @@ function CycleCountConfig() {
         {/* ── Tab 1: Task Generation ──────────────────────────────────────────── */}
         <TabsContent value="generation" className="mt-2 space-y-4">
           <Card className="overflow-hidden">
-            <SectionHeader title="Task Modes" description="Enable one or both generation modes. A warehouse may run either or both concurrently." />
-            <div className="divide-y divide-border">
-              <ToggleRow
-                Icon={Layers}
-                title="SKU-wise generation"
-                description="Coverage target derived from total inventory volume ÷ review cycle ÷ active operators."
-                checked={cfg.modeSku}
-                onChange={(v) => set("modeSku", v)}
-              />
-              <ToggleRow
-                Icon={Boxes}
-                title="Bin / Location-wise generation"
-                description="Tasks generated against physical bin scans; all SKUs in a bin are counted together."
-                checked={cfg.modeBin}
-                onChange={(v) => set("modeBin", v)}
-              />
-            </div>
-            {!cfg.modeSku && !cfg.modeBin && (
-              <div className="border-t border-border bg-warn-bg/40 px-5 py-2.5 text-[11px] text-warn">
-                At least one mode must be enabled or no tasks will be generated.
-              </div>
-            )}
-          </Card>
-
-          <Card className={cn("overflow-hidden", !cfg.modeSku && "opacity-50")}>
             <SectionHeader title="SKU-wise Coverage Target" description="How the daily unit target is spread across the review cycle and the active operators." />
-            <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-3">
-              <Field label="Total Inventory Volume" hint="Total units to be counted across the review cycle.">
-                <div className="relative">
-                  <Input type="number" min={0} value={cfg.totalUnits} disabled={!cfg.modeSku} onChange={(e) => set("totalUnits", e.target.value)} className="h-9 pr-12" />
-                  <span className="absolute right-3 top-2 text-sm text-muted-foreground">units</span>
+            <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2">
+              <Field label="Total Inventory Volume" hint="Total units to be counted across the review cycle — pulled from current inventory, not editable.">
+                <div className="flex h-9 items-center justify-between rounded-md border border-border bg-muted/40 px-3">
+                  <span className="text-sm font-medium text-muted-foreground">{nf.format(totalUnits)}</span>
+                  <span className="text-sm text-muted-foreground">units</span>
                 </div>
               </Field>
               <Field label="Review Cycle" hint="Number of days to fully cover the inventory volume once.">
                 <div className="relative">
-                  <Input type="number" min={1} value={cfg.reviewCycleDays} disabled={!cfg.modeSku} onChange={(e) => set("reviewCycleDays", e.target.value)} className="h-9 pr-12" />
+                  <Input type="number" min={1} value={cfg.reviewCycleDays} onChange={(e) => set("reviewCycleDays", e.target.value)} className="h-9 pr-12" />
                   <span className="absolute right-3 top-2 text-sm text-muted-foreground">days</span>
-                </div>
-              </Field>
-              <Field label="Active Operators" hint="Operators available on a typical day to share the daily target.">
-                <div className="relative">
-                  <Input type="number" min={1} value={cfg.activeOperators} disabled={!cfg.modeSku} onChange={(e) => set("activeOperators", e.target.value)} className="h-9 pr-14" />
-                  <span className="absolute right-3 top-2 text-sm text-muted-foreground">ops</span>
                 </div>
               </Field>
             </div>
@@ -243,7 +209,7 @@ function CycleCountConfig() {
         <TabsContent value="sla" className="mt-2 space-y-4">
           <Card className="overflow-hidden">
             <SectionHeader title="Task SLA" description="Each task is sized to complete within this window; the work assigned is capped to fit." />
-            <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-3">
               <Field label="Target Task Duration" hint="Each task should take 15–20 minutes; bins are blocked for this duration.">
                 <div className="relative">
                   <Input type="number" min={5} max={60} value={cfg.slaMinutes} onChange={(e) => set("slaMinutes", e.target.value)} className="h-9 pr-16" />
@@ -254,6 +220,12 @@ function CycleCountConfig() {
                 <div className="relative">
                   <Input type="number" min={1} value={cfg.binsPerOperator} onChange={(e) => set("binsPerOperator", e.target.value)} className="h-9 pr-12" />
                   <span className="absolute right-3 top-2 text-sm text-muted-foreground">bins</span>
+                </div>
+              </Field>
+              <Field label="Active Operators" hint="Operators available on a typical day to share the daily target.">
+                <div className="relative">
+                  <Input type="number" min={1} value={cfg.activeOperators} onChange={(e) => set("activeOperators", e.target.value)} className="h-9 pr-14" />
+                  <span className="absolute right-3 top-2 text-sm text-muted-foreground">ops</span>
                 </div>
               </Field>
             </div>
@@ -292,11 +264,18 @@ function CycleCountConfig() {
         <TabsContent value="thresholds" className="mt-2 space-y-4">
           <Card className="overflow-hidden">
             <SectionHeader title="Value Threshold & Approval" description="Discrepancies are evaluated at the bin level — the combined value of all SKU-level discrepancies in the bin." />
-            <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2">
+            <ToggleRow
+              Icon={Zap}
+              title="Threshold-based auto-adjustment"
+              description="Auto-adjust bin discrepancies below the value threshold; only higher-value ones need supervisor approval. Turn off to route every discrepancy through supervisor approval regardless of value."
+              checked={cfg.autoAdjustEnabled}
+              onChange={(v) => set("autoAdjustEnabled", v)}
+            />
+            <div className={cn("grid grid-cols-1 gap-5 border-t border-border p-5 sm:grid-cols-2", !cfg.autoAdjustEnabled && "opacity-50")}>
               <Field label="Bin-level Value Threshold" hint="Combined discrepancy value in a bin, evaluated as a whole.">
                 <div className="relative">
                   <span className="absolute left-3 top-2 text-sm text-muted-foreground">₹</span>
-                  <Input type="number" min={0} value={cfg.valueThreshold} onChange={(e) => set("valueThreshold", e.target.value)} className="h-9 pl-7" />
+                  <Input type="number" min={0} value={cfg.valueThreshold} disabled={!cfg.autoAdjustEnabled} onChange={(e) => set("valueThreshold", e.target.value)} className="h-9 pl-7" />
                 </div>
               </Field>
               <Field label="Ageing Window" hint="Bins not counted within this many days are flagged as aged.">
@@ -306,20 +285,29 @@ function CycleCountConfig() {
                 </div>
               </Field>
             </div>
-            <div className="grid grid-cols-2 divide-x divide-border border-t border-border">
-              <div className="px-5 py-3">
-                <div className="flex items-center gap-1.5 text-[11px] font-medium text-ok">
-                  <CheckCircle2 className="h-3.5 w-3.5" /> Below ₹{cfg.valueThreshold || "0"}
+            {cfg.autoAdjustEnabled ? (
+              <div className="grid grid-cols-2 divide-x divide-border border-t border-border">
+                <div className="px-5 py-3">
+                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-ok">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Below ₹{cfg.valueThreshold || "0"}
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted-foreground">Auto-adjusted immediately, no supervisor approval required.</p>
                 </div>
-                <p className="mt-1 text-[11px] text-muted-foreground">Auto-adjusted immediately, no supervisor approval required.</p>
+                <div className="px-5 py-3">
+                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-warn">
+                    <TriangleAlert className="h-3.5 w-3.5" /> At / above ₹{cfg.valueThreshold || "0"}
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted-foreground">Adjustment requires explicit supervisor approval before posting.</p>
+                </div>
               </div>
-              <div className="px-5 py-3">
+            ) : (
+              <div className="border-t border-border px-5 py-3">
                 <div className="flex items-center gap-1.5 text-[11px] font-medium text-warn">
-                  <TriangleAlert className="h-3.5 w-3.5" /> At / above ₹{cfg.valueThreshold || "0"}
+                  <TriangleAlert className="h-3.5 w-3.5" /> Auto-adjustment off
                 </div>
-                <p className="mt-1 text-[11px] text-muted-foreground">Adjustment requires explicit supervisor approval before posting.</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">Every bin discrepancy requires explicit supervisor approval before posting, regardless of value.</p>
               </div>
-            </div>
+            )}
           </Card>
 
           <Card className="overflow-hidden">
@@ -393,7 +381,7 @@ function CycleCountConfig() {
         </Button>
         <div className="flex items-center gap-3">
           {saved && <span className="flex items-center gap-1.5 text-sm text-ok"><CheckCircle2 className="h-4 w-4" />Saved</span>}
-          <Button onClick={handleSave} disabled={!cfg.modeSku && !cfg.modeBin} className="gap-2">
+          <Button onClick={handleSave} className="gap-2">
             <Save className="h-4 w-4" /> Save Configuration
           </Button>
         </div>
