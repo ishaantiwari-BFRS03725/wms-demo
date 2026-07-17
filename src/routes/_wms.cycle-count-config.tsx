@@ -13,6 +13,7 @@ import {
   Save,
   ScanSearch,
   Settings2,
+  Siren,
   Trash2,
   TriangleAlert,
   Undo2,
@@ -39,8 +40,8 @@ interface PrioritySignal {
   label: string;
   description: string;
   Icon: React.ElementType;
-  enabled: boolean;
-  weight: number;
+  flaggedBins: number;
+  triggerCount: number;
 }
 
 interface Config {
@@ -68,14 +69,14 @@ interface Config {
 }
 
 const DEFAULT_SIGNALS: PrioritySignal[] = [
-  { id: "high-movement", label: "High-movement bins", description: "High transaction frequency — receiving, picking, replenishment, transfers.", Icon: Activity, enabled: true, weight: 80 },
-  { id: "recently-adjusted", label: "Recently adjusted bins", description: "Recent inventory adjustment — re-count to validate the adjustment held.", Icon: History, enabled: true, weight: 60 },
-  { id: "pnf", label: "Recent / most PNF", description: "Bins linked to recent or frequent Product-Not-Found events during picking.", Icon: ScanSearch, enabled: true, weight: 90 },
-  { id: "ageing", label: "Old counted bins (ageing)", description: "Bins not counted within the ageing window below.", Icon: Clock, enabled: true, weight: 50 },
-  { id: "returns", label: "Most returns stock", description: "Bins receiving high volumes of returned stock.", Icon: Undo2, enabled: false, weight: 40 },
-  { id: "high-value", label: "High-value stock", description: "Bins holding SKUs above the configured value threshold.", Icon: IndianRupee, enabled: true, weight: 70 },
-  { id: "nte", label: "Near-to-Expiry (NTE)", description: "Batches nearing expiry — validates lot/MFD/expiry, catches ghost & surprise batches.", Icon: TriangleAlert, enabled: true, weight: 65 },
-  { id: "empty-tote", label: "Empty tote audit", description: "Audit of totes marked empty, to confirm no stock is being missed.", Icon: PackageCheck, enabled: false, weight: 30 },
+  { id: "high-movement", label: "High-movement bins", description: "High transaction frequency — receiving, picking, replenishment, transfers.", Icon: Activity, flaggedBins: 34, triggerCount: 0 },
+  { id: "recently-adjusted", label: "Recently adjusted bins", description: "Recent inventory adjustment — re-count to validate the adjustment held.", Icon: History, flaggedBins: 12, triggerCount: 0 },
+  { id: "pnf", label: "Recent / most PNF", description: "Bins linked to recent or frequent Product-Not-Found events during picking.", Icon: ScanSearch, flaggedBins: 8, triggerCount: 0 },
+  { id: "ageing", label: "Old counted bins (ageing)", description: "Bins not counted within the ageing window below.", Icon: Clock, flaggedBins: 51, triggerCount: 0 },
+  { id: "returns", label: "Most returns stock", description: "Bins receiving high volumes of returned stock.", Icon: Undo2, flaggedBins: 19, triggerCount: 0 },
+  { id: "high-value", label: "High-value stock", description: "Bins holding SKUs above the configured value threshold.", Icon: IndianRupee, flaggedBins: 6, triggerCount: 0 },
+  { id: "nte", label: "Near-to-Expiry (NTE)", description: "Batches nearing expiry — validates lot/MFD/expiry, catches ghost & surprise batches.", Icon: TriangleAlert, flaggedBins: 4, triggerCount: 0 },
+  { id: "empty-tote", label: "Empty tote audit", description: "Audit of totes marked empty, to confirm no stock is being missed.", Icon: PackageCheck, flaggedBins: 22, triggerCount: 0 },
 ];
 
 const DEFAULTS: Config = {
@@ -127,7 +128,12 @@ function CycleCountConfig() {
   const bpo = parseInt(cfg.binsPerOperator, 10) || 0;
   const assignableBins = bpo * cfg.previewOperators;
 
-  const activeSignals = cfg.signals.filter((s) => s.enabled).length;
+  const handleTriggerSignal = (s: PrioritySignal) => {
+    setSignal(s.id, { triggerCount: s.triggerCount + 1 });
+    toast.success(`SOS task created — ${s.flaggedBins} bins queued for "${s.label}"`);
+  };
+
+  const totalTriggered = cfg.signals.reduce((sum, s) => sum + s.triggerCount, 0);
 
   return (
     <div className="space-y-6 px-7 pb-14 pt-5">
@@ -332,30 +338,35 @@ function CycleCountConfig() {
         <TabsContent value="priority" className="mt-2 space-y-4">
           <Card className="overflow-hidden">
             <SectionHeader
-              title="Emergency / On-demand Signals"
-              description={`Signals that can trigger an emergency task outside the schedule. ${activeSignals} of ${cfg.signals.length} active — weights feed the priority score.`}
+              title="SOS Task Triggers"
+              description={`Fire an emergency cycle count task on demand for bins matching a signal, outside the rolling schedule.${totalTriggered > 0 ? ` ${totalTriggered} SOS task(s) created this session.` : ""}`}
             />
             <div className="divide-y divide-border">
               {cfg.signals.map((s) => (
-                <div key={s.id} className={cn("flex items-start gap-3 px-5 py-4", !s.enabled && "opacity-55")}>
+                <div key={s.id} className="flex items-center gap-3 px-5 py-4">
                   <s.Icon className="mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground" />
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium">{s.label}</div>
                     <div className="mt-0.5 text-[11px] text-muted-foreground">{s.description}</div>
-                    <div className="mt-2 flex items-center gap-3">
-                      <Slider
-                        value={[s.weight]}
-                        min={0}
-                        max={100}
-                        step={5}
-                        disabled={!s.enabled}
-                        onValueChange={([v]) => setSignal(s.id, { weight: v })}
-                        className="max-w-[220px]"
-                      />
-                      <span className="w-10 font-mono text-[11px] text-muted-foreground">{s.weight}</span>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-muted-foreground">
+                        {s.flaggedBins} bins flagged
+                      </span>
+                      {s.triggerCount > 0 && (
+                        <span className="rounded-full bg-ok-bg px-2 py-0.5 font-mono text-[10px] text-ok">
+                          Triggered {s.triggerCount}×
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <Switch checked={s.enabled} onCheckedChange={(v) => setSignal(s.id, { enabled: v })} />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-shrink-0 gap-1.5"
+                    onClick={() => handleTriggerSignal(s)}
+                  >
+                    <Siren className="h-3.5 w-3.5" /> Create SOS Task
+                  </Button>
                 </div>
               ))}
             </div>

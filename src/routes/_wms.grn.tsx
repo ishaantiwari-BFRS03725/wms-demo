@@ -46,9 +46,11 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import {
+  binQcType,
   boxConsignment,
   genGrnDocId,
   genUsn,
+  genWid,
   grnBarcodePattern,
   GRN_TASKS,
   type BoxConsignment,
@@ -94,7 +96,8 @@ interface QcItemRow {
   mode: QcMode;
   reason?: string;
   batch?: Batch;
-  usn?: string; // unique serial, assigned per rejected unit
+  // Per-unit label id: WID for good units, USN for bad units.
+  label: string;
 }
 
 interface GrnDoc {
@@ -130,7 +133,7 @@ function Grn() {
   const [scanError, setScanError] = useState<string | null>(null);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
-  const [usnPrintRows, setUsnPrintRows] = useState<QcItemRow[]>([]);
+  const [labelRows, setLabelRows] = useState<QcItemRow[]>([]);
   const [scanKey, setScanKey] = useState(0);
   const [zoomOpen, setZoomOpen] = useState(false);
   const [itemSearch, setItemSearch] = useState("");
@@ -155,11 +158,6 @@ function Grn() {
 
   const batchReady = !!(batch.lot && batch.mfg && batch.expiry && batch.mrp);
 
-  // Bin QC status is editable until the first item is committed into THIS bin.
-  // A pending (scanned but not yet confirmed) item — or items in a previous
-  // bin — do not lock it, so a freshly changed bin starts unlocked.
-  const binLocked = qcItems.some((r) => r.lpn === binLpn);
-
   // How many units of the pending item remain open — the operator can QC a
   // whole batch at once by entering a quantity (defaults to 1).
   const pendingCommitted = pendingItem
@@ -183,13 +181,10 @@ function Grn() {
     if (!v) return;
     setScanError(null);
     setBinLpn(v);
-    if (changingBin) {
-      setChangingBin(false);
-      setStep("scan-items");
-      setScanKey((k) => k + 1);
-      return;
-    }
-    setBinQc("good");
+    // The bin itself carries the QC mode — a Good bin issues WID labels, a Bad
+    // bin issues USN labels. The operator never toggles it by hand.
+    setBinQc(binQcType(v));
+    setChangingBin(false);
     setStep("scan-items");
     setScanKey((k) => k + 1);
   };
@@ -246,17 +241,36 @@ function Grn() {
     setBatch({ mrp: e.mrp, lot: e.lot, mfg: e.mfg, expiry: e.expiry });
   };
 
+  // A WID identifies a SKU+batch, not an individual unit — so every good unit
+  // of the same SKU and batch shares one WID (reused across repeat scans in
+  // this box). Only USNs are unique per rejected unit.
+  const widForBatch = (sku: string, b: Batch): string => {
+    const existing = qcItems.find(
+      (r) =>
+        r.mode === "good" &&
+        r.sku === sku &&
+        r.batch?.lot === b.lot &&
+        r.batch?.mfg === b.mfg &&
+        r.batch?.expiry === b.expiry &&
+        r.batch?.mrp === b.mrp,
+    );
+    return existing?.label ?? genWid();
+  };
+
   const commitGood = () => {
     if (!pendingItem || !binLpn || !batchReady) return;
     const n = Math.min(Math.max(1, qcQty), pendingMax);
+    const wid = widForBatch(pendingItem.sku, batch);
     const rows: QcItemRow[] = Array.from({ length: n }, () => ({
       sku: pendingItem.sku,
       name: pendingItem.name,
       lpn: binLpn,
       mode: "good" as const,
       batch,
+      label: wid,
     }));
     setQcItems((prev) => [...prev, ...rows]);
+    setLabelRows(rows); // print N WID labels (same WID), then scan into the bin
     setPendingItem(null);
     setQcQty(1);
     setBatch(emptyBatch);
@@ -273,10 +287,10 @@ function Grn() {
       mode: "bad" as const,
       reason: rejectReason,
       batch: batchReady ? batch : undefined,
-      usn: genUsn(),
+      label: genUsn(),
     }));
     setQcItems((prev) => [...prev, ...rows]);
-    setUsnPrintRows(rows); // pop the USN print modal for these units
+    setLabelRows(rows); // print N USN labels, then scan them into the bin
     setPendingItem(null);
     setQcQty(1);
     setBatch(emptyBatch);
@@ -298,7 +312,7 @@ function Grn() {
     };
     setGrnDocs((prev) => [...prev, doc]);
     toast.success(`GRN generated · ${doc.grnId}`, {
-      description: `${doc.boxId} — ${doc.good} good · ${doc.bad} bad. GRN & USN labels sent to printer.`,
+      description: `${doc.boxId} — ${doc.good} good · ${doc.bad} bad. GRN, WID & USN labels sent to printer.`,
     });
     // No done screen — go straight back to scanning the next box.
     nextBox();
@@ -508,15 +522,15 @@ function Grn() {
                   Scan GRN bin LPN
                 </div>
                 <p className="text-[11px] text-muted-foreground">
-                  Scan the GRN bin for this box, then scan its items. You&apos;ll
-                  set the bin&apos;s QC status (Good by default) on the item
-                  screen — it can be changed until the first item is scanned.
-                  Good and bad items can&apos;t share a bin.
+                  Scan the GRN bin for this box, then scan its items. The QC mode
+                  is read from the bin: a <span className="font-semibold text-status-picked">Good</span> bin issues
+                  WID labels, a <span className="font-semibold text-destructive">Bad</span> bin issues USN labels.
+                  Good and bad items can&apos;t share a bin — change the bin to switch modes.
                 </p>
                 {scanError && <ErrorBanner message={scanError} />}
                 <ScanRow
                   key={`bin-${scanKey}`}
-                  placeholder="Scan GRN bin LPN…"
+                  placeholder="Scan Good or Bad GRN bin…"
                   onScan={onBinScan}
                   autoFocus
                 />
@@ -615,7 +629,7 @@ function Grn() {
                     </div>
                     <div
                       className={cn(
-                        "flex items-center rounded-md border px-2.5 py-1.5",
+                        "flex items-center justify-between gap-2 rounded-md border px-2.5 py-1.5",
                         binQc === "good"
                           ? "border-status-picked/30 bg-status-picked/5"
                           : "border-destructive/30 bg-destructive/5",
@@ -624,43 +638,37 @@ function Grn() {
                       <span className="truncate font-mono text-xs font-bold">
                         {binLpn}
                       </span>
-                    </div>
-                    <div className="inline-flex w-full rounded-md border border-border bg-background p-0.5">
-                      <button
-                        type="button"
-                        disabled={binLocked}
-                        onClick={() => setBinQc("good")}
+                      <span
                         className={cn(
-                          "flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors",
+                          "flex shrink-0 items-center gap-1 rounded-[2px] px-1.5 py-0.5 font-mono text-[9.5px] font-bold uppercase tracking-[0.06em]",
                           binQc === "good"
                             ? "bg-status-picked text-white"
-                            : "text-muted-foreground hover:bg-muted/60",
-                          binLocked && "cursor-not-allowed opacity-60",
+                            : "bg-destructive text-white",
                         )}
                       >
-                        <ThumbsUp className="h-3 w-3" />
-                        Good
-                      </button>
-                      <button
-                        type="button"
-                        disabled={binLocked}
-                        onClick={() => setBinQc("bad")}
-                        className={cn(
-                          "flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors",
-                          binQc === "bad"
-                            ? "bg-destructive text-white"
-                            : "text-muted-foreground hover:bg-muted/60",
-                          binLocked && "cursor-not-allowed opacity-60",
+                        {binQc === "good" ? (
+                          <>
+                            <ThumbsUp className="h-3 w-3" />
+                            Good
+                          </>
+                        ) : (
+                          <>
+                            <ThumbsDown className="h-3 w-3" />
+                            Bad
+                          </>
                         )}
-                      >
-                        <ThumbsDown className="h-3 w-3" />
-                        Bad
-                      </button>
+                      </span>
                     </div>
                     <p className="text-[10px] text-muted-foreground">
-                      {binLocked
-                        ? "QC status locked — an item is confirmed into this bin."
-                        : "Locks once the first item is confirmed."}
+                      QC mode is set by the bin — this is a{" "}
+                      <span className="font-semibold">
+                        {binQc === "good" ? "Good" : "Bad"}
+                      </span>{" "}
+                      bin, so each unit gets a{" "}
+                      <span className="font-semibold">
+                        {binQc === "good" ? "WID" : "USN"}
+                      </span>{" "}
+                      label. Change the bin to switch modes.
                     </p>
                   </div>
 
@@ -1089,8 +1097,8 @@ function Grn() {
         </DialogContent>
       </Dialog>
 
-      {/* USN print modal — shown right after a rejection is confirmed */}
-      <UsnPrintModal rows={usnPrintRows} onClose={() => setUsnPrintRows([])} />
+      {/* Label print + scan-back modal — WID for good units, USN for bad. */}
+      <LabelPrintModal rows={labelRows} onClose={() => setLabelRows([])} />
     </div>
   );
 }
@@ -1119,9 +1127,10 @@ function BatchField({
   );
 }
 
-// Pops up right after a rejection is confirmed: shows the USN barcode label(s)
-// for the just-rejected unit(s). Operator hits Print, then closes.
-function UsnPrintModal({
+// Pops up right after a QC confirm: prints the per-unit labels (WID for good,
+// USN for bad), then the operator scans each one back — a running count tracks
+// how many of the N labels have been placed on their units before closing.
+function LabelPrintModal({
   rows,
   onClose,
 }: {
@@ -1129,49 +1138,89 @@ function UsnPrintModal({
   onClose: () => void;
 }) {
   const [printed, setPrinted] = useState(false);
+  const [scanned, setScanned] = useState(0);
+  const [scanKey, setScanKey] = useState(0);
   const open = rows.length > 0;
+  const good = (rows[0]?.mode ?? "good") === "good";
+  const kind = good ? "WID" : "USN";
 
-  // Reset the printed state whenever a fresh set of labels comes in.
+  // Reset print + scan progress whenever a fresh set of labels comes in.
   useEffect(() => {
-    if (rows.length > 0) setPrinted(false);
+    if (rows.length > 0) {
+      setPrinted(false);
+      setScanned(0);
+      setScanKey((k) => k + 1);
+    }
   }, [rows]);
+
+  const allScanned = scanned >= rows.length;
+
+  const onLabelScan = () => {
+    setScanned((s) => Math.min(rows.length, s + 1));
+    setScanKey((k) => k + 1);
+  };
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-xs gap-0 overflow-hidden p-0">
         <DialogHeader className="space-y-0 border-b border-border px-4 py-3">
           <DialogTitle className="flex items-center gap-2 text-sm">
-            <ThumbsDown className="h-4 w-4 text-destructive" />
-            {rows.length > 1 ? `${rows.length} USN labels` : "USN label"}
+            {good ? (
+              <ThumbsUp className="h-4 w-4 text-status-picked" />
+            ) : (
+              <ThumbsDown className="h-4 w-4 text-destructive" />
+            )}
+            {rows.length > 1 ? `${rows.length} ${kind} labels` : `${kind} label`}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="max-h-[55vh] space-y-3 overflow-y-auto bg-neutral-800 px-6 py-5">
-          {rows.map((r) => (
-            <PrintedUsnLabel key={r.usn} row={r} />
+        <div className="max-h-[45vh] space-y-3 overflow-y-auto bg-neutral-800 px-6 py-5">
+          {rows.map((r, i) => (
+            <PrintedLabel key={`${r.label}-${i}`} row={r} />
           ))}
         </div>
 
-        <div className="border-t border-border px-4 py-3">
-          {printed ? (
-            <div className="space-y-2">
-              <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-status-picked">
-                <CheckCircle2 className="h-4 w-4" />
-                Sent to label printer
-              </div>
-              <Button
-                variant="outline"
-                className="h-9 w-full"
-                onClick={onClose}
-              >
-                Close
-              </Button>
-            </div>
-          ) : (
+        <div className="space-y-2 border-t border-border px-4 py-3">
+          {!printed ? (
             <Button className="h-9 w-full" onClick={() => setPrinted(true)}>
               <Printer className="mr-2 h-4 w-4" />
               Print {rows.length > 1 ? `${rows.length} labels` : "label"}
             </Button>
+          ) : allScanned ? (
+            <>
+              <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-status-picked">
+                <CheckCircle2 className="h-4 w-4" />
+                All {rows.length} {kind} label{rows.length > 1 ? "s" : ""} scanned
+                into bin
+              </div>
+              <Button variant="outline" className="h-9 w-full" onClick={onClose}>
+                Done
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-medium text-muted-foreground">
+                  Scan each label into the bin
+                </span>
+                <span className="font-mono text-xs font-bold tabular-nums">
+                  {scanned} of {rows.length} scanned
+                </span>
+              </div>
+              <ScanRow
+                key={`label-scan-${scanKey}`}
+                placeholder={`Scan ${kind}…`}
+                onScan={onLabelScan}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setScanned(rows.length)}
+                className="w-full text-center text-[10px] font-medium text-muted-foreground underline-offset-2 hover:underline"
+              >
+                Scan all (demo)
+              </button>
+            </>
           )}
         </div>
       </DialogContent>
@@ -1180,12 +1229,14 @@ function UsnPrintModal({
 }
 
 // A single label as it appears on the thermal paper (white stock, black print).
-function PrintedUsnLabel({ row }: { row: QcItemRow }) {
-  const bars = useMemo(() => grnBarcodePattern(row.usn ?? row.sku), [row]);
+// Good units carry a WID; bad units carry a USN plus the rejection reason.
+function PrintedLabel({ row }: { row: QcItemRow }) {
+  const bars = useMemo(() => grnBarcodePattern(row.label ?? row.sku), [row]);
+  const good = row.mode === "good";
   return (
     <div className="rounded-sm bg-white p-3 text-black shadow-lg ring-1 ring-black/10">
       <div className="mb-1 text-center font-mono text-[9px] font-bold uppercase tracking-[0.08em]">
-        Rejected unit · USN
+        {good ? "Good unit · WID" : "Rejected unit · USN"}
       </div>
       <div className="flex flex-col items-center">
         <div className="flex items-end gap-px">
@@ -1198,14 +1249,14 @@ function PrintedUsnLabel({ row }: { row: QcItemRow }) {
           ))}
         </div>
         <div className="mt-1 font-mono text-sm font-bold tracking-[0.15em]">
-          {row.usn}
+          {row.label}
         </div>
       </div>
       <div className="mt-2 border-t border-dashed border-neutral-300 pt-1.5 text-[10px] leading-tight">
         <div className="flex items-center justify-between gap-2">
           <span className="truncate font-semibold">{row.name}</span>
           <span className="shrink-0 rounded-[2px] border border-black/70 px-1 py-0.5 font-mono text-[8.5px] font-bold uppercase">
-            {row.reason ?? "Bad"}
+            {good ? "Good" : row.reason ?? "Bad"}
           </span>
         </div>
         <div className="font-mono text-[9px] text-neutral-600">{row.sku}</div>
