@@ -15,6 +15,14 @@ export interface PackItem {
   mrp?: string;
 }
 
+export interface DispatchAddress {
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+}
+
 export interface PackOrder {
   orderNo: string;
   extOrderNo: string;
@@ -24,6 +32,7 @@ export interface PackOrder {
   courier: string;
   sla: "Same Day" | "Next Day" | "Standard";
   paymentMode: "Prepaid" | "COD";
+  shipTo?: DispatchAddress;
   items: PackItem[];
 }
 
@@ -208,6 +217,170 @@ const packOrders: PackOrder[] = [
       },
     ],
   },
+  {
+    // Large multi-SKU B2B order for testing multi-box packing.
+    orderNo: "WMS-100500",
+    extOrderNo: "DMART-PO-88120",
+    orderType: "B2B",
+    channel: "Amazon",
+    seller: "D-Mart Wholesale",
+    courier: "Delhivery",
+    sla: "Standard",
+    paymentMode: "Prepaid",
+    shipTo: {
+      name: "D-Mart DC — Bhiwandi",
+      address: "Avenue Supermarts Ltd, Warehouse No. 7, Kalher Industrial Area, Bhiwandi",
+      city: "Thane",
+      state: "Maharashtra",
+      pincode: "421302",
+    },
+    items: [
+      {
+        sku: "FMCG-ATTA-5KG",
+        ean: "8901000000011",
+        name: "Whole Wheat Atta 5kg",
+        qty: 8,
+        image: img("atta-5kg"),
+        brand: "Aashirvaad",
+        color: "Brown",
+        size: "5 kg",
+        weight: "5.0 kg",
+        mrp: "₹255",
+      },
+      {
+        sku: "FMCG-RICE-5KG",
+        ean: "8901000000028",
+        name: "Basmati Rice 5kg",
+        qty: 6,
+        image: img("rice-5kg"),
+        brand: "India Gate",
+        color: "White",
+        size: "5 kg",
+        weight: "5.0 kg",
+        mrp: "₹610",
+      },
+      {
+        sku: "FMCG-OIL-1L",
+        ean: "8901000000035",
+        name: "Sunflower Oil 1L",
+        qty: 10,
+        image: img("oil-1l"),
+        brand: "Fortune",
+        color: "Yellow",
+        size: "1 L",
+        weight: "0.95 kg",
+        mrp: "₹145",
+      },
+      {
+        sku: "FMCG-SUGAR-1KG",
+        ean: "8901000000042",
+        name: "Refined Sugar 1kg",
+        qty: 12,
+        image: img("sugar-1kg"),
+        brand: "Madhur",
+        color: "White",
+        size: "1 kg",
+        weight: "1.0 kg",
+        mrp: "₹52",
+      },
+      {
+        sku: "FMCG-SALT-1KG",
+        ean: "8901000000059",
+        name: "Iodized Salt 1kg",
+        qty: 10,
+        image: img("salt-1kg"),
+        brand: "Tata",
+        color: "White",
+        size: "1 kg",
+        weight: "1.0 kg",
+        mrp: "₹28",
+      },
+      {
+        sku: "FMCG-TEA-500",
+        ean: "8901000000066",
+        name: "Tea Leaves 500g",
+        qty: 5,
+        image: img("tea-500"),
+        brand: "Red Label",
+        color: "Brown",
+        size: "500 g",
+        weight: "0.5 kg",
+        mrp: "₹275",
+      },
+      {
+        sku: "FMCG-BISC-PK",
+        ean: "8901000000073",
+        name: "Marie Biscuits (Pack of 6)",
+        qty: 15,
+        image: img("bisc-pk"),
+        brand: "Britannia",
+        color: "Yellow",
+        size: "6 × 120 g",
+        weight: "0.75 kg",
+        mrp: "₹90",
+      },
+      {
+        sku: "FMCG-SOAP-4PK",
+        ean: "8901000000080",
+        name: "Bath Soap (4-pack)",
+        qty: 9,
+        image: img("soap-4pk"),
+        brand: "Lifebuoy",
+        color: "Red",
+        size: "4 × 100 g",
+        weight: "0.42 kg",
+        mrp: "₹120",
+      },
+      {
+        sku: "FMCG-SHMP-1L",
+        ean: "8901000000097",
+        name: "Anti-Dandruff Shampoo 1L",
+        qty: 4,
+        image: img("shmp-1l"),
+        brand: "Clinic Plus",
+        color: "Green",
+        size: "1 L",
+        weight: "1.05 kg",
+        mrp: "₹640",
+      },
+      {
+        sku: "FMCG-DETRG-2KG",
+        ean: "8901000000103",
+        name: "Detergent Powder 2kg",
+        qty: 7,
+        image: img("detrg-2kg"),
+        brand: "Surf Excel",
+        color: "Blue",
+        size: "2 kg",
+        weight: "2.0 kg",
+        mrp: "₹340",
+      },
+      {
+        sku: "FMCG-TOOTH-150",
+        ean: "8901000000110",
+        name: "Toothpaste 150g",
+        qty: 6,
+        image: img("tooth-150"),
+        brand: "Colgate",
+        color: "White",
+        size: "150 g",
+        weight: "0.18 kg",
+        mrp: "₹95",
+      },
+      {
+        sku: "FMCG-NOODLE-12",
+        ean: "8901000000127",
+        name: "Instant Noodles (12-pack)",
+        qty: 8,
+        image: img("noodle-12"),
+        brand: "Maggi",
+        color: "Yellow",
+        size: "12 × 70 g",
+        weight: "0.9 kg",
+        mrp: "₹168",
+      },
+    ],
+  },
 ];
 
 const toteOrderMap: Record<string, PackOrder> = {
@@ -215,6 +388,8 @@ const toteOrderMap: Record<string, PackOrder> = {
   "TOTE-B-207": packOrders[1],
   "TOTE-C-301": packOrders[2],
   "TOTE-D-408": packOrders[3],
+  "TOTE-B2B-500": packOrders[4],
+  "PLT-B2B-500": packOrders[4],
 };
 
 export const getOrderByTote = (toteId: string): PackOrder | null =>

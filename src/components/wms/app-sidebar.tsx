@@ -191,6 +191,7 @@ const sections: NavSection[] = [
         icon: Boxes,
         children: [
           { title: "Pack", url: "/pack", icon: Boxes },
+          { title: "B2B Pack", url: "/pack-b2b-v2", icon: Layers },
           {
             title: "View Packlists",
             url: "/view-pack",

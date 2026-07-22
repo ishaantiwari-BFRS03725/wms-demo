@@ -38,6 +38,9 @@ import { Route as WmsQcStationRouteImport } from './routes/_wms.qc-station'
 import { Route as WmsPutwallRouteImport } from './routes/_wms.putwall'
 import { Route as WmsPutawayRouteImport } from './routes/_wms.putaway'
 import { Route as WmsPoliciesRouteImport } from './routes/_wms.policies'
+import { Route as WmsPackRedesignRouteImport } from './routes/_wms.pack-redesign'
+import { Route as WmsPackB2bV2RouteImport } from './routes/_wms.pack-b2b-v2'
+import { Route as WmsPackB2bRouteImport } from './routes/_wms.pack-b2b'
 import { Route as WmsPackRouteImport } from './routes/_wms.pack'
 import { Route as WmsOutboundExceptionsRouteImport } from './routes/_wms.outbound-exceptions'
 import { Route as WmsMovementTaskCreateRouteImport } from './routes/_wms.movement-task-create'
@@ -235,6 +238,21 @@ const WmsPutawayRoute = WmsPutawayRouteImport.update({
 const WmsPoliciesRoute = WmsPoliciesRouteImport.update({
   id: '/policies',
   path: '/policies',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsPackRedesignRoute = WmsPackRedesignRouteImport.update({
+  id: '/pack-redesign',
+  path: '/pack-redesign',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsPackB2bV2Route = WmsPackB2bV2RouteImport.update({
+  id: '/pack-b2b-v2',
+  path: '/pack-b2b-v2',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsPackB2bRoute = WmsPackB2bRouteImport.update({
+  id: '/pack-b2b',
+  path: '/pack-b2b',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsPackRoute = WmsPackRouteImport.update({
@@ -546,6 +564,9 @@ export interface FileRoutesByFullPath {
   '/movement-task-create': typeof WmsMovementTaskCreateRoute
   '/outbound-exceptions': typeof WmsOutboundExceptionsRoute
   '/pack': typeof WmsPackRoute
+  '/pack-b2b': typeof WmsPackB2bRoute
+  '/pack-b2b-v2': typeof WmsPackB2bV2Route
+  '/pack-redesign': typeof WmsPackRedesignRoute
   '/policies': typeof WmsPoliciesRoute
   '/putaway': typeof WmsPutawayRoute
   '/putwall': typeof WmsPutwallRoute
@@ -630,6 +651,9 @@ export interface FileRoutesByTo {
   '/movement-task-create': typeof WmsMovementTaskCreateRoute
   '/outbound-exceptions': typeof WmsOutboundExceptionsRoute
   '/pack': typeof WmsPackRoute
+  '/pack-b2b': typeof WmsPackB2bRoute
+  '/pack-b2b-v2': typeof WmsPackB2bV2Route
+  '/pack-redesign': typeof WmsPackRedesignRoute
   '/policies': typeof WmsPoliciesRoute
   '/putaway': typeof WmsPutawayRoute
   '/putwall': typeof WmsPutwallRoute
@@ -716,6 +740,9 @@ export interface FileRoutesById {
   '/_wms/movement-task-create': typeof WmsMovementTaskCreateRoute
   '/_wms/outbound-exceptions': typeof WmsOutboundExceptionsRoute
   '/_wms/pack': typeof WmsPackRoute
+  '/_wms/pack-b2b': typeof WmsPackB2bRoute
+  '/_wms/pack-b2b-v2': typeof WmsPackB2bV2Route
+  '/_wms/pack-redesign': typeof WmsPackRedesignRoute
   '/_wms/policies': typeof WmsPoliciesRoute
   '/_wms/putaway': typeof WmsPutawayRoute
   '/_wms/putwall': typeof WmsPutwallRoute
@@ -802,6 +829,9 @@ export interface FileRouteTypes {
     | '/movement-task-create'
     | '/outbound-exceptions'
     | '/pack'
+    | '/pack-b2b'
+    | '/pack-b2b-v2'
+    | '/pack-redesign'
     | '/policies'
     | '/putaway'
     | '/putwall'
@@ -886,6 +916,9 @@ export interface FileRouteTypes {
     | '/movement-task-create'
     | '/outbound-exceptions'
     | '/pack'
+    | '/pack-b2b'
+    | '/pack-b2b-v2'
+    | '/pack-redesign'
     | '/policies'
     | '/putaway'
     | '/putwall'
@@ -971,6 +1004,9 @@ export interface FileRouteTypes {
     | '/_wms/movement-task-create'
     | '/_wms/outbound-exceptions'
     | '/_wms/pack'
+    | '/_wms/pack-b2b'
+    | '/_wms/pack-b2b-v2'
+    | '/_wms/pack-redesign'
     | '/_wms/policies'
     | '/_wms/putaway'
     | '/_wms/putwall'
@@ -1228,6 +1264,27 @@ declare module '@tanstack/react-router' {
       path: '/policies'
       fullPath: '/policies'
       preLoaderRoute: typeof WmsPoliciesRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/pack-redesign': {
+      id: '/_wms/pack-redesign'
+      path: '/pack-redesign'
+      fullPath: '/pack-redesign'
+      preLoaderRoute: typeof WmsPackRedesignRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/pack-b2b-v2': {
+      id: '/_wms/pack-b2b-v2'
+      path: '/pack-b2b-v2'
+      fullPath: '/pack-b2b-v2'
+      preLoaderRoute: typeof WmsPackB2bV2RouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/pack-b2b': {
+      id: '/_wms/pack-b2b'
+      path: '/pack-b2b'
+      fullPath: '/pack-b2b'
+      preLoaderRoute: typeof WmsPackB2bRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/pack': {
@@ -1646,6 +1703,9 @@ interface WmsRouteChildren {
   WmsMovementTaskCreateRoute: typeof WmsMovementTaskCreateRoute
   WmsOutboundExceptionsRoute: typeof WmsOutboundExceptionsRoute
   WmsPackRoute: typeof WmsPackRoute
+  WmsPackB2bRoute: typeof WmsPackB2bRoute
+  WmsPackB2bV2Route: typeof WmsPackB2bV2Route
+  WmsPackRedesignRoute: typeof WmsPackRedesignRoute
   WmsPoliciesRoute: typeof WmsPoliciesRoute
   WmsPutawayRoute: typeof WmsPutawayRoute
   WmsPutwallRoute: typeof WmsPutwallRoute
@@ -1730,6 +1790,9 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsMovementTaskCreateRoute: WmsMovementTaskCreateRoute,
   WmsOutboundExceptionsRoute: WmsOutboundExceptionsRoute,
   WmsPackRoute: WmsPackRoute,
+  WmsPackB2bRoute: WmsPackB2bRoute,
+  WmsPackB2bV2Route: WmsPackB2bV2Route,
+  WmsPackRedesignRoute: WmsPackRedesignRoute,
   WmsPoliciesRoute: WmsPoliciesRoute,
   WmsPutawayRoute: WmsPutawayRoute,
   WmsPutwallRoute: WmsPutwallRoute,

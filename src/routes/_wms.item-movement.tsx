@@ -13,7 +13,6 @@ import {
   IndianRupee,
   MapPin,
   Package,
-  PackageCheck,
   Plus,
   ScanBarcode,
   Tags,
@@ -23,6 +22,14 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_wms/item-movement")({
@@ -808,9 +815,9 @@ function AdHocBinFlow({ onComplete }: { onComplete: () => void }) {
   );
 }
 
-// ─── Item movement batch flow (pick → staging → putaway) ─────────────────────
+// ─── Item movement batch flow (pick → putaway; drop zone on demand) ──────────
 
-type BatchPhase = "assign-tote" | "pick" | "staging" | "putaway" | "done";
+type BatchPhase = "assign-tote" | "pick" | "putaway" | "done";
 
 interface PutawayState {
   toBin: string;
@@ -829,6 +836,8 @@ function MovementBatchFlow({
   const [phase, setPhase] = useState<BatchPhase>("assign-tote");
   const [tote, setTote] = useState("");
   const [staging, setStaging] = useState("");
+  const [dropOpen, setDropOpen] = useState(false);
+  const [dropScan, setDropScan] = useState("");
 
   // pick phase
   const [pickIdx, setPickIdx] = useState(0);
@@ -858,6 +867,12 @@ function MovementBatchFlow({
     setQty(String(task.suggestedQty));
   };
 
+  const goToPutaway = () => {
+    setPutIdx(0);
+    setToScanned(false);
+    setPhase("putaway");
+  };
+
   const advancePick = (movedQty: number) => {
     setPickedQty((prev) => ({ ...prev, [pickTask.id]: movedQty }));
     if (pickIdx + 1 < tasks.length) {
@@ -865,7 +880,7 @@ function MovementBatchFlow({
       setPickIdx(nextIdx);
       startPick(tasks[nextIdx]);
     } else {
-      setPhase("staging");
+      goToPutaway();
     }
   };
 
@@ -914,7 +929,7 @@ function MovementBatchFlow({
     const cap = captureFor(pickTask.sku);
     return (
       <BatchShell onExit={onExit} subtitle={`Pick · ${pickIdx + 1} of ${tasks.length}`}>
-        <ToteStrip tote={tote} />
+        <ToteStrip tote={tote} onDropZone={() => setDropOpen(true)} />
         <ProgressStrip label="Picked" value={pickedUnits} max={totalUnits} />
 
         {!fromScanned ? (
@@ -1036,54 +1051,20 @@ function MovementBatchFlow({
             )}
           </Card>
         )}
-      </BatchShell>
-    );
-  }
 
-  // ── Phase: staging (optional) ───────────────────────────────────────────
-  if (phase === "staging") {
-    return (
-      <BatchShell onExit={onExit} subtitle="Drop at staging">
-        <ToteStrip tote={tote} />
-        <Card className="mt-3 space-y-3 p-4">
-          <div className="rounded-md bg-status-picked/10 p-3 text-sm text-status-picked ring-1 ring-status-picked/30">
-            <div className="flex items-center gap-2 font-medium">
-              <PackageCheck className="h-4 w-4" />
-              All items in tote {tote}
-            </div>
-            <p className="mt-1 text-xs">
-              Optionally drop the tote at a staging area — putaway can be done
-              later — or continue straight to putaway.
-            </p>
-          </div>
-          <SuggestRow
-            icon={Warehouse}
-            label="Staging area"
-            value="e.g. STG-02"
-          />
-          <FreeScanRow
-            label="Scan staging location"
-            demoValue="STG-02"
-            onScan={(v) => {
-              setStaging(v);
-              toast.success(`Tote parked at ${v}`);
-              setPutIdx(0);
-              setToScanned(false);
-              setPhase("putaway");
-            }}
-          />
-          <Button
-            variant="outline"
-            className="h-11 w-full"
-            onClick={() => {
-              setPutIdx(0);
-              setToScanned(false);
-              setPhase("putaway");
-            }}
-          >
-            Skip staging · putaway now
-          </Button>
-        </Card>
+        <DropZoneDialog
+          open={dropOpen}
+          onOpenChange={setDropOpen}
+          value={dropScan}
+          onChange={setDropScan}
+          onConfirm={() => {
+            setStaging(dropScan.trim());
+            toast.success(`Tote parked at ${dropScan.trim()}`);
+            setDropScan("");
+            setDropOpen(false);
+            goToPutaway();
+          }}
+        />
       </BatchShell>
     );
   }
@@ -1101,6 +1082,21 @@ function MovementBatchFlow({
       <BatchShell onExit={onExit} subtitle={`Putaway · ${putIdx + 1} of ${tasks.length}`}>
         <ToteStrip tote={tote} staging={staging} />
         <Card className="mt-3 space-y-3 p-4">
+          <div className="rounded-md bg-primary/10 p-3 text-sm text-primary ring-1 ring-primary/25">
+            <div className="flex items-center gap-2 font-semibold">
+              <ArrowDownToLine className="h-4 w-4" />
+              Putaway — place items into a bin
+            </div>
+            <p className="mt-1 text-xs text-primary/90">
+              Take{" "}
+              <span className="font-semibold">
+                {pickedQty[putTask.id] ?? putTask.suggestedQty} units
+              </span>{" "}
+              from tote{" "}
+              <span className="font-mono font-semibold">{tote}</span>, then scan
+              the To bin below and place them there.
+            </p>
+          </div>
           <div className="overflow-hidden rounded-md border border-border bg-muted/30">
             <div className="flex h-40 w-full items-center justify-center bg-white p-3">
               <img
@@ -1143,7 +1139,7 @@ function MovementBatchFlow({
                     {put.toBin}
                   </div>
                   <ScanRow
-                    label="Scan To bin"
+                    label="Scan To bin to put away"
                     placeholder={put.toBin}
                     expected={put.toBin}
                     onScan={(val) => {
@@ -1256,7 +1252,15 @@ function BatchShell({
   );
 }
 
-function ToteStrip({ tote, staging }: { tote: string; staging?: string }) {
+function ToteStrip({
+  tote,
+  staging,
+  onDropZone,
+}: {
+  tote: string;
+  staging?: string;
+  onDropZone?: () => void;
+}) {
   return (
     <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/30 px-2.5 py-1.5">
       <div className="flex min-w-0 items-center gap-1.5 text-xs">
@@ -1271,8 +1275,65 @@ function ToteStrip({ tote, staging }: { tote: string; staging?: string }) {
           <Warehouse className="h-3 w-3 text-muted-foreground" />
           <span className="font-mono font-medium">{staging}</span>
         </div>
+      ) : onDropZone ? (
+        <button
+          type="button"
+          onClick={onDropZone}
+          className="inline-flex shrink-0 items-center gap-1 text-[10px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+        >
+          <Warehouse className="h-3 w-3" />
+          Scan drop zone
+        </button>
       ) : null}
     </div>
+  );
+}
+
+function DropZoneDialog({
+  open,
+  onOpenChange,
+  value,
+  onChange,
+  onConfirm,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  value: string;
+  onChange: (v: string) => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Drop tote at drop zone</DialogTitle>
+          <DialogDescription>
+            Leave the tote at a drop zone so putaway can be done later. Scan the
+            drop zone barcode.
+          </DialogDescription>
+        </DialogHeader>
+        <div>
+          <label className="text-xs font-mono font-medium uppercase tracking-[0.06em] text-muted-foreground">
+            Drop zone barcode
+          </label>
+          <Input
+            autoFocus
+            className="mt-1 h-11 font-mono"
+            placeholder="e.g. STG-02"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button disabled={!value.trim()} onClick={onConfirm}>
+            Confirm drop
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

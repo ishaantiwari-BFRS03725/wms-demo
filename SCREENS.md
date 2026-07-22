@@ -111,6 +111,8 @@ There are two kinds of screen:
 | Sort detail | `_wms.sort.$taskId.tsx` | `lib/wms/sort-data.ts` |
 | Putwall | `_wms.putwall.tsx` | inline |
 | Pack | `_wms.pack.tsx` | `lib/wms/pack-data.ts` |
+| Pack (Redesign) | `_wms.pack-redesign.tsx` | `lib/wms/pack-data.ts` |
+| B2B Pack (Multi-box) | `_wms.pack-b2b.tsx` | inline |
 | View Packlists | `_wms.view-pack.index.tsx` | `lib/wms/pack-data.ts` |
 | View Packlist detail | `_wms.view-pack.$packlistId.tsx` | `lib/wms/pack-data.ts` |
 | Create Manifest | `_wms.manifest.tsx` | `lib/wms/manifest-data.ts` |
