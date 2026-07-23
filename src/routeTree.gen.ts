@@ -33,6 +33,7 @@ import { Route as WmsReturnsCirRouteImport } from './routes/_wms.returns-cir'
 import { Route as WmsReportsRouteImport } from './routes/_wms.reports'
 import { Route as WmsReplenishmentSetupRouteImport } from './routes/_wms.replenishment-setup'
 import { Route as WmsReplenishmentRouteImport } from './routes/_wms.replenishment'
+import { Route as WmsRejectReasonMasterRouteImport } from './routes/_wms.reject-reason-master'
 import { Route as WmsRecoveryQueueRouteImport } from './routes/_wms.recovery-queue'
 import { Route as WmsQcStationRouteImport } from './routes/_wms.qc-station'
 import { Route as WmsPutwallRouteImport } from './routes/_wms.putwall'
@@ -213,6 +214,11 @@ const WmsReplenishmentSetupRoute = WmsReplenishmentSetupRouteImport.update({
 const WmsReplenishmentRoute = WmsReplenishmentRouteImport.update({
   id: '/replenishment',
   path: '/replenishment',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsRejectReasonMasterRoute = WmsRejectReasonMasterRouteImport.update({
+  id: '/reject-reason-master',
+  path: '/reject-reason-master',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsRecoveryQueueRoute = WmsRecoveryQueueRouteImport.update({
@@ -572,6 +578,7 @@ export interface FileRoutesByFullPath {
   '/putwall': typeof WmsPutwallRoute
   '/qc-station': typeof WmsQcStationRoute
   '/recovery-queue': typeof WmsRecoveryQueueRoute
+  '/reject-reason-master': typeof WmsRejectReasonMasterRoute
   '/replenishment': typeof WmsReplenishmentRoute
   '/replenishment-setup': typeof WmsReplenishmentSetupRoute
   '/reports': typeof WmsReportsRoute
@@ -659,6 +666,7 @@ export interface FileRoutesByTo {
   '/putwall': typeof WmsPutwallRoute
   '/qc-station': typeof WmsQcStationRoute
   '/recovery-queue': typeof WmsRecoveryQueueRoute
+  '/reject-reason-master': typeof WmsRejectReasonMasterRoute
   '/replenishment': typeof WmsReplenishmentRoute
   '/replenishment-setup': typeof WmsReplenishmentSetupRoute
   '/reports': typeof WmsReportsRoute
@@ -748,6 +756,7 @@ export interface FileRoutesById {
   '/_wms/putwall': typeof WmsPutwallRoute
   '/_wms/qc-station': typeof WmsQcStationRoute
   '/_wms/recovery-queue': typeof WmsRecoveryQueueRoute
+  '/_wms/reject-reason-master': typeof WmsRejectReasonMasterRoute
   '/_wms/replenishment': typeof WmsReplenishmentRoute
   '/_wms/replenishment-setup': typeof WmsReplenishmentSetupRoute
   '/_wms/reports': typeof WmsReportsRoute
@@ -837,6 +846,7 @@ export interface FileRouteTypes {
     | '/putwall'
     | '/qc-station'
     | '/recovery-queue'
+    | '/reject-reason-master'
     | '/replenishment'
     | '/replenishment-setup'
     | '/reports'
@@ -924,6 +934,7 @@ export interface FileRouteTypes {
     | '/putwall'
     | '/qc-station'
     | '/recovery-queue'
+    | '/reject-reason-master'
     | '/replenishment'
     | '/replenishment-setup'
     | '/reports'
@@ -1012,6 +1023,7 @@ export interface FileRouteTypes {
     | '/_wms/putwall'
     | '/_wms/qc-station'
     | '/_wms/recovery-queue'
+    | '/_wms/reject-reason-master'
     | '/_wms/replenishment'
     | '/_wms/replenishment-setup'
     | '/_wms/reports'
@@ -1229,6 +1241,13 @@ declare module '@tanstack/react-router' {
       path: '/replenishment'
       fullPath: '/replenishment'
       preLoaderRoute: typeof WmsReplenishmentRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/reject-reason-master': {
+      id: '/_wms/reject-reason-master'
+      path: '/reject-reason-master'
+      fullPath: '/reject-reason-master'
+      preLoaderRoute: typeof WmsRejectReasonMasterRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/recovery-queue': {
@@ -1711,6 +1730,7 @@ interface WmsRouteChildren {
   WmsPutwallRoute: typeof WmsPutwallRoute
   WmsQcStationRoute: typeof WmsQcStationRoute
   WmsRecoveryQueueRoute: typeof WmsRecoveryQueueRoute
+  WmsRejectReasonMasterRoute: typeof WmsRejectReasonMasterRoute
   WmsReplenishmentRoute: typeof WmsReplenishmentRoute
   WmsReplenishmentSetupRoute: typeof WmsReplenishmentSetupRoute
   WmsReportsRoute: typeof WmsReportsRoute
@@ -1798,6 +1818,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsPutwallRoute: WmsPutwallRoute,
   WmsQcStationRoute: WmsQcStationRoute,
   WmsRecoveryQueueRoute: WmsRecoveryQueueRoute,
+  WmsRejectReasonMasterRoute: WmsRejectReasonMasterRoute,
   WmsReplenishmentRoute: WmsReplenishmentRoute,
   WmsReplenishmentSetupRoute: WmsReplenishmentSetupRoute,
   WmsReportsRoute: WmsReportsRoute,

@@ -6,6 +6,7 @@ import {
   ArrowLeftRight,
   ArrowUpFromLine,
   BadgeCheck,
+  Ban,
   Bell,
   Bot,
   Boxes,
@@ -55,11 +56,7 @@ import {
   Smartphone,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Sidebar,
   SidebarContent,
@@ -155,9 +152,7 @@ const sections: NavSection[] = [
   },
   {
     label: "Devices",
-    items: [
-      { title: "Floor Handhelds", url: "/floor-handhelds", icon: Smartphone },
-    ],
+    items: [{ title: "Floor Handhelds", url: "/floor-handhelds", icon: Smartphone }],
   },
   {
     label: "Outbound",
@@ -291,13 +286,12 @@ const sections: NavSection[] = [
     items: [
       { title: "Dock Management", url: "/dock-management", icon: Warehouse },
       { title: "Table ID Master", url: "/table-id-master", icon: Table2 },
+      { title: "Reject Reason Master", url: "/reject-reason-master", icon: Ban },
     ],
   },
   {
     label: "Configuration",
-    items: [
-      { title: "Warehouse Settings", url: "/warehouse-settings", icon: Settings2 },
-    ],
+    items: [{ title: "Warehouse Settings", url: "/warehouse-settings", icon: Settings2 }],
   },
   {
     label: "Reports",
