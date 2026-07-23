@@ -19,11 +19,27 @@ export const ACTIVITY_META: Record<
   { label: string; tone: "blue" | "purple" | "amber" }
 > = {
   inward: { label: "Inward", tone: "blue" },
-  returns: { label: "Returns", tone: "purple" },
+  returns: { label: "Return", tone: "purple" },
   pickup: { label: "Pickup", tone: "amber" },
 };
 
 export const ACTIVITY_TYPES = Object.keys(ACTIVITY_META) as ActivityType[];
+
+// Transporters the gate guard can pick from at entry.
+export const TRANSPORTERS: string[] = [
+  "BlueDart Surface",
+  "Delhivery Ltd.",
+  "Safexpress",
+  "Gati-KWE",
+  "VRL Logistics",
+  "TCI Freight",
+  "Ecom Express",
+  "XpressBees",
+];
+
+// Condition of the vehicle as observed at the gate.
+export const VEHICLE_CONDITIONS = ["Good", "Minor Damage", "Needs Inspection"] as const;
+export type VehicleCondition = (typeof VEHICLE_CONDITIONS)[number];
 
 // Community / marketplace programs. Sellers affiliated with one are flagged at
 // the gate so dock assignment can prioritise clubbed consignments.
@@ -51,24 +67,98 @@ export interface SellerRecord {
 }
 
 export const SELLER_DIRECTORY: SellerRecord[] = [
-  { id: "VEND-2024-081", name: "Global Electronics Ltd.", warehouseId: "WHS-0982-A", skuCount: 142, defaultActivity: "inward", asn: "ASN-2024-00981", community: "Amazon" },
-  { id: "VEND-2024-114", name: "Apex Retail Group", warehouseId: "WHS-0441-C", skuCount: 89, defaultActivity: "inward", asn: "ASN-2024-01142", community: "Flipkart" },
-  { id: "VEND-2024-002", name: "Skyline Traders", warehouseId: "WHS-0220-B", skuCount: 315, defaultActivity: "pickup", asn: "ASN-2024-00220" },
-  { id: "VEND-2024-051", name: "Zenith E-Commerce", warehouseId: "WHS-0610-D", skuCount: 64, defaultActivity: "returns", asn: "ASN-2024-00610", community: "Flipkart" },
-  { id: "VEND-2024-077", name: "Northwind Apparel", warehouseId: "WHS-0188-A", skuCount: 208, defaultActivity: "inward", asn: "ASN-2024-00188", community: "Meesho" },
-  { id: "VEND-2024-130", name: "Verde Beauty", warehouseId: "WHS-0533-C", skuCount: 47, defaultActivity: "returns", asn: "ASN-2024-00533" },
-  { id: "VEND-2024-019", name: "Loom & Linen", warehouseId: "WHS-0301-B", skuCount: 121, defaultActivity: "inward", asn: "ASN-2024-00301", community: "Flipkart" },
-  { id: "VEND-2024-205", name: "Rapid Express Logistics", warehouseId: "WHS-0042-E", skuCount: 18, defaultActivity: "pickup", asn: "ASN-2024-00042" },
-  { id: "VEND-2024-088", name: "Oceanic Freight Ltd.", warehouseId: "WHS-0777-A", skuCount: 96, defaultActivity: "inward", asn: "ASN-2024-00777", community: "Amazon" },
-  { id: "VEND-2024-156", name: "Swift-Link Partners", warehouseId: "WHS-0455-D", skuCount: 73, defaultActivity: "inward", asn: "ASN-2024-00455", community: "Meesho" },
+  {
+    id: "VEND-2024-081",
+    name: "Global Electronics Ltd.",
+    warehouseId: "WHS-0982-A",
+    skuCount: 142,
+    defaultActivity: "inward",
+    asn: "ASN-2024-00981",
+    community: "Amazon",
+  },
+  {
+    id: "VEND-2024-114",
+    name: "Apex Retail Group",
+    warehouseId: "WHS-0441-C",
+    skuCount: 89,
+    defaultActivity: "inward",
+    asn: "ASN-2024-01142",
+    community: "Flipkart",
+  },
+  {
+    id: "VEND-2024-002",
+    name: "Skyline Traders",
+    warehouseId: "WHS-0220-B",
+    skuCount: 315,
+    defaultActivity: "pickup",
+    asn: "ASN-2024-00220",
+  },
+  {
+    id: "VEND-2024-051",
+    name: "Zenith E-Commerce",
+    warehouseId: "WHS-0610-D",
+    skuCount: 64,
+    defaultActivity: "returns",
+    asn: "ASN-2024-00610",
+    community: "Flipkart",
+  },
+  {
+    id: "VEND-2024-077",
+    name: "Northwind Apparel",
+    warehouseId: "WHS-0188-A",
+    skuCount: 208,
+    defaultActivity: "inward",
+    asn: "ASN-2024-00188",
+    community: "Meesho",
+  },
+  {
+    id: "VEND-2024-130",
+    name: "Verde Beauty",
+    warehouseId: "WHS-0533-C",
+    skuCount: 47,
+    defaultActivity: "returns",
+    asn: "ASN-2024-00533",
+  },
+  {
+    id: "VEND-2024-019",
+    name: "Loom & Linen",
+    warehouseId: "WHS-0301-B",
+    skuCount: 121,
+    defaultActivity: "inward",
+    asn: "ASN-2024-00301",
+    community: "Flipkart",
+  },
+  {
+    id: "VEND-2024-205",
+    name: "Rapid Express Logistics",
+    warehouseId: "WHS-0042-E",
+    skuCount: 18,
+    defaultActivity: "pickup",
+    asn: "ASN-2024-00042",
+  },
+  {
+    id: "VEND-2024-088",
+    name: "Oceanic Freight Ltd.",
+    warehouseId: "WHS-0777-A",
+    skuCount: 96,
+    defaultActivity: "inward",
+    asn: "ASN-2024-00777",
+    community: "Amazon",
+  },
+  {
+    id: "VEND-2024-156",
+    name: "Swift-Link Partners",
+    warehouseId: "WHS-0455-D",
+    skuCount: 73,
+    defaultActivity: "inward",
+    asn: "ASN-2024-00455",
+    community: "Meesho",
+  },
 ];
 
 // Dock assignment — driven by the community program and the vehicle type
 // brought in (bigger vehicles get a deeper bay). Deterministic for the demo.
-export const dockForCommunity = (
-  community: Community,
-  vehicleType: string,
-): string => {
+export const dockForCommunity = (community: Community, vehicleType: string): string => {
   const zone = COMMUNITY_META[community].dockZone;
   const idx = VEHICLE_TYPES.findIndex((v) => v.label === vehicleType);
   const bay = 1 + ((idx < 0 ? hash(community) : idx) % 6);
@@ -86,10 +176,7 @@ export interface TripInfo {
   clubbedCount: number;
 }
 
-export const getTripInfo = (
-  tripId: string,
-  vehicleType: string,
-): TripInfo => {
+export const getTripInfo = (tripId: string, vehicleType: string): TripInfo => {
   const key = tripId.trim().toUpperCase();
   const h = hash(key);
   const community = COMMUNITIES[h % COMMUNITIES.length];
@@ -124,6 +211,10 @@ export const VEHICLE_TYPES: VehicleType[] = [
   { label: "Container 20ft", maxWeight: 10000 },
   { label: "Container 32ft", maxWeight: 18000 },
 ];
+
+// Docks the seller's consignment can be routed to for unloading, picked at
+// gate entry once an Inward seller/ASN has been identified.
+export const DOCKS = ["Dock 01", "Dock 02", "Dock 03", "Dock 04", "Dock 05", "Dock 06"];
 
 // Line items shown per seller on the review summary. Shape depends on the
 // activity so each group reads like the real document it represents.
@@ -186,10 +277,7 @@ const rid = (seed: string, n: number) => {
   return out;
 };
 
-export const summaryLinesFor = (
-  seller: SellerRecord,
-  activity: ActivityType,
-): SummaryLine[] => {
+export const summaryLinesFor = (seller: SellerRecord, activity: ActivityType): SummaryLine[] => {
   const h = hash(seller.id + activity);
   const count = 1 + (h % 2); // 1–2 lines per seller, keeps the demo tidy
   const lines: SummaryLine[] = [];
@@ -225,10 +313,7 @@ export const summaryLinesFor = (
   return lines;
 };
 
-export const lineWeightFor = (
-  seller: SellerRecord,
-  activity: ActivityType,
-): number =>
+export const lineWeightFor = (seller: SellerRecord, activity: ActivityType): number =>
   summaryLinesFor(seller, activity).reduce(
     (sum, l) => sum + (l.kind === "inward" ? l.weight : 0),
     0,
@@ -236,14 +321,12 @@ export const lineWeightFor = (
 
 // Boxes the gate guard records against a seller's consignment. Deterministic so
 // the same seller always suggests the same count; the guard can still override.
-export const boxCountForSeller = (sellerId: string): number =>
-  10 + (hash(sellerId) % 31); // 10–40
+export const boxCountForSeller = (sellerId: string): number => 10 + (hash(sellerId) % 31); // 10–40
 
 // ---- Unloading (standard inbound) helpers --------------------------------
 // A return gate pass uses the RGP- prefix and routes to the returns flow at
 // unloading; every other gate pass runs the standard box-based process.
-export const isReturnGatePass = (id: string): boolean =>
-  id.trim().toUpperCase().startsWith("RGP");
+export const isReturnGatePass = (id: string): boolean => id.trim().toUpperCase().startsWith("RGP");
 
 // The consignment an unloading operator sees after scanning a gate pass. Derived
 // deterministically so any scanned pass always resolves to the same seller/ASN.
@@ -271,22 +354,24 @@ export const consignmentForGatePass = (id: string): GatePassConsignment => {
 // sticker also carries the ASN and the unloading date.
 export const genBoxIds = (gatePass: string, count: number): string[] => {
   const stub =
-    gatePass.replace(/[^A-Z0-9]/gi, "").slice(-4).toUpperCase() || "0000";
-  return Array.from(
-    { length: count },
-    (_, i) => `BOX-${stub}-${String(i + 1).padStart(3, "0")}`,
-  );
+    gatePass
+      .replace(/[^A-Z0-9]/gi, "")
+      .slice(-4)
+      .toUpperCase() || "0000";
+  return Array.from({ length: count }, (_, i) => `BOX-${stub}-${String(i + 1).padStart(3, "0")}`);
 };
 
 // Gate pass id — sequential-looking but deterministic per session start.
+// Return activity entries get the RGP- prefix so a scan at Unloading routes
+// straight into the returns flow.
 let gatePassSeq = 8912;
-export const genGatePassId = () => `GP-2024-${String(gatePassSeq++).padStart(6, "0")}`;
+export const genGatePassId = (isReturn = false) =>
+  `${isReturn ? "RGP" : "GP"}-2024-${String(gatePassSeq++).padStart(6, "0")}`;
 
 // Simple CSS barcode pattern (matches the inbound sticker visual).
 export const gateBarcodePattern = (seed: string): number[] => {
   let h = 0;
-  for (let i = 0; i < seed.length; i++)
-    h = (h * 1103515245 + seed.charCodeAt(i)) | 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 1103515245 + seed.charCodeAt(i)) | 0;
   const bars: number[] = [];
   let x = Math.abs(h);
   for (let i = 0; i < 40; i++) {
