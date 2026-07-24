@@ -54,6 +54,7 @@ type Step =
   | "scan-gatepass"
   // returns flow
   | "scan-awbs"
+  | "return-pod"
   | "complete"
   // standard flow
   | "dock"
@@ -99,6 +100,8 @@ function Unloading() {
   const [acknowledgements, setAcknowledgements] = useState<ReturnAck[]>([]);
   const [closedAt, setClosedAt] = useState<Date | null>(null);
   const [printOpen, setPrintOpen] = useState(false);
+  const [returnPodCaptured, setReturnPodCaptured] = useState(false);
+  const [ackSheetOpen, setAckSheetOpen] = useState(false);
 
   // ----- Standard flow -----
   const [consignment, setConsignment] = useState<GatePassConsignment | null>(
@@ -215,6 +218,8 @@ function Unloading() {
     setReturns([]);
     setAcknowledgements([]);
     setClosedAt(null);
+    setReturnPodCaptured(false);
+    setAckSheetOpen(false);
     setConsignment(null);
     setDockId("");
     setBoxCount(0);
@@ -741,10 +746,66 @@ function Unloading() {
               <Button
                 className="h-11 w-full"
                 disabled={returns.length === 0}
-                onClick={completeUnloading}
+                onClick={() => setStep("return-pod")}
               >
                 <ClipboardCheck className="mr-2 h-4 w-4" />
                 Complete unloading ({returns.length})
+              </Button>
+            </>
+          )}
+
+          {/* Step — Returns POD capture (FE's HHT photo) */}
+          {step === "return-pod" && (
+            <>
+              <Card className="space-y-3 p-4">
+                <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                  <Camera className="h-3.5 w-3.5" />
+                  Proof of Delivery
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Capture a photo of the FE&apos;s HHT (showing the handed-over
+                  return shipments) as POD before closing this unloading.
+                </p>
+                <button
+                  onClick={() => setReturnPodCaptured((v) => !v)}
+                  className={cn(
+                    "flex w-full flex-col items-center gap-2 rounded-md border-2 border-dashed px-4 py-8 text-center transition-colors",
+                    returnPodCaptured
+                      ? "border-status-dispatched/40 bg-status-dispatched/5"
+                      : "border-border hover:border-primary/40 hover:bg-muted/40",
+                  )}
+                >
+                  {returnPodCaptured ? (
+                    <>
+                      <CheckCircle2 className="h-8 w-8 text-status-dispatched" />
+                      <span className="text-xs font-medium text-status-dispatched">
+                        hht-pod.jpg uploaded
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        Tap to retake
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="h-8 w-8 text-primary" />
+                      <span className="text-xs font-medium">
+                        Capture / upload FE&apos;s HHT photo
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        Proof the FE handed over the return shipments
+                      </span>
+                    </>
+                  )}
+                </button>
+              </Card>
+
+              <Button
+                className="h-11 w-full"
+                disabled={!returnPodCaptured}
+                onClick={completeUnloading}
+              >
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Complete unloading
               </Button>
             </>
           )}
@@ -761,7 +822,8 @@ function Unloading() {
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {acknowledgements.length} return acknowledgement
-                    {acknowledgements.length === 1 ? "" : "s"} generated
+                    {acknowledgements.length === 1 ? "" : "s"} generated ·
+                    POD captured
                   </div>
                   {gatePass && (
                     <div className="mt-1 text-[11px] text-muted-foreground">
@@ -782,7 +844,16 @@ function Unloading() {
                 </div>
               </Card>
 
-              <Button className="h-11 w-full" onClick={() => setPrintOpen(true)}>
+              <Button className="h-11 w-full" onClick={() => setAckSheetOpen(true)}>
+                <Printer className="mr-2 h-4 w-4" />
+                Print return acknowledgement
+              </Button>
+
+              <Button
+                variant="outline"
+                className="h-11 w-full"
+                onClick={() => setPrintOpen(true)}
+              >
                 <Printer className="mr-2 h-4 w-4" />
                 Print stickers ({acknowledgements.length})
               </Button>
@@ -848,6 +919,32 @@ function Unloading() {
           </div>
           <DialogFooter>
             <Button className="w-full" onClick={() => setPrintOpen(false)}>
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              Printed
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Return acknowledgement — one-page printout of all stock accepted for return */}
+      <Dialog open={ackSheetOpen} onOpenChange={setAckSheetOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Printer className="h-4 w-4" />
+              Return Acknowledgement
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[70vh] overflow-y-auto">
+            <ReturnAckSheet
+              gatePass={gatePass}
+              seller={gatePassSeller}
+              closedAt={closedAt}
+              returns={returns}
+            />
+          </div>
+          <DialogFooter>
+            <Button className="w-full" onClick={() => setAckSheetOpen(false)}>
               <CheckCircle2 className="mr-2 h-4 w-4" />
               Printed
             </Button>
@@ -1019,6 +1116,110 @@ function RanSticker({ ack }: { ack: ReturnAck }) {
           value={String(new Set(ack.returns.map((r) => r.seller)).size)}
         />
       </dl>
+    </div>
+  );
+}
+
+function ReturnAckSheet({
+  gatePass,
+  seller,
+  closedAt,
+  returns,
+}: {
+  gatePass: string | null;
+  seller: string | null;
+  closedAt: Date | null;
+  returns: ScannedReturn[];
+}) {
+  const identifiedCount = returns.filter(
+    (r) => r.bucket === "identified",
+  ).length;
+  const unidentifiedCount = returns.length - identifiedCount;
+  return (
+    <div className="space-y-4 rounded-md border border-border bg-background p-5 text-sm">
+      <div className="space-y-0.5 text-center">
+        <div className="text-base font-semibold">Return Acknowledgement</div>
+        <div className="text-[11px] text-muted-foreground">
+          Stock accepted for return at Unloading
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 border-y border-dashed border-border py-3 text-xs">
+        <Fact label="Gate Pass" value={gatePass ?? "—"} mono />
+        <Fact label="Seller" value={seller ?? "—"} />
+        <Fact
+          label="Accepted At"
+          value={
+            closedAt
+              ? closedAt.toLocaleString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })
+              : "—"
+          }
+        />
+        <Fact label="Total Shipments" value={String(returns.length)} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="rounded-md border border-status-picked/30 bg-status-picked/5 px-2 py-1.5 text-center">
+          <div className="font-mono text-lg font-bold tabular-nums text-status-picked">
+            {identifiedCount}
+          </div>
+          <div className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground">
+            Identified
+          </div>
+        </div>
+        <div className="rounded-md border border-warn/30 bg-warn-bg px-2 py-1.5 text-center">
+          <div className="font-mono text-lg font-bold tabular-nums text-warn">
+            {unidentifiedCount}
+          </div>
+          <div className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground">
+            Unidentified
+          </div>
+        </div>
+      </div>
+
+      <table className="w-full text-left text-xs">
+        <thead>
+          <tr className="border-b border-border text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
+            <th className="py-1.5 pr-2 font-medium">Sr</th>
+            <th className="py-1.5 pr-2 font-medium">AWB</th>
+            <th className="py-1.5 pr-2 font-medium">Seller</th>
+            <th className="py-1.5 font-medium">Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          {returns.map((r, i) => (
+            <tr key={r.awb} className="border-b border-border/60">
+              <td className="py-1.5 pr-2 text-muted-foreground">{i + 1}</td>
+              <td className="py-1.5 pr-2 font-mono font-semibold">{r.awb}</td>
+              <td className="py-1.5 pr-2">{r.seller}</td>
+              <td className="py-1.5">
+                <span
+                  className={cn(
+                    "rounded-[3px] px-1.5 py-0.5 text-[10px] font-medium",
+                    r.bucket === "identified"
+                      ? "bg-status-picked/15 text-status-picked"
+                      : "bg-warn-bg text-warn",
+                  )}
+                >
+                  {r.bucket === "identified" ? "Identified" : "Unidentified"}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div className="border-t border-dashed border-border pt-3 text-center text-[10px] text-muted-foreground">
+        This acknowledgement confirms the above stock was received at
+        Unloading and accepted for return processing.
+      </div>
     </div>
   );
 }
