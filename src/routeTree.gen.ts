@@ -9,361 +9,161 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as WmsRouteImport } from './routes/_wms'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as WmsWaveCreationRouteImport } from './routes/_wms.wave-creation'
-import { Route as WmsWarehouseSettingsRouteImport } from './routes/_wms.warehouse-settings'
-import { Route as WmsViewManifestRouteImport } from './routes/_wms.view-manifest'
-import { Route as WmsViewDispatchRouteImport } from './routes/_wms.view-dispatch'
-import { Route as WmsVendorScorecardsRouteImport } from './routes/_wms.vendor-scorecards'
-import { Route as WmsUsersRolesRouteImport } from './routes/_wms.users-roles'
-import { Route as WmsUnloadingRouteImport } from './routes/_wms.unloading'
-import { Route as WmsTrendsRouteImport } from './routes/_wms.trends'
-import { Route as WmsTableIdMasterRouteImport } from './routes/_wms.table-id-master'
-import { Route as WmsStuckOrdersRouteImport } from './routes/_wms.stuck-orders'
-import { Route as WmsSlottingConfigRouteImport } from './routes/_wms.slotting-config'
-import { Route as WmsSlottingRouteImport } from './routes/_wms.slotting'
-import { Route as WmsSitePerformanceRouteImport } from './routes/_wms.site-performance'
-import { Route as WmsSalesReturnGrnRouteImport } from './routes/_wms.sales-return-grn'
-import { Route as WmsReturnsRtvRouteImport } from './routes/_wms.returns-rtv'
-import { Route as WmsReturnsRtoRouteImport } from './routes/_wms.returns-rto'
-import { Route as WmsReturnsIntakeRouteImport } from './routes/_wms.returns-intake'
-import { Route as WmsReturnsEvaluationRouteImport } from './routes/_wms.returns-evaluation'
-import { Route as WmsReturnsCirRouteImport } from './routes/_wms.returns-cir'
-import { Route as WmsReportsRouteImport } from './routes/_wms.reports'
-import { Route as WmsReplenishmentSetupRouteImport } from './routes/_wms.replenishment-setup'
-import { Route as WmsReplenishmentRouteImport } from './routes/_wms.replenishment'
-import { Route as WmsRejectReasonMasterRouteImport } from './routes/_wms.reject-reason-master'
-import { Route as WmsRecoveryQueueRouteImport } from './routes/_wms.recovery-queue'
-import { Route as WmsQcStationRouteImport } from './routes/_wms.qc-station'
-import { Route as WmsPutwallRouteImport } from './routes/_wms.putwall'
-import { Route as WmsPutawayRouteImport } from './routes/_wms.putaway'
-import { Route as WmsPoliciesRouteImport } from './routes/_wms.policies'
-import { Route as WmsPackRedesignRouteImport } from './routes/_wms.pack-redesign'
-import { Route as WmsPackB2bV2RouteImport } from './routes/_wms.pack-b2b-v2'
-import { Route as WmsPackB2bRouteImport } from './routes/_wms.pack-b2b'
-import { Route as WmsPackRouteImport } from './routes/_wms.pack'
-import { Route as WmsOutboundExceptionsRouteImport } from './routes/_wms.outbound-exceptions'
-import { Route as WmsMovementTaskCreateRouteImport } from './routes/_wms.movement-task-create'
-import { Route as WmsMasterDataRouteImport } from './routes/_wms.master-data'
-import { Route as WmsManifestRouteImport } from './routes/_wms.manifest'
-import { Route as WmsLaneCongestionRouteImport } from './routes/_wms.lane-congestion'
-import { Route as WmsKittingRouteImport } from './routes/_wms.kitting'
-import { Route as WmsKitOrderRouteImport } from './routes/_wms.kit-order'
-import { Route as WmsKitMappingRouteImport } from './routes/_wms.kit-mapping'
-import { Route as WmsItemMovementRouteImport } from './routes/_wms.item-movement'
-import { Route as WmsItemInfoUpdateRouteImport } from './routes/_wms.item-info-update'
-import { Route as WmsInventoryViewRouteImport } from './routes/_wms.inventory-view'
-import { Route as WmsIncidentsRouteImport } from './routes/_wms.incidents'
-import { Route as WmsInboundExceptionsRouteImport } from './routes/_wms.inbound-exceptions'
-import { Route as WmsGrnRouteImport } from './routes/_wms.grn'
-import { Route as WmsGatepassLogRouteImport } from './routes/_wms.gatepass-log'
-import { Route as WmsGateEntryRouteImport } from './routes/_wms.gate-entry'
-import { Route as WmsFloorHandheldsRouteImport } from './routes/_wms.floor-handhelds'
-import { Route as WmsDriftFeedbackRouteImport } from './routes/_wms.drift-feedback'
-import { Route as WmsDockManagementRouteImport } from './routes/_wms.dock-management'
-import { Route as WmsDispatchRouteImport } from './routes/_wms.dispatch'
-import { Route as WmsDetailedInventoryViewRouteImport } from './routes/_wms.detailed-inventory-view'
-import { Route as WmsDashboardRouteImport } from './routes/_wms.dashboard'
-import { Route as WmsCycleCountConfigRouteImport } from './routes/_wms.cycle-count-config'
-import { Route as WmsCustomerDisputesRouteImport } from './routes/_wms.customer-disputes'
-import { Route as WmsControlTowerRouteImport } from './routes/_wms.control-tower'
-import { Route as WmsCarrierScorecardsRouteImport } from './routes/_wms.carrier-scorecards'
-import { Route as WmsBillingLeakageRouteImport } from './routes/_wms.billing-leakage'
-import { Route as WmsAuditLogRouteImport } from './routes/_wms.audit-log'
-import { Route as WmsApprovalsRouteImport } from './routes/_wms.approvals'
-import { Route as WmsAlertsRouteImport } from './routes/_wms.alerts'
-import { Route as WmsAgentHealthRouteImport } from './routes/_wms.agent-health'
-import { Route as WmsAgentDirectoryRouteImport } from './routes/_wms.agent-directory'
+import { Route as WmsRouteImport } from './routes/_wms'
 import { Route as WmsAdminRouteImport } from './routes/_wms.admin'
-import { Route as WmsViewPutawayIndexRouteImport } from './routes/_wms.view-putaway.index'
-import { Route as WmsViewPicklistIndexRouteImport } from './routes/_wms.view-picklist.index'
-import { Route as WmsViewPackIndexRouteImport } from './routes/_wms.view-pack.index'
-import { Route as WmsViewGrnIndexRouteImport } from './routes/_wms.view-grn.index'
-import { Route as WmsSortIndexRouteImport } from './routes/_wms.sort.index'
-import { Route as WmsPurchaseReturnIndexRouteImport } from './routes/_wms.purchase-return.index'
-import { Route as WmsPickIndexRouteImport } from './routes/_wms.pick.index'
-import { Route as WmsOrdersIndexRouteImport } from './routes/_wms.orders.index'
+import { Route as WmsAgentDirectoryRouteImport } from './routes/_wms.agent-directory'
+import { Route as WmsAgentHealthRouteImport } from './routes/_wms.agent-health'
+import { Route as WmsAlertsRouteImport } from './routes/_wms.alerts'
+import { Route as WmsApprovalsRouteImport } from './routes/_wms.approvals'
+import { Route as WmsAuditLogRouteImport } from './routes/_wms.audit-log'
+import { Route as WmsBillingLeakageRouteImport } from './routes/_wms.billing-leakage'
+import { Route as WmsCarrierScorecardsRouteImport } from './routes/_wms.carrier-scorecards'
+import { Route as WmsControlTowerRouteImport } from './routes/_wms.control-tower'
+import { Route as WmsCustomerDisputesRouteImport } from './routes/_wms.customer-disputes'
+import { Route as WmsCycleCountConfigRouteImport } from './routes/_wms.cycle-count-config'
+import { Route as WmsDashboardRouteImport } from './routes/_wms.dashboard'
+import { Route as WmsDetailedInventoryViewRouteImport } from './routes/_wms.detailed-inventory-view'
+import { Route as WmsDispatchRouteImport } from './routes/_wms.dispatch'
+import { Route as WmsDockManagementRouteImport } from './routes/_wms.dock-management'
+import { Route as WmsDriftFeedbackRouteImport } from './routes/_wms.drift-feedback'
+import { Route as WmsFloorHandheldsRouteImport } from './routes/_wms.floor-handhelds'
+import { Route as WmsGateEntryRouteImport } from './routes/_wms.gate-entry'
+import { Route as WmsGatepassLogRouteImport } from './routes/_wms.gatepass-log'
+import { Route as WmsGrnRouteImport } from './routes/_wms.grn'
+import { Route as WmsInboundExceptionsRouteImport } from './routes/_wms.inbound-exceptions'
+import { Route as WmsIncidentsRouteImport } from './routes/_wms.incidents'
+import { Route as WmsInventoryViewRouteImport } from './routes/_wms.inventory-view'
+import { Route as WmsItemInfoUpdateRouteImport } from './routes/_wms.item-info-update'
+import { Route as WmsItemMovementRouteImport } from './routes/_wms.item-movement'
+import { Route as WmsKitMappingRouteImport } from './routes/_wms.kit-mapping'
+import { Route as WmsKitOrderRouteImport } from './routes/_wms.kit-order'
+import { Route as WmsKittingRouteImport } from './routes/_wms.kitting'
+import { Route as WmsLaneCongestionRouteImport } from './routes/_wms.lane-congestion'
+import { Route as WmsManifestRouteImport } from './routes/_wms.manifest'
+import { Route as WmsMasterDataRouteImport } from './routes/_wms.master-data'
+import { Route as WmsMovementTaskCreateRouteImport } from './routes/_wms.movement-task-create'
+import { Route as WmsOutboundExceptionsRouteImport } from './routes/_wms.outbound-exceptions'
+import { Route as WmsPackRouteImport } from './routes/_wms.pack'
+import { Route as WmsPackB2bRouteImport } from './routes/_wms.pack-b2b'
+import { Route as WmsPackB2bV2RouteImport } from './routes/_wms.pack-b2b-v2'
+import { Route as WmsPackRedesignRouteImport } from './routes/_wms.pack-redesign'
+import { Route as WmsPoliciesRouteImport } from './routes/_wms.policies'
+import { Route as WmsPutawayRouteImport } from './routes/_wms.putaway'
+import { Route as WmsPutwallRouteImport } from './routes/_wms.putwall'
+import { Route as WmsQcStationRouteImport } from './routes/_wms.qc-station'
+import { Route as WmsRecoveryQueueRouteImport } from './routes/_wms.recovery-queue'
+import { Route as WmsRejectReasonMasterRouteImport } from './routes/_wms.reject-reason-master'
+import { Route as WmsReplenishmentRouteImport } from './routes/_wms.replenishment'
+import { Route as WmsReplenishmentSetupRouteImport } from './routes/_wms.replenishment-setup'
+import { Route as WmsReportsRouteImport } from './routes/_wms.reports'
+import { Route as WmsReturnsCirRouteImport } from './routes/_wms.returns-cir'
+import { Route as WmsReturnsEvaluationRouteImport } from './routes/_wms.returns-evaluation'
+import { Route as WmsReturnsIntakeRouteImport } from './routes/_wms.returns-intake'
+import { Route as WmsReturnsRtoRouteImport } from './routes/_wms.returns-rto'
+import { Route as WmsReturnsRtvRouteImport } from './routes/_wms.returns-rtv'
+import { Route as WmsSalesReturnGrnRouteImport } from './routes/_wms.sales-return-grn'
+import { Route as WmsSitePerformanceRouteImport } from './routes/_wms.site-performance'
+import { Route as WmsSlottingRouteImport } from './routes/_wms.slotting'
+import { Route as WmsSlottingConfigRouteImport } from './routes/_wms.slotting-config'
+import { Route as WmsStuckOrdersRouteImport } from './routes/_wms.stuck-orders'
+import { Route as WmsTableIdMasterRouteImport } from './routes/_wms.table-id-master'
+import { Route as WmsTrendsRouteImport } from './routes/_wms.trends'
+import { Route as WmsUnloadingRouteImport } from './routes/_wms.unloading'
+import { Route as WmsUsersRolesRouteImport } from './routes/_wms.users-roles'
+import { Route as WmsVendorScorecardsRouteImport } from './routes/_wms.vendor-scorecards'
+import { Route as WmsViewDispatchRouteImport } from './routes/_wms.view-dispatch'
+import { Route as WmsViewManifestRouteImport } from './routes/_wms.view-manifest'
+import { Route as WmsWarehouseSettingsRouteImport } from './routes/_wms.warehouse-settings'
+import { Route as WmsWaveCreationRouteImport } from './routes/_wms.wave-creation'
 import { Route as WmsCycleCountIndexRouteImport } from './routes/_wms.cycle-count.index'
-import { Route as WmsViewPutawayPutawayIdRouteImport } from './routes/_wms.view-putaway.$putawayId'
-import { Route as WmsViewPicklistPicklistIdRouteImport } from './routes/_wms.view-picklist.$picklistId'
-import { Route as WmsViewPackPacklistIdRouteImport } from './routes/_wms.view-pack.$packlistId'
-import { Route as WmsViewGrnGrnIdRouteImport } from './routes/_wms.view-grn.$grnId'
-import { Route as WmsSortEmptyRouteImport } from './routes/_wms.sort.empty'
-import { Route as WmsSortTaskIdRouteImport } from './routes/_wms.sort.$taskId'
-import { Route as WmsPurchaseReturnRtvNoRouteImport } from './routes/_wms.purchase-return.$rtvNo'
-import { Route as WmsPickPicklistIdRouteImport } from './routes/_wms.pick.$picklistId'
-import { Route as WmsOrdersOrderNoRouteImport } from './routes/_wms.orders.$orderNo'
-import { Route as WmsCycleCountLedgerRouteImport } from './routes/_wms.cycle-count.ledger'
 import { Route as WmsCycleCountTaskIdRouteImport } from './routes/_wms.cycle-count.$taskId'
+import { Route as WmsCycleCountLedgerRouteImport } from './routes/_wms.cycle-count.ledger'
+import { Route as WmsOrdersIndexRouteImport } from './routes/_wms.orders.index'
+import { Route as WmsOrdersOrderNoRouteImport } from './routes/_wms.orders.$orderNo'
+import { Route as WmsPickIndexRouteImport } from './routes/_wms.pick.index'
+import { Route as WmsPickPicklistIdRouteImport } from './routes/_wms.pick.$picklistId'
+import { Route as WmsPurchaseReturnIndexRouteImport } from './routes/_wms.purchase-return.index'
+import { Route as WmsPurchaseReturnRtvNoRouteImport } from './routes/_wms.purchase-return.$rtvNo'
+import { Route as WmsSortIndexRouteImport } from './routes/_wms.sort.index'
+import { Route as WmsSortTaskIdRouteImport } from './routes/_wms.sort.$taskId'
+import { Route as WmsSortEmptyRouteImport } from './routes/_wms.sort.empty'
+import { Route as WmsViewGrnIndexRouteImport } from './routes/_wms.view-grn.index'
+import { Route as WmsViewGrnGrnIdRouteImport } from './routes/_wms.view-grn.$grnId'
+import { Route as WmsViewPackIndexRouteImport } from './routes/_wms.view-pack.index'
+import { Route as WmsViewPackPacklistIdRouteImport } from './routes/_wms.view-pack.$packlistId'
+import { Route as WmsViewPicklistIndexRouteImport } from './routes/_wms.view-picklist.index'
+import { Route as WmsViewPicklistPicklistIdRouteImport } from './routes/_wms.view-picklist.$picklistId'
+import { Route as WmsViewPutawayIndexRouteImport } from './routes/_wms.view-putaway.index'
+import { Route as WmsViewPutawayPutawayIdRouteImport } from './routes/_wms.view-putaway.$putawayId'
 
-const WmsRoute = WmsRouteImport.update({
-  id: '/_wms',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WmsWaveCreationRoute = WmsWaveCreationRouteImport.update({
-  id: '/wave-creation',
-  path: '/wave-creation',
+const WmsRoute = WmsRouteImport.update({
+  id: '/_wms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WmsAdminRoute = WmsAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsWarehouseSettingsRoute = WmsWarehouseSettingsRouteImport.update({
-  id: '/warehouse-settings',
-  path: '/warehouse-settings',
+const WmsAgentDirectoryRoute = WmsAgentDirectoryRouteImport.update({
+  id: '/agent-directory',
+  path: '/agent-directory',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsViewManifestRoute = WmsViewManifestRouteImport.update({
-  id: '/view-manifest',
-  path: '/view-manifest',
+const WmsAgentHealthRoute = WmsAgentHealthRouteImport.update({
+  id: '/agent-health',
+  path: '/agent-health',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsViewDispatchRoute = WmsViewDispatchRouteImport.update({
-  id: '/view-dispatch',
-  path: '/view-dispatch',
+const WmsAlertsRoute = WmsAlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsVendorScorecardsRoute = WmsVendorScorecardsRouteImport.update({
-  id: '/vendor-scorecards',
-  path: '/vendor-scorecards',
+const WmsApprovalsRoute = WmsApprovalsRouteImport.update({
+  id: '/approvals',
+  path: '/approvals',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsUsersRolesRoute = WmsUsersRolesRouteImport.update({
-  id: '/users-roles',
-  path: '/users-roles',
+const WmsAuditLogRoute = WmsAuditLogRouteImport.update({
+  id: '/audit-log',
+  path: '/audit-log',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsUnloadingRoute = WmsUnloadingRouteImport.update({
-  id: '/unloading',
-  path: '/unloading',
+const WmsBillingLeakageRoute = WmsBillingLeakageRouteImport.update({
+  id: '/billing-leakage',
+  path: '/billing-leakage',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsTrendsRoute = WmsTrendsRouteImport.update({
-  id: '/trends',
-  path: '/trends',
+const WmsCarrierScorecardsRoute = WmsCarrierScorecardsRouteImport.update({
+  id: '/carrier-scorecards',
+  path: '/carrier-scorecards',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsTableIdMasterRoute = WmsTableIdMasterRouteImport.update({
-  id: '/table-id-master',
-  path: '/table-id-master',
+const WmsControlTowerRoute = WmsControlTowerRouteImport.update({
+  id: '/control-tower',
+  path: '/control-tower',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsStuckOrdersRoute = WmsStuckOrdersRouteImport.update({
-  id: '/stuck-orders',
-  path: '/stuck-orders',
+const WmsCustomerDisputesRoute = WmsCustomerDisputesRouteImport.update({
+  id: '/customer-disputes',
+  path: '/customer-disputes',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsSlottingConfigRoute = WmsSlottingConfigRouteImport.update({
-  id: '/slotting-config',
-  path: '/slotting-config',
+const WmsCycleCountConfigRoute = WmsCycleCountConfigRouteImport.update({
+  id: '/cycle-count-config',
+  path: '/cycle-count-config',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsSlottingRoute = WmsSlottingRouteImport.update({
-  id: '/slotting',
-  path: '/slotting',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsSitePerformanceRoute = WmsSitePerformanceRouteImport.update({
-  id: '/site-performance',
-  path: '/site-performance',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsSalesReturnGrnRoute = WmsSalesReturnGrnRouteImport.update({
-  id: '/sales-return-grn',
-  path: '/sales-return-grn',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsReturnsRtvRoute = WmsReturnsRtvRouteImport.update({
-  id: '/returns-rtv',
-  path: '/returns-rtv',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsReturnsRtoRoute = WmsReturnsRtoRouteImport.update({
-  id: '/returns-rto',
-  path: '/returns-rto',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsReturnsIntakeRoute = WmsReturnsIntakeRouteImport.update({
-  id: '/returns-intake',
-  path: '/returns-intake',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsReturnsEvaluationRoute = WmsReturnsEvaluationRouteImport.update({
-  id: '/returns-evaluation',
-  path: '/returns-evaluation',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsReturnsCirRoute = WmsReturnsCirRouteImport.update({
-  id: '/returns-cir',
-  path: '/returns-cir',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsReportsRoute = WmsReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsReplenishmentSetupRoute = WmsReplenishmentSetupRouteImport.update({
-  id: '/replenishment-setup',
-  path: '/replenishment-setup',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsReplenishmentRoute = WmsReplenishmentRouteImport.update({
-  id: '/replenishment',
-  path: '/replenishment',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsRejectReasonMasterRoute = WmsRejectReasonMasterRouteImport.update({
-  id: '/reject-reason-master',
-  path: '/reject-reason-master',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsRecoveryQueueRoute = WmsRecoveryQueueRouteImport.update({
-  id: '/recovery-queue',
-  path: '/recovery-queue',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsQcStationRoute = WmsQcStationRouteImport.update({
-  id: '/qc-station',
-  path: '/qc-station',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsPutwallRoute = WmsPutwallRouteImport.update({
-  id: '/putwall',
-  path: '/putwall',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsPutawayRoute = WmsPutawayRouteImport.update({
-  id: '/putaway',
-  path: '/putaway',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsPoliciesRoute = WmsPoliciesRouteImport.update({
-  id: '/policies',
-  path: '/policies',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsPackRedesignRoute = WmsPackRedesignRouteImport.update({
-  id: '/pack-redesign',
-  path: '/pack-redesign',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsPackB2bV2Route = WmsPackB2bV2RouteImport.update({
-  id: '/pack-b2b-v2',
-  path: '/pack-b2b-v2',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsPackB2bRoute = WmsPackB2bRouteImport.update({
-  id: '/pack-b2b',
-  path: '/pack-b2b',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsPackRoute = WmsPackRouteImport.update({
-  id: '/pack',
-  path: '/pack',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsOutboundExceptionsRoute = WmsOutboundExceptionsRouteImport.update({
-  id: '/outbound-exceptions',
-  path: '/outbound-exceptions',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsMovementTaskCreateRoute = WmsMovementTaskCreateRouteImport.update({
-  id: '/movement-task-create',
-  path: '/movement-task-create',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsMasterDataRoute = WmsMasterDataRouteImport.update({
-  id: '/master-data',
-  path: '/master-data',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsManifestRoute = WmsManifestRouteImport.update({
-  id: '/manifest',
-  path: '/manifest',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsLaneCongestionRoute = WmsLaneCongestionRouteImport.update({
-  id: '/lane-congestion',
-  path: '/lane-congestion',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsKittingRoute = WmsKittingRouteImport.update({
-  id: '/kitting',
-  path: '/kitting',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsKitOrderRoute = WmsKitOrderRouteImport.update({
-  id: '/kit-order',
-  path: '/kit-order',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsKitMappingRoute = WmsKitMappingRouteImport.update({
-  id: '/kit-mapping',
-  path: '/kit-mapping',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsItemMovementRoute = WmsItemMovementRouteImport.update({
-  id: '/item-movement',
-  path: '/item-movement',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsItemInfoUpdateRoute = WmsItemInfoUpdateRouteImport.update({
-  id: '/item-info-update',
-  path: '/item-info-update',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsInventoryViewRoute = WmsInventoryViewRouteImport.update({
-  id: '/inventory-view',
-  path: '/inventory-view',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsIncidentsRoute = WmsIncidentsRouteImport.update({
-  id: '/incidents',
-  path: '/incidents',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsInboundExceptionsRoute = WmsInboundExceptionsRouteImport.update({
-  id: '/inbound-exceptions',
-  path: '/inbound-exceptions',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsGrnRoute = WmsGrnRouteImport.update({
-  id: '/grn',
-  path: '/grn',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsGatepassLogRoute = WmsGatepassLogRouteImport.update({
-  id: '/gatepass-log',
-  path: '/gatepass-log',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsGateEntryRoute = WmsGateEntryRouteImport.update({
-  id: '/gate-entry',
-  path: '/gate-entry',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsFloorHandheldsRoute = WmsFloorHandheldsRouteImport.update({
-  id: '/floor-handhelds',
-  path: '/floor-handhelds',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsDriftFeedbackRoute = WmsDriftFeedbackRouteImport.update({
-  id: '/drift-feedback',
-  path: '/drift-feedback',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsDockManagementRoute = WmsDockManagementRouteImport.update({
-  id: '/dock-management',
-  path: '/dock-management',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsDispatchRoute = WmsDispatchRouteImport.update({
-  id: '/dispatch',
-  path: '/dispatch',
+const WmsDashboardRoute = WmsDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsDetailedInventoryViewRoute =
@@ -372,104 +172,264 @@ const WmsDetailedInventoryViewRoute =
     path: '/detailed-inventory-view',
     getParentRoute: () => WmsRoute,
   } as any)
-const WmsDashboardRoute = WmsDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const WmsDispatchRoute = WmsDispatchRouteImport.update({
+  id: '/dispatch',
+  path: '/dispatch',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsCycleCountConfigRoute = WmsCycleCountConfigRouteImport.update({
-  id: '/cycle-count-config',
-  path: '/cycle-count-config',
+const WmsDockManagementRoute = WmsDockManagementRouteImport.update({
+  id: '/dock-management',
+  path: '/dock-management',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsCustomerDisputesRoute = WmsCustomerDisputesRouteImport.update({
-  id: '/customer-disputes',
-  path: '/customer-disputes',
+const WmsDriftFeedbackRoute = WmsDriftFeedbackRouteImport.update({
+  id: '/drift-feedback',
+  path: '/drift-feedback',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsControlTowerRoute = WmsControlTowerRouteImport.update({
-  id: '/control-tower',
-  path: '/control-tower',
+const WmsFloorHandheldsRoute = WmsFloorHandheldsRouteImport.update({
+  id: '/floor-handhelds',
+  path: '/floor-handhelds',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsCarrierScorecardsRoute = WmsCarrierScorecardsRouteImport.update({
-  id: '/carrier-scorecards',
-  path: '/carrier-scorecards',
+const WmsGateEntryRoute = WmsGateEntryRouteImport.update({
+  id: '/gate-entry',
+  path: '/gate-entry',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsBillingLeakageRoute = WmsBillingLeakageRouteImport.update({
-  id: '/billing-leakage',
-  path: '/billing-leakage',
+const WmsGatepassLogRoute = WmsGatepassLogRouteImport.update({
+  id: '/gatepass-log',
+  path: '/gatepass-log',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsAuditLogRoute = WmsAuditLogRouteImport.update({
-  id: '/audit-log',
-  path: '/audit-log',
+const WmsGrnRoute = WmsGrnRouteImport.update({
+  id: '/grn',
+  path: '/grn',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsApprovalsRoute = WmsApprovalsRouteImport.update({
-  id: '/approvals',
-  path: '/approvals',
+const WmsInboundExceptionsRoute = WmsInboundExceptionsRouteImport.update({
+  id: '/inbound-exceptions',
+  path: '/inbound-exceptions',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsAlertsRoute = WmsAlertsRouteImport.update({
-  id: '/alerts',
-  path: '/alerts',
+const WmsIncidentsRoute = WmsIncidentsRouteImport.update({
+  id: '/incidents',
+  path: '/incidents',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsAgentHealthRoute = WmsAgentHealthRouteImport.update({
-  id: '/agent-health',
-  path: '/agent-health',
+const WmsInventoryViewRoute = WmsInventoryViewRouteImport.update({
+  id: '/inventory-view',
+  path: '/inventory-view',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsAgentDirectoryRoute = WmsAgentDirectoryRouteImport.update({
-  id: '/agent-directory',
-  path: '/agent-directory',
+const WmsItemInfoUpdateRoute = WmsItemInfoUpdateRouteImport.update({
+  id: '/item-info-update',
+  path: '/item-info-update',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsAdminRoute = WmsAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const WmsItemMovementRoute = WmsItemMovementRouteImport.update({
+  id: '/item-movement',
+  path: '/item-movement',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsViewPutawayIndexRoute = WmsViewPutawayIndexRouteImport.update({
-  id: '/view-putaway/',
-  path: '/view-putaway/',
+const WmsKitMappingRoute = WmsKitMappingRouteImport.update({
+  id: '/kit-mapping',
+  path: '/kit-mapping',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsViewPicklistIndexRoute = WmsViewPicklistIndexRouteImport.update({
-  id: '/view-picklist/',
-  path: '/view-picklist/',
+const WmsKitOrderRoute = WmsKitOrderRouteImport.update({
+  id: '/kit-order',
+  path: '/kit-order',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsViewPackIndexRoute = WmsViewPackIndexRouteImport.update({
-  id: '/view-pack/',
-  path: '/view-pack/',
+const WmsKittingRoute = WmsKittingRouteImport.update({
+  id: '/kitting',
+  path: '/kitting',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsViewGrnIndexRoute = WmsViewGrnIndexRouteImport.update({
-  id: '/view-grn/',
-  path: '/view-grn/',
+const WmsLaneCongestionRoute = WmsLaneCongestionRouteImport.update({
+  id: '/lane-congestion',
+  path: '/lane-congestion',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsSortIndexRoute = WmsSortIndexRouteImport.update({
-  id: '/sort/',
-  path: '/sort/',
+const WmsManifestRoute = WmsManifestRouteImport.update({
+  id: '/manifest',
+  path: '/manifest',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsPurchaseReturnIndexRoute = WmsPurchaseReturnIndexRouteImport.update({
-  id: '/purchase-return/',
-  path: '/purchase-return/',
+const WmsMasterDataRoute = WmsMasterDataRouteImport.update({
+  id: '/master-data',
+  path: '/master-data',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsPickIndexRoute = WmsPickIndexRouteImport.update({
-  id: '/pick/',
-  path: '/pick/',
+const WmsMovementTaskCreateRoute = WmsMovementTaskCreateRouteImport.update({
+  id: '/movement-task-create',
+  path: '/movement-task-create',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsOrdersIndexRoute = WmsOrdersIndexRouteImport.update({
-  id: '/orders/',
-  path: '/orders/',
+const WmsOutboundExceptionsRoute = WmsOutboundExceptionsRouteImport.update({
+  id: '/outbound-exceptions',
+  path: '/outbound-exceptions',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsPackRoute = WmsPackRouteImport.update({
+  id: '/pack',
+  path: '/pack',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsPackB2bRoute = WmsPackB2bRouteImport.update({
+  id: '/pack-b2b',
+  path: '/pack-b2b',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsPackB2bV2Route = WmsPackB2bV2RouteImport.update({
+  id: '/pack-b2b-v2',
+  path: '/pack-b2b-v2',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsPackRedesignRoute = WmsPackRedesignRouteImport.update({
+  id: '/pack-redesign',
+  path: '/pack-redesign',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsPoliciesRoute = WmsPoliciesRouteImport.update({
+  id: '/policies',
+  path: '/policies',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsPutawayRoute = WmsPutawayRouteImport.update({
+  id: '/putaway',
+  path: '/putaway',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsPutwallRoute = WmsPutwallRouteImport.update({
+  id: '/putwall',
+  path: '/putwall',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsQcStationRoute = WmsQcStationRouteImport.update({
+  id: '/qc-station',
+  path: '/qc-station',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsRecoveryQueueRoute = WmsRecoveryQueueRouteImport.update({
+  id: '/recovery-queue',
+  path: '/recovery-queue',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsRejectReasonMasterRoute = WmsRejectReasonMasterRouteImport.update({
+  id: '/reject-reason-master',
+  path: '/reject-reason-master',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsReplenishmentRoute = WmsReplenishmentRouteImport.update({
+  id: '/replenishment',
+  path: '/replenishment',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsReplenishmentSetupRoute = WmsReplenishmentSetupRouteImport.update({
+  id: '/replenishment-setup',
+  path: '/replenishment-setup',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsReportsRoute = WmsReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsReturnsCirRoute = WmsReturnsCirRouteImport.update({
+  id: '/returns-cir',
+  path: '/returns-cir',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsReturnsEvaluationRoute = WmsReturnsEvaluationRouteImport.update({
+  id: '/returns-evaluation',
+  path: '/returns-evaluation',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsReturnsIntakeRoute = WmsReturnsIntakeRouteImport.update({
+  id: '/returns-intake',
+  path: '/returns-intake',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsReturnsRtoRoute = WmsReturnsRtoRouteImport.update({
+  id: '/returns-rto',
+  path: '/returns-rto',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsReturnsRtvRoute = WmsReturnsRtvRouteImport.update({
+  id: '/returns-rtv',
+  path: '/returns-rtv',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsSalesReturnGrnRoute = WmsSalesReturnGrnRouteImport.update({
+  id: '/sales-return-grn',
+  path: '/sales-return-grn',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsSitePerformanceRoute = WmsSitePerformanceRouteImport.update({
+  id: '/site-performance',
+  path: '/site-performance',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsSlottingRoute = WmsSlottingRouteImport.update({
+  id: '/slotting',
+  path: '/slotting',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsSlottingConfigRoute = WmsSlottingConfigRouteImport.update({
+  id: '/slotting-config',
+  path: '/slotting-config',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsStuckOrdersRoute = WmsStuckOrdersRouteImport.update({
+  id: '/stuck-orders',
+  path: '/stuck-orders',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsTableIdMasterRoute = WmsTableIdMasterRouteImport.update({
+  id: '/table-id-master',
+  path: '/table-id-master',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsTrendsRoute = WmsTrendsRouteImport.update({
+  id: '/trends',
+  path: '/trends',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsUnloadingRoute = WmsUnloadingRouteImport.update({
+  id: '/unloading',
+  path: '/unloading',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsUsersRolesRoute = WmsUsersRolesRouteImport.update({
+  id: '/users-roles',
+  path: '/users-roles',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsVendorScorecardsRoute = WmsVendorScorecardsRouteImport.update({
+  id: '/vendor-scorecards',
+  path: '/vendor-scorecards',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsViewDispatchRoute = WmsViewDispatchRouteImport.update({
+  id: '/view-dispatch',
+  path: '/view-dispatch',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsViewManifestRoute = WmsViewManifestRouteImport.update({
+  id: '/view-manifest',
+  path: '/view-manifest',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsWarehouseSettingsRoute = WmsWarehouseSettingsRouteImport.update({
+  id: '/warehouse-settings',
+  path: '/warehouse-settings',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsWaveCreationRoute = WmsWaveCreationRouteImport.update({
+  id: '/wave-creation',
+  path: '/wave-creation',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsCycleCountIndexRoute = WmsCycleCountIndexRouteImport.update({
@@ -477,9 +437,84 @@ const WmsCycleCountIndexRoute = WmsCycleCountIndexRouteImport.update({
   path: '/cycle-count/',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsViewPutawayPutawayIdRoute = WmsViewPutawayPutawayIdRouteImport.update({
-  id: '/view-putaway/$putawayId',
-  path: '/view-putaway/$putawayId',
+const WmsCycleCountTaskIdRoute = WmsCycleCountTaskIdRouteImport.update({
+  id: '/cycle-count/$taskId',
+  path: '/cycle-count/$taskId',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsCycleCountLedgerRoute = WmsCycleCountLedgerRouteImport.update({
+  id: '/cycle-count/ledger',
+  path: '/cycle-count/ledger',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsOrdersIndexRoute = WmsOrdersIndexRouteImport.update({
+  id: '/orders/',
+  path: '/orders/',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsOrdersOrderNoRoute = WmsOrdersOrderNoRouteImport.update({
+  id: '/orders/$orderNo',
+  path: '/orders/$orderNo',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsPickIndexRoute = WmsPickIndexRouteImport.update({
+  id: '/pick/',
+  path: '/pick/',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsPickPicklistIdRoute = WmsPickPicklistIdRouteImport.update({
+  id: '/pick/$picklistId',
+  path: '/pick/$picklistId',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsPurchaseReturnIndexRoute = WmsPurchaseReturnIndexRouteImport.update({
+  id: '/purchase-return/',
+  path: '/purchase-return/',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsPurchaseReturnRtvNoRoute = WmsPurchaseReturnRtvNoRouteImport.update({
+  id: '/purchase-return/$rtvNo',
+  path: '/purchase-return/$rtvNo',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsSortIndexRoute = WmsSortIndexRouteImport.update({
+  id: '/sort/',
+  path: '/sort/',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsSortTaskIdRoute = WmsSortTaskIdRouteImport.update({
+  id: '/sort/$taskId',
+  path: '/sort/$taskId',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsSortEmptyRoute = WmsSortEmptyRouteImport.update({
+  id: '/sort/empty',
+  path: '/sort/empty',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsViewGrnIndexRoute = WmsViewGrnIndexRouteImport.update({
+  id: '/view-grn/',
+  path: '/view-grn/',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsViewGrnGrnIdRoute = WmsViewGrnGrnIdRouteImport.update({
+  id: '/view-grn/$grnId',
+  path: '/view-grn/$grnId',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsViewPackIndexRoute = WmsViewPackIndexRouteImport.update({
+  id: '/view-pack/',
+  path: '/view-pack/',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsViewPackPacklistIdRoute = WmsViewPackPacklistIdRouteImport.update({
+  id: '/view-pack/$packlistId',
+  path: '/view-pack/$packlistId',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsViewPicklistIndexRoute = WmsViewPicklistIndexRouteImport.update({
+  id: '/view-picklist/',
+  path: '/view-picklist/',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsViewPicklistPicklistIdRoute =
@@ -488,49 +523,14 @@ const WmsViewPicklistPicklistIdRoute =
     path: '/view-picklist/$picklistId',
     getParentRoute: () => WmsRoute,
   } as any)
-const WmsViewPackPacklistIdRoute = WmsViewPackPacklistIdRouteImport.update({
-  id: '/view-pack/$packlistId',
-  path: '/view-pack/$packlistId',
+const WmsViewPutawayIndexRoute = WmsViewPutawayIndexRouteImport.update({
+  id: '/view-putaway/',
+  path: '/view-putaway/',
   getParentRoute: () => WmsRoute,
 } as any)
-const WmsViewGrnGrnIdRoute = WmsViewGrnGrnIdRouteImport.update({
-  id: '/view-grn/$grnId',
-  path: '/view-grn/$grnId',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsSortEmptyRoute = WmsSortEmptyRouteImport.update({
-  id: '/sort/empty',
-  path: '/sort/empty',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsSortTaskIdRoute = WmsSortTaskIdRouteImport.update({
-  id: '/sort/$taskId',
-  path: '/sort/$taskId',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsPurchaseReturnRtvNoRoute = WmsPurchaseReturnRtvNoRouteImport.update({
-  id: '/purchase-return/$rtvNo',
-  path: '/purchase-return/$rtvNo',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsPickPicklistIdRoute = WmsPickPicklistIdRouteImport.update({
-  id: '/pick/$picklistId',
-  path: '/pick/$picklistId',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsOrdersOrderNoRoute = WmsOrdersOrderNoRouteImport.update({
-  id: '/orders/$orderNo',
-  path: '/orders/$orderNo',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsCycleCountLedgerRoute = WmsCycleCountLedgerRouteImport.update({
-  id: '/cycle-count/ledger',
-  path: '/cycle-count/ledger',
-  getParentRoute: () => WmsRoute,
-} as any)
-const WmsCycleCountTaskIdRoute = WmsCycleCountTaskIdRouteImport.update({
-  id: '/cycle-count/$taskId',
-  path: '/cycle-count/$taskId',
+const WmsViewPutawayPutawayIdRoute = WmsViewPutawayPutawayIdRouteImport.update({
+  id: '/view-putaway/$putawayId',
+  path: '/view-putaway/$putawayId',
   getParentRoute: () => WmsRoute,
 } as any)
 
@@ -1075,13 +1075,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_wms': {
-      id: '/_wms'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof WmsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -1089,445 +1082,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_wms/wave-creation': {
-      id: '/_wms/wave-creation'
-      path: '/wave-creation'
-      fullPath: '/wave-creation'
-      preLoaderRoute: typeof WmsWaveCreationRouteImport
-      parentRoute: typeof WmsRoute
+    '/_wms': {
+      id: '/_wms'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof WmsRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_wms/warehouse-settings': {
-      id: '/_wms/warehouse-settings'
-      path: '/warehouse-settings'
-      fullPath: '/warehouse-settings'
-      preLoaderRoute: typeof WmsWarehouseSettingsRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/view-manifest': {
-      id: '/_wms/view-manifest'
-      path: '/view-manifest'
-      fullPath: '/view-manifest'
-      preLoaderRoute: typeof WmsViewManifestRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/view-dispatch': {
-      id: '/_wms/view-dispatch'
-      path: '/view-dispatch'
-      fullPath: '/view-dispatch'
-      preLoaderRoute: typeof WmsViewDispatchRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/vendor-scorecards': {
-      id: '/_wms/vendor-scorecards'
-      path: '/vendor-scorecards'
-      fullPath: '/vendor-scorecards'
-      preLoaderRoute: typeof WmsVendorScorecardsRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/users-roles': {
-      id: '/_wms/users-roles'
-      path: '/users-roles'
-      fullPath: '/users-roles'
-      preLoaderRoute: typeof WmsUsersRolesRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/unloading': {
-      id: '/_wms/unloading'
-      path: '/unloading'
-      fullPath: '/unloading'
-      preLoaderRoute: typeof WmsUnloadingRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/trends': {
-      id: '/_wms/trends'
-      path: '/trends'
-      fullPath: '/trends'
-      preLoaderRoute: typeof WmsTrendsRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/table-id-master': {
-      id: '/_wms/table-id-master'
-      path: '/table-id-master'
-      fullPath: '/table-id-master'
-      preLoaderRoute: typeof WmsTableIdMasterRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/stuck-orders': {
-      id: '/_wms/stuck-orders'
-      path: '/stuck-orders'
-      fullPath: '/stuck-orders'
-      preLoaderRoute: typeof WmsStuckOrdersRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/slotting-config': {
-      id: '/_wms/slotting-config'
-      path: '/slotting-config'
-      fullPath: '/slotting-config'
-      preLoaderRoute: typeof WmsSlottingConfigRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/slotting': {
-      id: '/_wms/slotting'
-      path: '/slotting'
-      fullPath: '/slotting'
-      preLoaderRoute: typeof WmsSlottingRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/site-performance': {
-      id: '/_wms/site-performance'
-      path: '/site-performance'
-      fullPath: '/site-performance'
-      preLoaderRoute: typeof WmsSitePerformanceRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/sales-return-grn': {
-      id: '/_wms/sales-return-grn'
-      path: '/sales-return-grn'
-      fullPath: '/sales-return-grn'
-      preLoaderRoute: typeof WmsSalesReturnGrnRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/returns-rtv': {
-      id: '/_wms/returns-rtv'
-      path: '/returns-rtv'
-      fullPath: '/returns-rtv'
-      preLoaderRoute: typeof WmsReturnsRtvRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/returns-rto': {
-      id: '/_wms/returns-rto'
-      path: '/returns-rto'
-      fullPath: '/returns-rto'
-      preLoaderRoute: typeof WmsReturnsRtoRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/returns-intake': {
-      id: '/_wms/returns-intake'
-      path: '/returns-intake'
-      fullPath: '/returns-intake'
-      preLoaderRoute: typeof WmsReturnsIntakeRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/returns-evaluation': {
-      id: '/_wms/returns-evaluation'
-      path: '/returns-evaluation'
-      fullPath: '/returns-evaluation'
-      preLoaderRoute: typeof WmsReturnsEvaluationRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/returns-cir': {
-      id: '/_wms/returns-cir'
-      path: '/returns-cir'
-      fullPath: '/returns-cir'
-      preLoaderRoute: typeof WmsReturnsCirRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/reports': {
-      id: '/_wms/reports'
-      path: '/reports'
-      fullPath: '/reports'
-      preLoaderRoute: typeof WmsReportsRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/replenishment-setup': {
-      id: '/_wms/replenishment-setup'
-      path: '/replenishment-setup'
-      fullPath: '/replenishment-setup'
-      preLoaderRoute: typeof WmsReplenishmentSetupRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/replenishment': {
-      id: '/_wms/replenishment'
-      path: '/replenishment'
-      fullPath: '/replenishment'
-      preLoaderRoute: typeof WmsReplenishmentRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/reject-reason-master': {
-      id: '/_wms/reject-reason-master'
-      path: '/reject-reason-master'
-      fullPath: '/reject-reason-master'
-      preLoaderRoute: typeof WmsRejectReasonMasterRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/recovery-queue': {
-      id: '/_wms/recovery-queue'
-      path: '/recovery-queue'
-      fullPath: '/recovery-queue'
-      preLoaderRoute: typeof WmsRecoveryQueueRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/qc-station': {
-      id: '/_wms/qc-station'
-      path: '/qc-station'
-      fullPath: '/qc-station'
-      preLoaderRoute: typeof WmsQcStationRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/putwall': {
-      id: '/_wms/putwall'
-      path: '/putwall'
-      fullPath: '/putwall'
-      preLoaderRoute: typeof WmsPutwallRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/putaway': {
-      id: '/_wms/putaway'
-      path: '/putaway'
-      fullPath: '/putaway'
-      preLoaderRoute: typeof WmsPutawayRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/policies': {
-      id: '/_wms/policies'
-      path: '/policies'
-      fullPath: '/policies'
-      preLoaderRoute: typeof WmsPoliciesRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/pack-redesign': {
-      id: '/_wms/pack-redesign'
-      path: '/pack-redesign'
-      fullPath: '/pack-redesign'
-      preLoaderRoute: typeof WmsPackRedesignRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/pack-b2b-v2': {
-      id: '/_wms/pack-b2b-v2'
-      path: '/pack-b2b-v2'
-      fullPath: '/pack-b2b-v2'
-      preLoaderRoute: typeof WmsPackB2bV2RouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/pack-b2b': {
-      id: '/_wms/pack-b2b'
-      path: '/pack-b2b'
-      fullPath: '/pack-b2b'
-      preLoaderRoute: typeof WmsPackB2bRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/pack': {
-      id: '/_wms/pack'
-      path: '/pack'
-      fullPath: '/pack'
-      preLoaderRoute: typeof WmsPackRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/outbound-exceptions': {
-      id: '/_wms/outbound-exceptions'
-      path: '/outbound-exceptions'
-      fullPath: '/outbound-exceptions'
-      preLoaderRoute: typeof WmsOutboundExceptionsRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/movement-task-create': {
-      id: '/_wms/movement-task-create'
-      path: '/movement-task-create'
-      fullPath: '/movement-task-create'
-      preLoaderRoute: typeof WmsMovementTaskCreateRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/master-data': {
-      id: '/_wms/master-data'
-      path: '/master-data'
-      fullPath: '/master-data'
-      preLoaderRoute: typeof WmsMasterDataRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/manifest': {
-      id: '/_wms/manifest'
-      path: '/manifest'
-      fullPath: '/manifest'
-      preLoaderRoute: typeof WmsManifestRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/lane-congestion': {
-      id: '/_wms/lane-congestion'
-      path: '/lane-congestion'
-      fullPath: '/lane-congestion'
-      preLoaderRoute: typeof WmsLaneCongestionRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/kitting': {
-      id: '/_wms/kitting'
-      path: '/kitting'
-      fullPath: '/kitting'
-      preLoaderRoute: typeof WmsKittingRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/kit-order': {
-      id: '/_wms/kit-order'
-      path: '/kit-order'
-      fullPath: '/kit-order'
-      preLoaderRoute: typeof WmsKitOrderRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/kit-mapping': {
-      id: '/_wms/kit-mapping'
-      path: '/kit-mapping'
-      fullPath: '/kit-mapping'
-      preLoaderRoute: typeof WmsKitMappingRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/item-movement': {
-      id: '/_wms/item-movement'
-      path: '/item-movement'
-      fullPath: '/item-movement'
-      preLoaderRoute: typeof WmsItemMovementRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/item-info-update': {
-      id: '/_wms/item-info-update'
-      path: '/item-info-update'
-      fullPath: '/item-info-update'
-      preLoaderRoute: typeof WmsItemInfoUpdateRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/inventory-view': {
-      id: '/_wms/inventory-view'
-      path: '/inventory-view'
-      fullPath: '/inventory-view'
-      preLoaderRoute: typeof WmsInventoryViewRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/incidents': {
-      id: '/_wms/incidents'
-      path: '/incidents'
-      fullPath: '/incidents'
-      preLoaderRoute: typeof WmsIncidentsRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/inbound-exceptions': {
-      id: '/_wms/inbound-exceptions'
-      path: '/inbound-exceptions'
-      fullPath: '/inbound-exceptions'
-      preLoaderRoute: typeof WmsInboundExceptionsRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/grn': {
-      id: '/_wms/grn'
-      path: '/grn'
-      fullPath: '/grn'
-      preLoaderRoute: typeof WmsGrnRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/gatepass-log': {
-      id: '/_wms/gatepass-log'
-      path: '/gatepass-log'
-      fullPath: '/gatepass-log'
-      preLoaderRoute: typeof WmsGatepassLogRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/gate-entry': {
-      id: '/_wms/gate-entry'
-      path: '/gate-entry'
-      fullPath: '/gate-entry'
-      preLoaderRoute: typeof WmsGateEntryRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/floor-handhelds': {
-      id: '/_wms/floor-handhelds'
-      path: '/floor-handhelds'
-      fullPath: '/floor-handhelds'
-      preLoaderRoute: typeof WmsFloorHandheldsRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/drift-feedback': {
-      id: '/_wms/drift-feedback'
-      path: '/drift-feedback'
-      fullPath: '/drift-feedback'
-      preLoaderRoute: typeof WmsDriftFeedbackRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/dock-management': {
-      id: '/_wms/dock-management'
-      path: '/dock-management'
-      fullPath: '/dock-management'
-      preLoaderRoute: typeof WmsDockManagementRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/dispatch': {
-      id: '/_wms/dispatch'
-      path: '/dispatch'
-      fullPath: '/dispatch'
-      preLoaderRoute: typeof WmsDispatchRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/detailed-inventory-view': {
-      id: '/_wms/detailed-inventory-view'
-      path: '/detailed-inventory-view'
-      fullPath: '/detailed-inventory-view'
-      preLoaderRoute: typeof WmsDetailedInventoryViewRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/dashboard': {
-      id: '/_wms/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof WmsDashboardRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/cycle-count-config': {
-      id: '/_wms/cycle-count-config'
-      path: '/cycle-count-config'
-      fullPath: '/cycle-count-config'
-      preLoaderRoute: typeof WmsCycleCountConfigRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/customer-disputes': {
-      id: '/_wms/customer-disputes'
-      path: '/customer-disputes'
-      fullPath: '/customer-disputes'
-      preLoaderRoute: typeof WmsCustomerDisputesRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/control-tower': {
-      id: '/_wms/control-tower'
-      path: '/control-tower'
-      fullPath: '/control-tower'
-      preLoaderRoute: typeof WmsControlTowerRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/carrier-scorecards': {
-      id: '/_wms/carrier-scorecards'
-      path: '/carrier-scorecards'
-      fullPath: '/carrier-scorecards'
-      preLoaderRoute: typeof WmsCarrierScorecardsRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/billing-leakage': {
-      id: '/_wms/billing-leakage'
-      path: '/billing-leakage'
-      fullPath: '/billing-leakage'
-      preLoaderRoute: typeof WmsBillingLeakageRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/audit-log': {
-      id: '/_wms/audit-log'
-      path: '/audit-log'
-      fullPath: '/audit-log'
-      preLoaderRoute: typeof WmsAuditLogRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/approvals': {
-      id: '/_wms/approvals'
-      path: '/approvals'
-      fullPath: '/approvals'
-      preLoaderRoute: typeof WmsApprovalsRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/alerts': {
-      id: '/_wms/alerts'
-      path: '/alerts'
-      fullPath: '/alerts'
-      preLoaderRoute: typeof WmsAlertsRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/agent-health': {
-      id: '/_wms/agent-health'
-      path: '/agent-health'
-      fullPath: '/agent-health'
-      preLoaderRoute: typeof WmsAgentHealthRouteImport
+    '/_wms/admin': {
+      id: '/_wms/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof WmsAdminRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/agent-directory': {
@@ -1537,67 +1103,445 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsAgentDirectoryRouteImport
       parentRoute: typeof WmsRoute
     }
-    '/_wms/admin': {
-      id: '/_wms/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof WmsAdminRouteImport
+    '/_wms/agent-health': {
+      id: '/_wms/agent-health'
+      path: '/agent-health'
+      fullPath: '/agent-health'
+      preLoaderRoute: typeof WmsAgentHealthRouteImport
       parentRoute: typeof WmsRoute
     }
-    '/_wms/view-putaway/': {
-      id: '/_wms/view-putaway/'
-      path: '/view-putaway'
-      fullPath: '/view-putaway/'
-      preLoaderRoute: typeof WmsViewPutawayIndexRouteImport
+    '/_wms/alerts': {
+      id: '/_wms/alerts'
+      path: '/alerts'
+      fullPath: '/alerts'
+      preLoaderRoute: typeof WmsAlertsRouteImport
       parentRoute: typeof WmsRoute
     }
-    '/_wms/view-picklist/': {
-      id: '/_wms/view-picklist/'
-      path: '/view-picklist'
-      fullPath: '/view-picklist/'
-      preLoaderRoute: typeof WmsViewPicklistIndexRouteImport
+    '/_wms/approvals': {
+      id: '/_wms/approvals'
+      path: '/approvals'
+      fullPath: '/approvals'
+      preLoaderRoute: typeof WmsApprovalsRouteImport
       parentRoute: typeof WmsRoute
     }
-    '/_wms/view-pack/': {
-      id: '/_wms/view-pack/'
-      path: '/view-pack'
-      fullPath: '/view-pack/'
-      preLoaderRoute: typeof WmsViewPackIndexRouteImport
+    '/_wms/audit-log': {
+      id: '/_wms/audit-log'
+      path: '/audit-log'
+      fullPath: '/audit-log'
+      preLoaderRoute: typeof WmsAuditLogRouteImport
       parentRoute: typeof WmsRoute
     }
-    '/_wms/view-grn/': {
-      id: '/_wms/view-grn/'
-      path: '/view-grn'
-      fullPath: '/view-grn/'
-      preLoaderRoute: typeof WmsViewGrnIndexRouteImport
+    '/_wms/billing-leakage': {
+      id: '/_wms/billing-leakage'
+      path: '/billing-leakage'
+      fullPath: '/billing-leakage'
+      preLoaderRoute: typeof WmsBillingLeakageRouteImport
       parentRoute: typeof WmsRoute
     }
-    '/_wms/sort/': {
-      id: '/_wms/sort/'
-      path: '/sort'
-      fullPath: '/sort/'
-      preLoaderRoute: typeof WmsSortIndexRouteImport
+    '/_wms/carrier-scorecards': {
+      id: '/_wms/carrier-scorecards'
+      path: '/carrier-scorecards'
+      fullPath: '/carrier-scorecards'
+      preLoaderRoute: typeof WmsCarrierScorecardsRouteImport
       parentRoute: typeof WmsRoute
     }
-    '/_wms/purchase-return/': {
-      id: '/_wms/purchase-return/'
-      path: '/purchase-return'
-      fullPath: '/purchase-return/'
-      preLoaderRoute: typeof WmsPurchaseReturnIndexRouteImport
+    '/_wms/control-tower': {
+      id: '/_wms/control-tower'
+      path: '/control-tower'
+      fullPath: '/control-tower'
+      preLoaderRoute: typeof WmsControlTowerRouteImport
       parentRoute: typeof WmsRoute
     }
-    '/_wms/pick/': {
-      id: '/_wms/pick/'
-      path: '/pick'
-      fullPath: '/pick/'
-      preLoaderRoute: typeof WmsPickIndexRouteImport
+    '/_wms/customer-disputes': {
+      id: '/_wms/customer-disputes'
+      path: '/customer-disputes'
+      fullPath: '/customer-disputes'
+      preLoaderRoute: typeof WmsCustomerDisputesRouteImport
       parentRoute: typeof WmsRoute
     }
-    '/_wms/orders/': {
-      id: '/_wms/orders/'
-      path: '/orders'
-      fullPath: '/orders/'
-      preLoaderRoute: typeof WmsOrdersIndexRouteImport
+    '/_wms/cycle-count-config': {
+      id: '/_wms/cycle-count-config'
+      path: '/cycle-count-config'
+      fullPath: '/cycle-count-config'
+      preLoaderRoute: typeof WmsCycleCountConfigRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/dashboard': {
+      id: '/_wms/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof WmsDashboardRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/detailed-inventory-view': {
+      id: '/_wms/detailed-inventory-view'
+      path: '/detailed-inventory-view'
+      fullPath: '/detailed-inventory-view'
+      preLoaderRoute: typeof WmsDetailedInventoryViewRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/dispatch': {
+      id: '/_wms/dispatch'
+      path: '/dispatch'
+      fullPath: '/dispatch'
+      preLoaderRoute: typeof WmsDispatchRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/dock-management': {
+      id: '/_wms/dock-management'
+      path: '/dock-management'
+      fullPath: '/dock-management'
+      preLoaderRoute: typeof WmsDockManagementRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/drift-feedback': {
+      id: '/_wms/drift-feedback'
+      path: '/drift-feedback'
+      fullPath: '/drift-feedback'
+      preLoaderRoute: typeof WmsDriftFeedbackRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/floor-handhelds': {
+      id: '/_wms/floor-handhelds'
+      path: '/floor-handhelds'
+      fullPath: '/floor-handhelds'
+      preLoaderRoute: typeof WmsFloorHandheldsRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/gate-entry': {
+      id: '/_wms/gate-entry'
+      path: '/gate-entry'
+      fullPath: '/gate-entry'
+      preLoaderRoute: typeof WmsGateEntryRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/gatepass-log': {
+      id: '/_wms/gatepass-log'
+      path: '/gatepass-log'
+      fullPath: '/gatepass-log'
+      preLoaderRoute: typeof WmsGatepassLogRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/grn': {
+      id: '/_wms/grn'
+      path: '/grn'
+      fullPath: '/grn'
+      preLoaderRoute: typeof WmsGrnRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/inbound-exceptions': {
+      id: '/_wms/inbound-exceptions'
+      path: '/inbound-exceptions'
+      fullPath: '/inbound-exceptions'
+      preLoaderRoute: typeof WmsInboundExceptionsRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/incidents': {
+      id: '/_wms/incidents'
+      path: '/incidents'
+      fullPath: '/incidents'
+      preLoaderRoute: typeof WmsIncidentsRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/inventory-view': {
+      id: '/_wms/inventory-view'
+      path: '/inventory-view'
+      fullPath: '/inventory-view'
+      preLoaderRoute: typeof WmsInventoryViewRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/item-info-update': {
+      id: '/_wms/item-info-update'
+      path: '/item-info-update'
+      fullPath: '/item-info-update'
+      preLoaderRoute: typeof WmsItemInfoUpdateRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/item-movement': {
+      id: '/_wms/item-movement'
+      path: '/item-movement'
+      fullPath: '/item-movement'
+      preLoaderRoute: typeof WmsItemMovementRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/kit-mapping': {
+      id: '/_wms/kit-mapping'
+      path: '/kit-mapping'
+      fullPath: '/kit-mapping'
+      preLoaderRoute: typeof WmsKitMappingRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/kit-order': {
+      id: '/_wms/kit-order'
+      path: '/kit-order'
+      fullPath: '/kit-order'
+      preLoaderRoute: typeof WmsKitOrderRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/kitting': {
+      id: '/_wms/kitting'
+      path: '/kitting'
+      fullPath: '/kitting'
+      preLoaderRoute: typeof WmsKittingRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/lane-congestion': {
+      id: '/_wms/lane-congestion'
+      path: '/lane-congestion'
+      fullPath: '/lane-congestion'
+      preLoaderRoute: typeof WmsLaneCongestionRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/manifest': {
+      id: '/_wms/manifest'
+      path: '/manifest'
+      fullPath: '/manifest'
+      preLoaderRoute: typeof WmsManifestRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/master-data': {
+      id: '/_wms/master-data'
+      path: '/master-data'
+      fullPath: '/master-data'
+      preLoaderRoute: typeof WmsMasterDataRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/movement-task-create': {
+      id: '/_wms/movement-task-create'
+      path: '/movement-task-create'
+      fullPath: '/movement-task-create'
+      preLoaderRoute: typeof WmsMovementTaskCreateRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/outbound-exceptions': {
+      id: '/_wms/outbound-exceptions'
+      path: '/outbound-exceptions'
+      fullPath: '/outbound-exceptions'
+      preLoaderRoute: typeof WmsOutboundExceptionsRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/pack': {
+      id: '/_wms/pack'
+      path: '/pack'
+      fullPath: '/pack'
+      preLoaderRoute: typeof WmsPackRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/pack-b2b': {
+      id: '/_wms/pack-b2b'
+      path: '/pack-b2b'
+      fullPath: '/pack-b2b'
+      preLoaderRoute: typeof WmsPackB2bRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/pack-b2b-v2': {
+      id: '/_wms/pack-b2b-v2'
+      path: '/pack-b2b-v2'
+      fullPath: '/pack-b2b-v2'
+      preLoaderRoute: typeof WmsPackB2bV2RouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/pack-redesign': {
+      id: '/_wms/pack-redesign'
+      path: '/pack-redesign'
+      fullPath: '/pack-redesign'
+      preLoaderRoute: typeof WmsPackRedesignRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/policies': {
+      id: '/_wms/policies'
+      path: '/policies'
+      fullPath: '/policies'
+      preLoaderRoute: typeof WmsPoliciesRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/putaway': {
+      id: '/_wms/putaway'
+      path: '/putaway'
+      fullPath: '/putaway'
+      preLoaderRoute: typeof WmsPutawayRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/putwall': {
+      id: '/_wms/putwall'
+      path: '/putwall'
+      fullPath: '/putwall'
+      preLoaderRoute: typeof WmsPutwallRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/qc-station': {
+      id: '/_wms/qc-station'
+      path: '/qc-station'
+      fullPath: '/qc-station'
+      preLoaderRoute: typeof WmsQcStationRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/recovery-queue': {
+      id: '/_wms/recovery-queue'
+      path: '/recovery-queue'
+      fullPath: '/recovery-queue'
+      preLoaderRoute: typeof WmsRecoveryQueueRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/reject-reason-master': {
+      id: '/_wms/reject-reason-master'
+      path: '/reject-reason-master'
+      fullPath: '/reject-reason-master'
+      preLoaderRoute: typeof WmsRejectReasonMasterRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/replenishment': {
+      id: '/_wms/replenishment'
+      path: '/replenishment'
+      fullPath: '/replenishment'
+      preLoaderRoute: typeof WmsReplenishmentRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/replenishment-setup': {
+      id: '/_wms/replenishment-setup'
+      path: '/replenishment-setup'
+      fullPath: '/replenishment-setup'
+      preLoaderRoute: typeof WmsReplenishmentSetupRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/reports': {
+      id: '/_wms/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof WmsReportsRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/returns-cir': {
+      id: '/_wms/returns-cir'
+      path: '/returns-cir'
+      fullPath: '/returns-cir'
+      preLoaderRoute: typeof WmsReturnsCirRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/returns-evaluation': {
+      id: '/_wms/returns-evaluation'
+      path: '/returns-evaluation'
+      fullPath: '/returns-evaluation'
+      preLoaderRoute: typeof WmsReturnsEvaluationRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/returns-intake': {
+      id: '/_wms/returns-intake'
+      path: '/returns-intake'
+      fullPath: '/returns-intake'
+      preLoaderRoute: typeof WmsReturnsIntakeRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/returns-rto': {
+      id: '/_wms/returns-rto'
+      path: '/returns-rto'
+      fullPath: '/returns-rto'
+      preLoaderRoute: typeof WmsReturnsRtoRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/returns-rtv': {
+      id: '/_wms/returns-rtv'
+      path: '/returns-rtv'
+      fullPath: '/returns-rtv'
+      preLoaderRoute: typeof WmsReturnsRtvRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/sales-return-grn': {
+      id: '/_wms/sales-return-grn'
+      path: '/sales-return-grn'
+      fullPath: '/sales-return-grn'
+      preLoaderRoute: typeof WmsSalesReturnGrnRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/site-performance': {
+      id: '/_wms/site-performance'
+      path: '/site-performance'
+      fullPath: '/site-performance'
+      preLoaderRoute: typeof WmsSitePerformanceRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/slotting': {
+      id: '/_wms/slotting'
+      path: '/slotting'
+      fullPath: '/slotting'
+      preLoaderRoute: typeof WmsSlottingRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/slotting-config': {
+      id: '/_wms/slotting-config'
+      path: '/slotting-config'
+      fullPath: '/slotting-config'
+      preLoaderRoute: typeof WmsSlottingConfigRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/stuck-orders': {
+      id: '/_wms/stuck-orders'
+      path: '/stuck-orders'
+      fullPath: '/stuck-orders'
+      preLoaderRoute: typeof WmsStuckOrdersRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/table-id-master': {
+      id: '/_wms/table-id-master'
+      path: '/table-id-master'
+      fullPath: '/table-id-master'
+      preLoaderRoute: typeof WmsTableIdMasterRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/trends': {
+      id: '/_wms/trends'
+      path: '/trends'
+      fullPath: '/trends'
+      preLoaderRoute: typeof WmsTrendsRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/unloading': {
+      id: '/_wms/unloading'
+      path: '/unloading'
+      fullPath: '/unloading'
+      preLoaderRoute: typeof WmsUnloadingRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/users-roles': {
+      id: '/_wms/users-roles'
+      path: '/users-roles'
+      fullPath: '/users-roles'
+      preLoaderRoute: typeof WmsUsersRolesRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/vendor-scorecards': {
+      id: '/_wms/vendor-scorecards'
+      path: '/vendor-scorecards'
+      fullPath: '/vendor-scorecards'
+      preLoaderRoute: typeof WmsVendorScorecardsRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/view-dispatch': {
+      id: '/_wms/view-dispatch'
+      path: '/view-dispatch'
+      fullPath: '/view-dispatch'
+      preLoaderRoute: typeof WmsViewDispatchRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/view-manifest': {
+      id: '/_wms/view-manifest'
+      path: '/view-manifest'
+      fullPath: '/view-manifest'
+      preLoaderRoute: typeof WmsViewManifestRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/warehouse-settings': {
+      id: '/_wms/warehouse-settings'
+      path: '/warehouse-settings'
+      fullPath: '/warehouse-settings'
+      preLoaderRoute: typeof WmsWarehouseSettingsRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/wave-creation': {
+      id: '/_wms/wave-creation'
+      path: '/wave-creation'
+      fullPath: '/wave-creation'
+      preLoaderRoute: typeof WmsWaveCreationRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/cycle-count/': {
@@ -1607,67 +1551,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsCycleCountIndexRouteImport
       parentRoute: typeof WmsRoute
     }
-    '/_wms/view-putaway/$putawayId': {
-      id: '/_wms/view-putaway/$putawayId'
-      path: '/view-putaway/$putawayId'
-      fullPath: '/view-putaway/$putawayId'
-      preLoaderRoute: typeof WmsViewPutawayPutawayIdRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/view-picklist/$picklistId': {
-      id: '/_wms/view-picklist/$picklistId'
-      path: '/view-picklist/$picklistId'
-      fullPath: '/view-picklist/$picklistId'
-      preLoaderRoute: typeof WmsViewPicklistPicklistIdRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/view-pack/$packlistId': {
-      id: '/_wms/view-pack/$packlistId'
-      path: '/view-pack/$packlistId'
-      fullPath: '/view-pack/$packlistId'
-      preLoaderRoute: typeof WmsViewPackPacklistIdRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/view-grn/$grnId': {
-      id: '/_wms/view-grn/$grnId'
-      path: '/view-grn/$grnId'
-      fullPath: '/view-grn/$grnId'
-      preLoaderRoute: typeof WmsViewGrnGrnIdRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/sort/empty': {
-      id: '/_wms/sort/empty'
-      path: '/sort/empty'
-      fullPath: '/sort/empty'
-      preLoaderRoute: typeof WmsSortEmptyRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/sort/$taskId': {
-      id: '/_wms/sort/$taskId'
-      path: '/sort/$taskId'
-      fullPath: '/sort/$taskId'
-      preLoaderRoute: typeof WmsSortTaskIdRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/purchase-return/$rtvNo': {
-      id: '/_wms/purchase-return/$rtvNo'
-      path: '/purchase-return/$rtvNo'
-      fullPath: '/purchase-return/$rtvNo'
-      preLoaderRoute: typeof WmsPurchaseReturnRtvNoRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/pick/$picklistId': {
-      id: '/_wms/pick/$picklistId'
-      path: '/pick/$picklistId'
-      fullPath: '/pick/$picklistId'
-      preLoaderRoute: typeof WmsPickPicklistIdRouteImport
-      parentRoute: typeof WmsRoute
-    }
-    '/_wms/orders/$orderNo': {
-      id: '/_wms/orders/$orderNo'
-      path: '/orders/$orderNo'
-      fullPath: '/orders/$orderNo'
-      preLoaderRoute: typeof WmsOrdersOrderNoRouteImport
+    '/_wms/cycle-count/$taskId': {
+      id: '/_wms/cycle-count/$taskId'
+      path: '/cycle-count/$taskId'
+      fullPath: '/cycle-count/$taskId'
+      preLoaderRoute: typeof WmsCycleCountTaskIdRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/cycle-count/ledger': {
@@ -1677,11 +1565,123 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsCycleCountLedgerRouteImport
       parentRoute: typeof WmsRoute
     }
-    '/_wms/cycle-count/$taskId': {
-      id: '/_wms/cycle-count/$taskId'
-      path: '/cycle-count/$taskId'
-      fullPath: '/cycle-count/$taskId'
-      preLoaderRoute: typeof WmsCycleCountTaskIdRouteImport
+    '/_wms/orders/': {
+      id: '/_wms/orders/'
+      path: '/orders'
+      fullPath: '/orders/'
+      preLoaderRoute: typeof WmsOrdersIndexRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/orders/$orderNo': {
+      id: '/_wms/orders/$orderNo'
+      path: '/orders/$orderNo'
+      fullPath: '/orders/$orderNo'
+      preLoaderRoute: typeof WmsOrdersOrderNoRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/pick/': {
+      id: '/_wms/pick/'
+      path: '/pick'
+      fullPath: '/pick/'
+      preLoaderRoute: typeof WmsPickIndexRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/pick/$picklistId': {
+      id: '/_wms/pick/$picklistId'
+      path: '/pick/$picklistId'
+      fullPath: '/pick/$picklistId'
+      preLoaderRoute: typeof WmsPickPicklistIdRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/purchase-return/': {
+      id: '/_wms/purchase-return/'
+      path: '/purchase-return'
+      fullPath: '/purchase-return/'
+      preLoaderRoute: typeof WmsPurchaseReturnIndexRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/purchase-return/$rtvNo': {
+      id: '/_wms/purchase-return/$rtvNo'
+      path: '/purchase-return/$rtvNo'
+      fullPath: '/purchase-return/$rtvNo'
+      preLoaderRoute: typeof WmsPurchaseReturnRtvNoRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/sort/': {
+      id: '/_wms/sort/'
+      path: '/sort'
+      fullPath: '/sort/'
+      preLoaderRoute: typeof WmsSortIndexRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/sort/$taskId': {
+      id: '/_wms/sort/$taskId'
+      path: '/sort/$taskId'
+      fullPath: '/sort/$taskId'
+      preLoaderRoute: typeof WmsSortTaskIdRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/sort/empty': {
+      id: '/_wms/sort/empty'
+      path: '/sort/empty'
+      fullPath: '/sort/empty'
+      preLoaderRoute: typeof WmsSortEmptyRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/view-grn/': {
+      id: '/_wms/view-grn/'
+      path: '/view-grn'
+      fullPath: '/view-grn/'
+      preLoaderRoute: typeof WmsViewGrnIndexRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/view-grn/$grnId': {
+      id: '/_wms/view-grn/$grnId'
+      path: '/view-grn/$grnId'
+      fullPath: '/view-grn/$grnId'
+      preLoaderRoute: typeof WmsViewGrnGrnIdRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/view-pack/': {
+      id: '/_wms/view-pack/'
+      path: '/view-pack'
+      fullPath: '/view-pack/'
+      preLoaderRoute: typeof WmsViewPackIndexRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/view-pack/$packlistId': {
+      id: '/_wms/view-pack/$packlistId'
+      path: '/view-pack/$packlistId'
+      fullPath: '/view-pack/$packlistId'
+      preLoaderRoute: typeof WmsViewPackPacklistIdRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/view-picklist/': {
+      id: '/_wms/view-picklist/'
+      path: '/view-picklist'
+      fullPath: '/view-picklist/'
+      preLoaderRoute: typeof WmsViewPicklistIndexRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/view-picklist/$picklistId': {
+      id: '/_wms/view-picklist/$picklistId'
+      path: '/view-picklist/$picklistId'
+      fullPath: '/view-picklist/$picklistId'
+      preLoaderRoute: typeof WmsViewPicklistPicklistIdRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/view-putaway/': {
+      id: '/_wms/view-putaway/'
+      path: '/view-putaway'
+      fullPath: '/view-putaway/'
+      preLoaderRoute: typeof WmsViewPutawayIndexRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/view-putaway/$putawayId': {
+      id: '/_wms/view-putaway/$putawayId'
+      path: '/view-putaway/$putawayId'
+      fullPath: '/view-putaway/$putawayId'
+      preLoaderRoute: typeof WmsViewPutawayPutawayIdRouteImport
       parentRoute: typeof WmsRoute
     }
   }
