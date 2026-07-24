@@ -766,13 +766,13 @@ function Unloading() {
                   Capture a photo of the FE&apos;s HHT (showing the handed-over
                   return shipments) as POD before closing this unloading.
                 </p>
-                <button
-                  onClick={() => setReturnPodCaptured((v) => !v)}
+
+                <div
                   className={cn(
-                    "flex w-full flex-col items-center gap-2 rounded-md border-2 border-dashed px-4 py-8 text-center transition-colors",
+                    "flex w-full flex-col items-center gap-2 rounded-md border-2 border-dashed px-4 py-6 text-center",
                     returnPodCaptured
                       ? "border-status-dispatched/40 bg-status-dispatched/5"
-                      : "border-border hover:border-primary/40 hover:bg-muted/40",
+                      : "border-border bg-muted/20",
                   )}
                 >
                   {returnPodCaptured ? (
@@ -781,22 +781,35 @@ function Unloading() {
                       <span className="text-xs font-medium text-status-dispatched">
                         hht-pod.jpg uploaded
                       </span>
-                      <span className="text-[11px] text-muted-foreground">
-                        Tap to retake
-                      </span>
                     </>
                   ) : (
                     <>
-                      <Camera className="h-8 w-8 text-primary" />
-                      <span className="text-xs font-medium">
-                        Capture / upload FE&apos;s HHT photo
-                      </span>
-                      <span className="text-[11px] text-muted-foreground">
-                        Proof the FE handed over the return shipments
+                      <Camera className="h-8 w-8 text-muted-foreground" />
+                      <span className="text-xs font-medium text-muted-foreground">
+                        No photo uploaded yet
                       </span>
                     </>
                   )}
-                </button>
+                </div>
+
+                <Button
+                  type="button"
+                  variant={returnPodCaptured ? "outline" : "default"}
+                  className="h-11 w-full"
+                  onClick={() => setReturnPodCaptured((v) => !v)}
+                >
+                  {returnPodCaptured ? (
+                    <>
+                      <CheckCircle2 className="mr-2 h-4 w-4 text-status-dispatched" />
+                      Uploaded — tap to retake
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="mr-2 h-4 w-4" />
+                      Upload FE&apos;s HHT photo
+                    </>
+                  )}
+                </Button>
               </Card>
 
               <Button
@@ -926,23 +939,21 @@ function Unloading() {
         </DialogContent>
       </Dialog>
 
-      {/* Return acknowledgement — one-page printout of all stock accepted for return */}
+      {/* Return acknowledgement — one-page A4 printout of all stock accepted for return */}
       <Dialog open={ackSheetOpen} onOpenChange={setAckSheetOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-[420px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Printer className="h-4 w-4" />
               Return Acknowledgement
             </DialogTitle>
           </DialogHeader>
-          <div className="max-h-[70vh] overflow-y-auto">
-            <ReturnAckSheet
-              gatePass={gatePass}
-              seller={gatePassSeller}
-              closedAt={closedAt}
-              returns={returns}
-            />
-          </div>
+          <ReturnAckSheet
+            gatePass={gatePass}
+            seller={gatePassSeller}
+            closedAt={closedAt}
+            returns={returns}
+          />
           <DialogFooter>
             <Button className="w-full" onClick={() => setAckSheetOpen(false)}>
               <CheckCircle2 className="mr-2 h-4 w-4" />
@@ -1136,18 +1147,20 @@ function ReturnAckSheet({
   ).length;
   const unidentifiedCount = returns.length - identifiedCount;
   return (
-    <div className="space-y-4 rounded-md border border-border bg-background p-5 text-sm">
-      <div className="space-y-0.5 text-center">
-        <div className="text-base font-semibold">Return Acknowledgement</div>
-        <div className="text-[11px] text-muted-foreground">
+    <div className="mx-auto flex aspect-[210/297] w-full max-h-[75vh] flex-col overflow-y-auto rounded-sm border border-black bg-white px-5 py-4 text-[11px] leading-tight text-black">
+      <div className="space-y-0.5 border-b border-black pb-2 text-center">
+        <div className="text-sm font-bold uppercase tracking-[0.04em]">
+          Return Acknowledgement
+        </div>
+        <div className="text-[9px] text-neutral-600">
           Stock accepted for return at Unloading
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 border-y border-dashed border-border py-3 text-xs">
-        <Fact label="Gate Pass" value={gatePass ?? "—"} mono />
-        <Fact label="Seller" value={seller ?? "—"} />
-        <Fact
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 border-b border-black py-2.5">
+        <PrintFact label="Gate Pass" value={gatePass ?? "—"} />
+        <PrintFact label="Seller" value={seller ?? "—"} />
+        <PrintFact
           label="Accepted At"
           value={
             closedAt
@@ -1162,64 +1175,79 @@ function ReturnAckSheet({
               : "—"
           }
         />
-        <Fact label="Total Shipments" value={String(returns.length)} />
+        <PrintFact label="Total Shipments" value={String(returns.length)} />
       </div>
 
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        <div className="rounded-md border border-status-picked/30 bg-status-picked/5 px-2 py-1.5 text-center">
-          <div className="font-mono text-lg font-bold tabular-nums text-status-picked">
+      <div className="grid grid-cols-2 gap-2 py-2.5">
+        <div className="border border-black px-2 py-1.5 text-center">
+          <div className="text-base font-bold tabular-nums">
             {identifiedCount}
           </div>
-          <div className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground">
+          <div className="text-[9px] uppercase tracking-[0.06em] text-neutral-600">
             Identified
           </div>
         </div>
-        <div className="rounded-md border border-warn/30 bg-warn-bg px-2 py-1.5 text-center">
-          <div className="font-mono text-lg font-bold tabular-nums text-warn">
+        <div className="border border-black px-2 py-1.5 text-center">
+          <div className="text-base font-bold tabular-nums">
             {unidentifiedCount}
           </div>
-          <div className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground">
+          <div className="text-[9px] uppercase tracking-[0.06em] text-neutral-600">
             Unidentified
           </div>
         </div>
       </div>
 
-      <table className="w-full text-left text-xs">
+      <table className="w-full border-collapse text-[10px]">
         <thead>
-          <tr className="border-b border-border text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
-            <th className="py-1.5 pr-2 font-medium">Sr</th>
-            <th className="py-1.5 pr-2 font-medium">AWB</th>
-            <th className="py-1.5 pr-2 font-medium">Seller</th>
-            <th className="py-1.5 font-medium">Type</th>
+          <tr className="bg-neutral-100 text-[9px] uppercase tracking-[0.06em] text-neutral-600">
+            <th className="border border-black px-1 py-0.5 w-7 text-center font-medium">
+              Sr
+            </th>
+            <th className="border border-black px-1 py-0.5 text-left font-medium">
+              AWB
+            </th>
+            <th className="border border-black px-1 py-0.5 text-left font-medium">
+              Seller
+            </th>
+            <th className="border border-black px-1 py-0.5 w-20 text-center font-medium">
+              Type
+            </th>
           </tr>
         </thead>
         <tbody>
           {returns.map((r, i) => (
-            <tr key={r.awb} className="border-b border-border/60">
-              <td className="py-1.5 pr-2 text-muted-foreground">{i + 1}</td>
-              <td className="py-1.5 pr-2 font-mono font-semibold">{r.awb}</td>
-              <td className="py-1.5 pr-2">{r.seller}</td>
-              <td className="py-1.5">
-                <span
-                  className={cn(
-                    "rounded-[3px] px-1.5 py-0.5 text-[10px] font-medium",
-                    r.bucket === "identified"
-                      ? "bg-status-picked/15 text-status-picked"
-                      : "bg-warn-bg text-warn",
-                  )}
-                >
-                  {r.bucket === "identified" ? "Identified" : "Unidentified"}
-                </span>
+            <tr key={r.awb}>
+              <td className="border border-black px-1 py-0.5 text-center tabular-nums">
+                {i + 1}
+              </td>
+              <td className="border border-black px-1 py-0.5 font-mono font-semibold">
+                {r.awb}
+              </td>
+              <td className="border border-black px-1 py-0.5">{r.seller}</td>
+              <td className="border border-black px-1 py-0.5 text-center">
+                {r.bucket === "identified" ? "Identified" : "Unidentified"}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      <div className="border-t border-dashed border-border pt-3 text-center text-[10px] text-muted-foreground">
+      <div className="mt-auto border-t border-black pt-2 text-center text-[9px] text-neutral-600">
         This acknowledgement confirms the above stock was received at
         Unloading and accepted for return processing.
+        <div className="mt-0.5">Powered by Shiprocket WMS</div>
       </div>
+    </div>
+  );
+}
+
+function PrintFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-[9px] uppercase tracking-[0.06em] text-neutral-600">
+        {label}
+      </div>
+      <div className="font-semibold">{value}</div>
     </div>
   );
 }
