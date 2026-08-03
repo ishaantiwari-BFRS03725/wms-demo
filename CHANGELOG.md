@@ -1,5 +1,21 @@
 # Changelog
 
+- 2026-08-03: Inventory View (`/inventory-view`) — added a "Total Inventory: X · Available: Y" summary line above the Filters row, summing the Total Quantity and Available Quantity columns across the currently filtered/searched rows (recomputes live as filters or search change).
+
+- 2026-08-03: Rewrote `artefacts/Summarized-Inventory-View-PRD.md` to be grounded in the actual built `/inventory-view` screen instead of the earlier speculative SKU-rollup design. Corrected data grain (one row per Warehouse × SKU × Storage Type × Inventory Type, not a pure SKU rollup — the same SKU can appear multiple times across states), documented the real columns/filters/sort/CSV/red-flag behavior as built, and moved the old rollup idea to Open Questions as a possible follow-up rather than the spec.
+
+- 2026-08-03: Inventory View (`/inventory-view`) — added click-to-sort (ascending/descending) on the three quantity columns (Total/Available/Blocked Quantity). Clicking a header cycles asc → desc → unsorted, with an arrow icon indicating state; CSV download now exports in the current sort order.
+
+- 2026-08-03: Inventory View (`/inventory-view`) — fixed two rendering issues from the prior "Bad" red-flag change: removed the bold-monospace `iv-td-strong` styling on the SKU column (was making it look dark/heavy for no reason), and fixed a CSS specificity bug where `.iv-bad`'s red color was being overridden by `.iv-screen td`'s color rule (bumped selector to `.iv-screen .iv-bad`), so "Bad" now actually renders red instead of bold black.
+
+- 2026-08-03: Inventory View (`/inventory-view`) — "Bad" values in the Inventory Type column now render in red (`.iv-bad`, `#b91c1c` semibold) to flag them visually.
+
+- 2026-08-03: Inventory View (`/inventory-view`, the SKU-level summarized inventory screen) — renamed the "Inventory Tab" column/filter to "Inventory Type" for clarity.
+
+- 2026-08-03: Added `artefacts/Summarized-Inventory-View-PRD.md` — a brief PRD for a companion "Summarized Inventory View" screen (SKU-level rollup across bins/lots, complementing the existing Detailed Inventory View). Covers problem, goals/non-goals, field-level rollup logic, screen requirements (filters, drill-down to Detailed view, empty-state pattern), and two open questions (net vs. separate Available/Blocked columns, whether Cancel/Missing quantities count toward the headline Total).
+
+- 2026-07-24: Added `artefacts/WMS-Implementation-Roadmap.xlsx` — a 4-sheet Excel template for planning the WMS rollout (How to Use, Roadmap, Seller Onboarding Ramp, Status Legend). Roadmap sheet covers 7 phases (Planning & Setup → Training & Enablement → Documentation → Pilot → Stabilization → Phased Seller Onboarding → Full Rollout/BAU) with sample activities, owners, dates, dependencies, exit criteria, and status colour-coding via conditional formatting. Seller Onboarding Ramp sheet shows a wave-by-wave seller/warehouse scale-up with cumulative coverage.
+
 - 2026-07-23: Masters — added a new "Reject Reason Master" screen (`/reject-reason-master`, sidebar under Masters) following the Table ID Master's scoped-CSS pattern. Table columns: Reason Code, Reject Reason, Level (L1/L2/L3), Seller, Storage Subtype, Applicability, VAS Eligible (Ext Code kept in the data model but hidden from the table per feedback), seeded with 18 dummy reasons across `SELLER_DIRECTORY` sellers. Filters: Level chips, Seller select, code/description search (no metric cards — removed per feedback). "Add New Reason" opens a modal with Reason Code (PK, unique), Seller, Reason Description, optional Storage Subtype Mapping, Process Applicability (Inbound GRN / Sales Return QC / Both), and a VAS Eligibility Yes/No toggle; new rows default to Ext Code blank and Level L1 since the form doesn't capture those.
 
 - 2026-07-23: Gate Entry (`/gate-entry`) — removed the "Print All Passes" button and its dialog from the Complete step (dropped `printAllOpen` state); each generated gate pass now only prints individually via its card's "Print Pass" button.

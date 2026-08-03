@@ -1,6 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Boxes, Download, Filter, Search } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  Boxes,
+  Download,
+  Filter,
+  Search,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_wms/inventory-view")({
   head: () => ({
@@ -15,7 +23,7 @@ const COLUMNS = [
   "Description",
   "Product Category",
   "Storage Type",
-  "Inventory Tab",
+  "Inventory Type",
   "Total Quantity",
   "Available Quantity",
   "Blocked Quantity",
@@ -33,7 +41,7 @@ const FILTER_COLS = [
   "WH Name",
   "Product Category",
   "Storage Type",
-  "Inventory Tab",
+  "Inventory Type",
 ];
 
 const ROWS: string[][] = [
@@ -54,6 +62,9 @@ const ROWS: string[][] = [
 function InventoryView() {
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<Record<string, string>>({});
+  const [sort, setSort] = useState<{ col: string; dir: "asc" | "desc" } | null>(
+    null,
+  );
 
   const optionsFor = (col: string) => {
     const idx = COLUMNS.indexOf(col);
@@ -76,11 +87,37 @@ function InventoryView() {
     return matchesSearch && matchesFilters;
   });
 
+  const totalQtyIdx = COLUMNS.indexOf("Total Quantity");
+  const availQtyIdx = COLUMNS.indexOf("Available Quantity");
+  const totalQtySum = filteredRows.reduce(
+    (sum, r) => sum + Number(r[totalQtyIdx]),
+    0,
+  );
+  const availQtySum = filteredRows.reduce(
+    (sum, r) => sum + Number(r[availQtyIdx]),
+    0,
+  );
+
+  const sortedRows = sort
+    ? [...filteredRows].sort((a, b) => {
+        const idx = COLUMNS.indexOf(sort.col);
+        const diff = Number(a[idx]) - Number(b[idx]);
+        return sort.dir === "asc" ? diff : -diff;
+      })
+    : filteredRows;
+
+  const toggleSort = (col: string) =>
+    setSort((prev) => {
+      if (!prev || prev.col !== col) return { col, dir: "asc" };
+      if (prev.dir === "asc") return { col, dir: "desc" };
+      return null;
+    });
+
   const downloadCsv = () => {
     const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
     const lines = [
       COLUMNS.map(esc).join(","),
-      ...filteredRows.map((row) => row.map(esc).join(",")),
+      ...sortedRows.map((row) => row.map(esc).join(",")),
     ];
     const blob = new Blob([lines.join("\n")], {
       type: "text/csv;charset=utf-8;",
@@ -139,6 +176,19 @@ function InventoryView() {
           </div>
         </div>
 
+        {/* Totals */}
+        <div className="iv-summary">
+          <span className="iv-summary-item">
+            Total Inventory: <strong>{totalQtySum.toLocaleString()}</strong>
+          </span>
+          <span className="iv-summary-sep" aria-hidden="true">
+            ·
+          </span>
+          <span className="iv-summary-item">
+            Available: <strong>{availQtySum.toLocaleString()}</strong>
+          </span>
+        </div>
+
         {/* Filters */}
         <div className="iv-filters">
           <span className="iv-filters-label">
@@ -168,22 +218,55 @@ function InventoryView() {
           <table>
             <thead>
               <tr>
-                {COLUMNS.map((c) => (
-                  <th key={c} className={NUMERIC_COLS.has(c) ? "iv-num" : ""}>
-                    {c}
-                  </th>
-                ))}
+                {COLUMNS.map((c) => {
+                  const numeric = NUMERIC_COLS.has(c);
+                  const active = sort?.col === c;
+                  return (
+                    <th
+                      key={c}
+                      className={[
+                        numeric ? "iv-num" : "",
+                        numeric ? "iv-sortable" : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      onClick={numeric ? () => toggleSort(c) : undefined}
+                    >
+                      {numeric ? (
+                        <span className="iv-th-sort">
+                          {c}
+                          {active && sort ? (
+                            sort.dir === "asc" ? (
+                              <ArrowUp className="iv-sort-ico" aria-hidden="true" />
+                            ) : (
+                              <ArrowDown className="iv-sort-ico" aria-hidden="true" />
+                            )
+                          ) : (
+                            <ArrowUpDown
+                              className="iv-sort-ico iv-sort-idle"
+                              aria-hidden="true"
+                            />
+                          )}
+                        </span>
+                      ) : (
+                        c
+                      )}
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
-              {filteredRows.map((row, ri) => (
+              {sortedRows.map((row, ri) => (
                 <tr key={ri}>
                   {row.map((cell, ci) => (
                     <td
                       key={ci}
                       className={[
-                        ci === 1 ? "iv-td-strong" : "",
                         NUMERIC_COLS.has(COLUMNS[ci]) ? "iv-num" : "",
+                        COLUMNS[ci] === "Inventory Type" && cell === "Bad"
+                          ? "iv-bad"
+                          : "",
                       ]
                         .filter(Boolean)
                         .join(" ")}
@@ -232,13 +315,20 @@ const css = `
 .iv-filter{position:relative;display:inline-flex;align-items:center}
 .iv-screen .iv-filter select{appearance:none;font-size:12px;padding:7px 26px 7px 11px;border:0.5px solid var(--c-border2);border-radius:8px;background:var(--c-bg);color:var(--c-t2);cursor:pointer;line-height:1;max-width:200px}
 .iv-screen .iv-filter select.iv-on{border-color:var(--c-info-b);color:var(--c-info-t);background:var(--c-info-bg);font-weight:600}
+.iv-summary{display:flex;align-items:center;gap:8px;padding:11px 18px;font-size:12px;color:var(--c-t2);border-bottom:0.5px solid var(--c-border)}
+.iv-summary strong{color:var(--c-t1);font-weight:700;font-variant-numeric:tabular-nums}
+.iv-summary-sep{color:var(--c-t3)}
 .iv-table-wrap{margin:16px 18px 0;overflow:auto;max-height:calc(100vh - 280px);border:0.5px solid var(--c-border);border-radius:9px}
 .iv-screen table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
 .iv-screen th{position:sticky;top:0;z-index:1;background:var(--c-bg2);text-align:left;font-weight:600;font-size:11px;color:var(--c-t3);padding:8px 11px;border-bottom:0.5px solid var(--c-border)}
 .iv-screen td{padding:8px 11px;border-bottom:0.5px solid var(--c-border);color:var(--c-t1)}
 .iv-screen th.iv-num,.iv-screen td.iv-num{text-align:right;font-variant-numeric:tabular-nums}
+.iv-screen th.iv-sortable{cursor:pointer;user-select:none}
+.iv-th-sort{display:inline-flex;align-items:center;gap:4px;justify-content:flex-end}
+.iv-sort-ico{width:12px;height:12px;flex:none}
+.iv-sort-idle{opacity:0.35}
 .iv-screen tr:last-child td{border-bottom:none}
-.iv-td-strong{font-weight:700;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.iv-screen .iv-bad{color:#b91c1c;font-weight:600}
 .iv-empty{text-align:center;color:var(--c-t3);padding:28px 11px}
 .iv-foot{padding:12px 18px;font-size:11px;color:var(--c-t3)}
 `;
