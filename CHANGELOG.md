@@ -1,5 +1,7 @@
 # Changelog
 
+- 2026-08-04: Cycle Count — added a "Supervisor Review" button (`/cycle-count` header) opening a new flat-table screen at `/cycle-count/supervisor-review` listing every counted bin across all tasks: Task ID, Status (OK/Excess/Short), Bin, SKU, Lot, MFG, Expiry, MRP, Pack Size, System, Physical, Diff Qty, Diff Amount. Each row has a leftmost checkbox (+ select-all in the header); a bulk Accept/Reject bar appears above the table once at least one row is checked. Each row also has its own Accept/Reject buttons, replaced by an Accepted/Rejected tag once decided (local component state only, no persistence — consistent with the rest of the Cycle Count mock).
+
 - 2026-08-03: Inventory View (`/inventory-view`) — added a "Total Inventory: X · Available: Y" summary line above the Filters row, summing the Total Quantity and Available Quantity columns across the currently filtered/searched rows (recomputes live as filters or search change).
 
 - 2026-08-03: Rewrote `artefacts/Summarized-Inventory-View-PRD.md` to be grounded in the actual built `/inventory-view` screen instead of the earlier speculative SKU-rollup design. Corrected data grain (one row per Warehouse × SKU × Storage Type × Inventory Type, not a pure SKU rollup — the same SKU can appear multiple times across states), documented the real columns/filters/sort/CSV/red-flag behavior as built, and moved the old rollup idea to Open Questions as a possible follow-up rather than the spec.
