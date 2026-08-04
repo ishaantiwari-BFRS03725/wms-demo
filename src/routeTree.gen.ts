@@ -94,6 +94,7 @@ import { Route as WmsSortTaskIdRouteImport } from './routes/_wms.sort.$taskId'
 import { Route as WmsPurchaseReturnRtvNoRouteImport } from './routes/_wms.purchase-return.$rtvNo'
 import { Route as WmsPickPicklistIdRouteImport } from './routes/_wms.pick.$picklistId'
 import { Route as WmsOrdersOrderNoRouteImport } from './routes/_wms.orders.$orderNo'
+import { Route as WmsCycleCountSupervisorReviewRouteImport } from './routes/_wms.cycle-count.supervisor-review'
 import { Route as WmsCycleCountLedgerRouteImport } from './routes/_wms.cycle-count.ledger'
 import { Route as WmsCycleCountTaskIdRouteImport } from './routes/_wms.cycle-count.$taskId'
 
@@ -523,6 +524,12 @@ const WmsOrdersOrderNoRoute = WmsOrdersOrderNoRouteImport.update({
   path: '/orders/$orderNo',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsCycleCountSupervisorReviewRoute =
+  WmsCycleCountSupervisorReviewRouteImport.update({
+    id: '/cycle-count/supervisor-review',
+    path: '/cycle-count/supervisor-review',
+    getParentRoute: () => WmsRoute,
+  } as any)
 const WmsCycleCountLedgerRoute = WmsCycleCountLedgerRouteImport.update({
   id: '/cycle-count/ledger',
   path: '/cycle-count/ledger',
@@ -603,6 +610,7 @@ export interface FileRoutesByFullPath {
   '/wave-creation': typeof WmsWaveCreationRoute
   '/cycle-count/$taskId': typeof WmsCycleCountTaskIdRoute
   '/cycle-count/ledger': typeof WmsCycleCountLedgerRoute
+  '/cycle-count/supervisor-review': typeof WmsCycleCountSupervisorReviewRoute
   '/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/pick/$picklistId': typeof WmsPickPicklistIdRoute
   '/purchase-return/$rtvNo': typeof WmsPurchaseReturnRtvNoRoute
@@ -691,6 +699,7 @@ export interface FileRoutesByTo {
   '/wave-creation': typeof WmsWaveCreationRoute
   '/cycle-count/$taskId': typeof WmsCycleCountTaskIdRoute
   '/cycle-count/ledger': typeof WmsCycleCountLedgerRoute
+  '/cycle-count/supervisor-review': typeof WmsCycleCountSupervisorReviewRoute
   '/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/pick/$picklistId': typeof WmsPickPicklistIdRoute
   '/purchase-return/$rtvNo': typeof WmsPurchaseReturnRtvNoRoute
@@ -781,6 +790,7 @@ export interface FileRoutesById {
   '/_wms/wave-creation': typeof WmsWaveCreationRoute
   '/_wms/cycle-count/$taskId': typeof WmsCycleCountTaskIdRoute
   '/_wms/cycle-count/ledger': typeof WmsCycleCountLedgerRoute
+  '/_wms/cycle-count/supervisor-review': typeof WmsCycleCountSupervisorReviewRoute
   '/_wms/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/_wms/pick/$picklistId': typeof WmsPickPicklistIdRoute
   '/_wms/purchase-return/$rtvNo': typeof WmsPurchaseReturnRtvNoRoute
@@ -871,6 +881,7 @@ export interface FileRouteTypes {
     | '/wave-creation'
     | '/cycle-count/$taskId'
     | '/cycle-count/ledger'
+    | '/cycle-count/supervisor-review'
     | '/orders/$orderNo'
     | '/pick/$picklistId'
     | '/purchase-return/$rtvNo'
@@ -959,6 +970,7 @@ export interface FileRouteTypes {
     | '/wave-creation'
     | '/cycle-count/$taskId'
     | '/cycle-count/ledger'
+    | '/cycle-count/supervisor-review'
     | '/orders/$orderNo'
     | '/pick/$picklistId'
     | '/purchase-return/$rtvNo'
@@ -1048,6 +1060,7 @@ export interface FileRouteTypes {
     | '/_wms/wave-creation'
     | '/_wms/cycle-count/$taskId'
     | '/_wms/cycle-count/ledger'
+    | '/_wms/cycle-count/supervisor-review'
     | '/_wms/orders/$orderNo'
     | '/_wms/pick/$picklistId'
     | '/_wms/purchase-return/$rtvNo'
@@ -1670,6 +1683,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsOrdersOrderNoRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/cycle-count/supervisor-review': {
+      id: '/_wms/cycle-count/supervisor-review'
+      path: '/cycle-count/supervisor-review'
+      fullPath: '/cycle-count/supervisor-review'
+      preLoaderRoute: typeof WmsCycleCountSupervisorReviewRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/cycle-count/ledger': {
       id: '/_wms/cycle-count/ledger'
       path: '/cycle-count/ledger'
@@ -1755,6 +1775,7 @@ interface WmsRouteChildren {
   WmsWaveCreationRoute: typeof WmsWaveCreationRoute
   WmsCycleCountTaskIdRoute: typeof WmsCycleCountTaskIdRoute
   WmsCycleCountLedgerRoute: typeof WmsCycleCountLedgerRoute
+  WmsCycleCountSupervisorReviewRoute: typeof WmsCycleCountSupervisorReviewRoute
   WmsOrdersOrderNoRoute: typeof WmsOrdersOrderNoRoute
   WmsPickPicklistIdRoute: typeof WmsPickPicklistIdRoute
   WmsPurchaseReturnRtvNoRoute: typeof WmsPurchaseReturnRtvNoRoute
@@ -1843,6 +1864,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsWaveCreationRoute: WmsWaveCreationRoute,
   WmsCycleCountTaskIdRoute: WmsCycleCountTaskIdRoute,
   WmsCycleCountLedgerRoute: WmsCycleCountLedgerRoute,
+  WmsCycleCountSupervisorReviewRoute: WmsCycleCountSupervisorReviewRoute,
   WmsOrdersOrderNoRoute: WmsOrdersOrderNoRoute,
   WmsPickPicklistIdRoute: WmsPickPicklistIdRoute,
   WmsPurchaseReturnRtvNoRoute: WmsPurchaseReturnRtvNoRoute,

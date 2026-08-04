@@ -1,10 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   AlertCircle,
   CheckCircle2,
   ChevronRight,
   ClipboardCheck,
+  ClipboardList,
   ListOrdered,
   Plus,
   ScanLine,
@@ -62,9 +63,17 @@ function CycleCount() {
         title="Cycle Count"
         subtitle={mode === "supervisor" ? `INVENTORY · ${active} ACTIVE · ${awaitingReview} AWAITING REVIEW · ${openSuspense} SUSPENSE OPEN` : "INVENTORY"}
         actions={
-          <div className="flex items-center gap-1 rounded-[4px] border border-border bg-card p-0.5">
-            <ModeButton active={mode === "supervisor"} onClick={() => setMode("supervisor")} icon={<ClipboardCheck className="h-3.5 w-3.5" />} label="Supervisor" />
-            <ModeButton active={mode === "operator"} onClick={() => setMode("operator")} icon={<Smartphone className="h-3.5 w-3.5" />} label="Operator HHT" />
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" className="h-8 gap-1.5 text-[12px]" asChild>
+              <Link to="/cycle-count/supervisor-review">
+                <ClipboardList className="h-3.5 w-3.5" />
+                Supervisor Review
+              </Link>
+            </Button>
+            <div className="flex items-center gap-1 rounded-[4px] border border-border bg-card p-0.5">
+              <ModeButton active={mode === "supervisor"} onClick={() => setMode("supervisor")} icon={<ClipboardCheck className="h-3.5 w-3.5" />} label="Supervisor" />
+              <ModeButton active={mode === "operator"} onClick={() => setMode("operator")} icon={<Smartphone className="h-3.5 w-3.5" />} label="Operator HHT" />
+            </div>
           </div>
         }
       />
