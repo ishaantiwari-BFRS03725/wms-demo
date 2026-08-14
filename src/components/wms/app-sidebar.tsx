@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   ArrowDownToLine,
   ArrowLeftRight,
+  ArrowRightToLine,
   ArrowUpFromLine,
   BadgeCheck,
   Ban,
@@ -13,6 +14,8 @@ import {
   ChevronRight,
   ClipboardCheck,
   ClipboardList,
+  Combine,
+  Container,
   DoorOpen,
   FileBarChart,
   Footprints,
@@ -53,6 +56,8 @@ import {
   Gauge,
   Star,
   LogIn,
+  ScanBarcode,
+  Sheet,
   Smartphone,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -163,7 +168,7 @@ const sections: NavSection[] = [
         icon: Hand,
         children: [
           { title: "Wave Creation", url: "/wave-creation", icon: Waves },
-          { title: "Pick", url: "/pick", icon: Hand },
+          { title: "Pick", url: "/pick", icon: ScanBarcode },
           {
             title: "View Picklists",
             url: "/view-picklist",
@@ -178,7 +183,7 @@ const sections: NavSection[] = [
         children: [
           { title: "Sort", url: "/sort", icon: ShuffleIcon },
           { title: "Putwall Management", url: "/putwall", icon: LayoutGrid },
-          { title: "Putwall Transfer", url: "/sort/empty", icon: PackageOpen },
+          { title: "Putwall Transfer", url: "/sort/empty", icon: ArrowRightToLine },
         ],
       },
       {
@@ -243,7 +248,7 @@ const sections: NavSection[] = [
   {
     label: "Inventory",
     items: [
-      { title: "Inventory View", url: "/inventory-view", icon: Boxes },
+      { title: "Inventory View", url: "/inventory-view", icon: Sheet },
       {
         title: "Detailed Inventory View",
         url: "/detailed-inventory-view",
@@ -256,7 +261,7 @@ const sections: NavSection[] = [
         title: "Kit",
         icon: Layers,
         children: [
-          { title: "Kit Mapping", url: "/kit-mapping", icon: Boxes },
+          { title: "Kit Mapping", url: "/kit-mapping", icon: Combine },
           { title: "Kit Order", url: "/kit-order", icon: FilePlus2 },
           { title: "Kitting", url: "/kitting", icon: PackageCheck },
         ],
@@ -309,7 +314,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="flex items-center gap-2 py-1.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 px-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] bg-ai text-white">
-            <Layers className="h-4 w-4" />
+            <Container className="h-4 w-4" />
           </div>
           <div className="flex min-w-0 flex-col leading-tight group-data-[collapsible=icon]:hidden">
             <span className="text-sm font-bold tracking-tight text-sidebar-accent-foreground">
