@@ -48,7 +48,7 @@ export const Route = createFileRoute("/_wms/wave-creation")({
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type OrderType   = "B2B" | "B2C" | "Kit Order" | "RTV" | "STO";
+type OrderType   = "B2B" | "B2C" | "RTV" | "STO";
 type PaymentMode = "COD" | "Prepaid";
 type DayKey       = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
 type ReleaseMode  = "order-wise" | "batch" | "cluster";
@@ -62,7 +62,7 @@ const INTERVAL_OPTIONS = [
   { value: "240", label: "4 hrs" },
 ];
 
-const ORDER_TYPES: OrderType[]     = ["B2B", "B2C", "Kit Order", "RTV", "STO"];
+const ORDER_TYPES: OrderType[]     = ["B2B", "B2C", "RTV", "STO"];
 const PAYMENT_MODES: PaymentMode[] = ["COD", "Prepaid"];
 const DAYS: DayKey[]               = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 

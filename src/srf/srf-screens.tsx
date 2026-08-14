@@ -1818,40 +1818,50 @@ const RTV_QUEUE = [
 ];
 
 const CIR_QUEUE = [
-  { id: 'CIR-9901', so: 'SO-43102', customer: 'T. Mehta · BLR', reason: 'Wrong item delivered', age: '2d', stage: 'inspect', items: 1, refund: 1899, fraud: 'low', photos: 4, ai: { disp: 'Refund + restock', conf: 89 } },
-  { id: 'CIR-9902', so: 'SO-43044', customer: 'V. Reddy · CHN', reason: 'Damaged in transit', age: '3d', stage: 'inspect', items: 2, refund: 3240, fraud: 'low', photos: 6, ai: { disp: 'Refund + RTV vendor', conf: 81 } },
-  { id: 'CIR-9903', so: 'SO-42988', customer: 'K. Bose · KOL', reason: 'Not as described', age: '5d', stage: 'pickup', items: 1, refund: 2150, fraud: 'med', photos: 2, ai: { disp: 'Refund · review fraud', conf: 62 } },
-  { id: 'CIR-9904', so: 'SO-43210', customer: 'D. Joshi · PUN', reason: 'Size mismatch', age: '1d', stage: 'pickup', items: 1, refund: 1499, fraud: 'low', photos: 3, ai: { disp: 'Restock A · refund', conf: 92 } },
-  { id: 'CIR-9905', so: 'SO-42741', customer: 'A. Nair · KOC', reason: 'Defective on arrival', age: '6d', stage: 'refund', items: 3, refund: 5700, fraud: 'low', photos: 8, ai: { disp: 'Refund + RTV vendor', conf: 87 } },
+  { id: 'CIR-9901', so: 'SO-43102', customer: 'T. Mehta · BLR', seller: 'Lumino Home', reason: 'Wrong item delivered', age: '2d', stage: 'open', items: 1, refund: 1899, fraud: 'low', photos: 4, ai: { disp: 'Refund + restock', conf: 89 }, channel: 'Amazon', expectedRecv: '16 Aug', courier: 'Delhivery', awb: 'DLV72910445', products: [{ sku: 'SKU-1102', name: 'Aurora Table Lamp — Walnut', qty: 1 }] },
+  { id: 'CIR-9902', so: 'SO-43044', customer: 'V. Reddy · CHN', seller: 'Halo Apparel', reason: 'Damaged in transit', age: '3d', stage: 'open', items: 2, refund: 3240, fraud: 'low', photos: 6, ai: { disp: 'Refund + RTV vendor', conf: 81 }, channel: 'Flipkart', expectedRecv: '17 Aug', courier: 'Ecom Express', awb: 'ECX58821903', products: [{ sku: 'SKU-4471', name: 'Halo Cotton Kurta — Indigo', qty: 2 }] },
+  { id: 'CIR-9903', so: 'SO-42988', customer: 'K. Bose · KOL', seller: 'Greenleaf Bev.', reason: 'Not as described', age: '5d', stage: 'received', items: 1, refund: 2150, fraud: 'med', photos: 2, ai: { disp: 'Refund · review fraud', conf: 62 }, channel: 'Shopify', expectedRecv: '18 Aug', courier: 'Bluedart', awb: 'BLD40017762', products: [{ sku: 'SKU-2901', name: 'Greenleaf Cold Brew — 6 pack', qty: 1 }] },
+  { id: 'CIR-9904', so: 'SO-43210', customer: 'D. Joshi · PUN', seller: 'Trailblaze Sports', reason: 'Size mismatch', age: '1d', stage: 'received', items: 1, refund: 1499, fraud: 'low', photos: 3, ai: { disp: 'Restock A · refund', conf: 92 }, channel: 'Myntra', expectedRecv: '15 Aug', courier: 'Delhivery', awb: 'DLV72988120', products: [{ sku: 'SKU-3312', name: 'Trailblaze Running Shoe — UK9', qty: 1 }] },
+  { id: 'CIR-9905', so: 'SO-42741', customer: 'A. Nair · KOC', seller: 'Northpole Dairy', reason: 'Defective on arrival', age: '6d', stage: 'closed', items: 3, refund: 5700, fraud: 'low', photos: 8, ai: { disp: 'Refund + RTV vendor', conf: 87 }, channel: 'Amazon', expectedRecv: '19 Aug', courier: 'XpressBees', awb: 'XPB99340025', products: [{ sku: 'SKU-5590', name: 'Northpole Ghee 1L', qty: 2 }, { sku: 'SKU-5591', name: 'Northpole Butter 500g', qty: 1 }, { sku: 'SKU-5592', name: 'Northpole Paneer 200g', qty: 2 }] },
 ];
 
 const STAGE_PCT = { identify: 16, inspect: 50, finance: 84 };
 
-const ReturnFlowHeader = ({ title, sub, sopLink, sopName, summary, kpis, agents }) => {
+const ReturnFlowHeader = ({ title, sub, sopLink, sopName, summary, kpis, agents, hideActions = false, hideSub = false, hideFlowSummary = false }) => {
   const { go } = useApp();
   return (
     <>
       <div className="page-head">
-        <div><h1>{title}</h1><div className="sub">{sub}</div></div>
-        <div className="act">
+        <div><h1>{title}</h1>{!hideSub && <div className="sub">{sub}</div>}</div>
+        {!hideActions && <div className="act">
           <button className="btn" onClick={() => go('sop_detail', { sopId: sopLink })}>SOP · {sopName}</button>
           <button className="btn">Export</button>
           <button className="btn primary">New {title.split('·')[0].trim().toLowerCase()}</button>
-        </div>
+        </div>}
       </div>
-      <div className="row mb-16" style={{ gridTemplateColumns: '2fr 1fr' }}>
-        <div className="card">
-          <div className="card-head"><h3>Flow summary</h3><span className="meta">PROCESS</span></div>
-          <div className="card-body" style={{ fontSize: 13 }}>{summary}</div>
-        </div>
-        <div className="tiles row c2" style={{ alignContent: 'start' }}>
+      {hideFlowSummary ? (
+        <div className="tiles row c4 mb-16">
           {kpis.map((k, i) => (
             <div className={'tile ' + (k.kind || '')} key={i}>
               <div className="k">{k.k}</div><div className="v">{k.v}</div><div className="d">{k.d}</div>
             </div>
           ))}
         </div>
-      </div>
+      ) : (
+        <div className="row mb-16" style={{ gridTemplateColumns: '2fr 1fr' }}>
+          <div className="card">
+            <div className="card-head"><h3>Flow summary</h3><span className="meta">PROCESS</span></div>
+            <div className="card-body" style={{ fontSize: 13 }}>{summary}</div>
+          </div>
+          <div className="tiles row c2" style={{ alignContent: 'start' }}>
+            {kpis.map((k, i) => (
+              <div className={'tile ' + (k.kind || '')} key={i}>
+                <div className="k">{k.k}</div><div className="v">{k.v}</div><div className="d">{k.d}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="card mb-16">
         <div className="card-head"><h3>Agents in this flow</h3><span className="meta">{agents.length} ASSISTING</span></div>
         <div className="card-body" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -2070,12 +2080,14 @@ const RTVFlow = () => {
 const CIRFlow = () => {
   const { notify } = useApp();
   const [sel, setSel] = useState(CIR_QUEUE[0]);
+  const [stageTab, setStageTab] = useState('all');
+  const visibleRows = stageTab === 'all' ? CIR_QUEUE : CIR_QUEUE.filter(c => c.stage === stageTab);
   return (
     <div className="page">
       <ReturnFlowHeader
         title="CIR · Customer initiated return"
         sub={`POST-DELIVERY RETURNS · ${CIR_QUEUE.length} OPEN · PICKUP-TO-REFUND SLA 5d`}
-        sopLink="SOP-CIR" sopName="CIR-01"
+        sopLink="SOP-CIR" sopName="CIR-01" hideActions hideSub hideFlowSummary
         summary="Customer requests return via app/portal. Carrier reverse pickup, FC inspect with damage classifier + fraud screen, decide refund / replace / restock. Refund ≤ 24h post-receipt."
         kpis={[
           { k: 'Open CIRs', v: CIR_QUEUE.length, d: 'Across 5 customers' },
@@ -2091,45 +2103,43 @@ const CIRFlow = () => {
         ]}
       />
 
-      <div className="card mb-16">
-        <div className="card-head"><h3>Pipeline</h3><span className="meta">CIR STAGES · LIVE</span></div>
-        <div className="card-body">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
-            {[
-              { s: 'Requested', c: CIR_QUEUE.length, d: 'Auto-approved' },
-              { s: 'Pickup', c: CIR_QUEUE.filter(c=>c.stage==='pickup').length, d: 'Carrier en route' },
-              { s: 'Inspect', c: CIR_QUEUE.filter(c=>c.stage==='inspect').length, d: 'AI + manual' },
-              { s: 'Refund', c: CIR_QUEUE.filter(c=>c.stage==='refund').length, d: 'Finance queue' },
-              { s: 'Putaway', c: 0, d: 'Restock to bin' },
-            ].map((p,i) => (
-              <div key={i} style={{ background: '#fff', border: '1px solid var(--rule)', padding: 12, position: 'relative' }}>
-                <div className="inline-k" style={{ marginBottom: 4 }}>Stage {i+1}</div>
-                <div style={{ fontSize: 16, fontWeight: 600 }}>{p.s}</div>
-                <div className="small mt-4">{p.d}</div>
-                <div className="mono num" style={{ position: 'absolute', top: 12, right: 12, fontSize: 18, fontWeight: 600 }}>{p.c}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       <div className="row" style={{ gridTemplateColumns: '1.5fr 1fr' }}>
         <div className="card">
-          <div className="card-head"><h3>CIR queue</h3><span className="meta">FIFO BY AGE</span></div>
+          <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--rule)', padding: '0 0 0 0' }}>
+            {([
+              { key: 'all', label: 'All', count: CIR_QUEUE.length },
+              { key: 'open', label: 'Open', count: CIR_QUEUE.filter(c=>c.stage==='open').length },
+              { key: 'received', label: 'Received', count: CIR_QUEUE.filter(c=>c.stage==='received').length },
+              { key: 'closed', label: 'Closed', count: CIR_QUEUE.filter(c=>c.stage==='closed').length },
+            ] as {key:string;label:string;count:number}[]).map(t => (
+              <button key={t.key} onClick={() => setStageTab(t.key)} style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px',
+                background: 'none', border: 'none', borderBottom: stageTab===t.key ? '2px solid var(--ink)' : '2px solid transparent',
+                cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em',
+                color: stageTab===t.key ? 'var(--ink)' : 'var(--ink-3)', marginBottom: -1,
+              }}>
+                {t.label}
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  minWidth: 20, height: 18, padding: '0 5px', borderRadius: 3, fontSize: 11, fontWeight: 600,
+                  background: 'var(--bg-2)', color: stageTab===t.key ? 'var(--ink)' : 'var(--ink-3)',
+                }}>{t.count}</span>
+              </button>
+            ))}
+          </div>
           <div className="card-body p0">
             <table className="tbl">
-              <thead><tr><th>CIR</th><th>SO · Customer</th><th>Reason</th><th>Stage</th><th>Refund</th><th>Fraud</th><th>AI disp.</th><th>Conf.</th></tr></thead>
+              <thead><tr><th>CIR</th><th>Seller & Sale Order</th><th>Reason</th><th>Channel</th><th>Stage</th><th>Refund</th><th>Expected recv</th></tr></thead>
               <tbody>
-                {CIR_QUEUE.map(c => (
+                {visibleRows.map(c => (
                   <tr key={c.id} className="clickable" onClick={() => setSel(c)} style={{ background: sel.id===c.id ? 'var(--bg-2)' : undefined }}>
                     <td className="mono"><b>{c.id}</b><div className="small">{c.age}</div></td>
-                    <td><b>{c.customer}</b><div className="small mono">{c.so}</div></td>
+                    <td><b>{c.seller}</b><div className="small mono">{c.so}</div></td>
                     <td className="small">{c.reason}</td>
-                    <td><span className="tag" style={{ textTransform: 'capitalize' }}>{c.stage}</span></td>
+                    <td className="small">{c.channel}</td>
+                    <td><span className={'tag ' + (c.stage === 'closed' ? 'ok' : c.stage === 'received' ? 'warn' : '')} style={{ textTransform: 'capitalize' }}>{c.stage}</span></td>
                     <td className="num">₹ {c.refund.toLocaleString('en-IN')}</td>
-                    <td><span className={'tag ' + (c.fraud === 'low' ? 'ok' : c.fraud === 'med' ? 'warn' : 'risk')}>{c.fraud}</span></td>
-                    <td><span className="tag ai nodot" style={{ fontSize: 11 }}>{c.ai.disp.split('·')[0].trim()}</span></td>
-                    <td className="mono num" style={{ color: 'var(--ai)', fontSize: 11.5 }}>{c.ai.conf}%</td>
+                    <td className="small">{c.expectedRecv}</td>
                   </tr>
                 ))}
               </tbody>
@@ -2139,15 +2149,27 @@ const CIRFlow = () => {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div className="card">
-            <div className="card-head"><h3>{sel.id}</h3><span className="meta">{sel.so}</span></div>
+            <div className="card-head">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {sel.id}
+                <span className={'tag ' + (sel.stage === 'closed' ? 'ok' : sel.stage === 'received' ? 'warn' : '')} style={{ textTransform: 'capitalize', fontSize: 11 }}>{sel.stage}</span>
+              </h3>
+              <span className="meta">{sel.so}</span>
+            </div>
             <div className="card-body">
               <dl className="kv">
-                <dt>Customer</dt><dd>{sel.customer}</dd>
-                <dt>Reason</dt><dd>{sel.reason}</dd>
-                <dt>Items / refund</dt><dd className="mono">{sel.items} · ₹ {sel.refund.toLocaleString('en-IN')}</dd>
-                <dt>Stage</dt><dd style={{ textTransform: 'capitalize' }}>{sel.stage}</dd>
-                <dt>Photos</dt><dd>{sel.photos} attached</dd>
-                <dt>Fraud signal</dt><dd><span className={'tag ' + (sel.fraud === 'low' ? 'ok' : sel.fraud === 'med' ? 'warn' : 'risk')}>{sel.fraud}</span></dd>
+                <dt>Channel</dt><dd>{sel.channel}</dd>
+                <dt>Courier</dt><dd>{sel.courier}</dd>
+                <dt>AWB</dt><dd className="mono">{sel.awb}</dd>
+                <dt>Expected recv</dt><dd>{sel.expectedRecv}</dd>
+                <dt>Expected products</dt><dd>
+                  {sel.products.map((p, i) => (
+                    <div key={i} style={{ marginBottom: i < sel.products.length - 1 ? 6 : 0 }}>
+                      <b>{p.name}</b>
+                      <div className="small mono">{p.sku} · qty {p.qty}</div>
+                    </div>
+                  ))}
+                </dd>
               </dl>
             </div>
           </div>
