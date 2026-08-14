@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Check, X } from "lucide-react";
+import { ArrowLeft, Check, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/wms/page-header";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -45,8 +46,21 @@ function SupervisorReviewList() {
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [decisions, setDecisions] = useState<Record<string, Decision>>({});
+  const [search, setSearch] = useState("");
 
-  const pendingRows = rows.filter((r) => !decisions[r.key]);
+  const filteredRows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter(
+      (r) =>
+        r.taskId.toLowerCase().includes(q) ||
+        r.binId.toLowerCase().includes(q) ||
+        r.sku.toLowerCase().includes(q) ||
+        r.lot.toLowerCase().includes(q),
+    );
+  }, [rows, search]);
+
+  const pendingRows = filteredRows.filter((r) => !decisions[r.key]);
   const allPendingSelected = pendingRows.length > 0 && pendingRows.every((r) => selected.has(r.key));
 
   function toggleRow(key: string, checked: boolean) {
@@ -95,6 +109,16 @@ function SupervisorReviewList() {
           Back to Cycle Count
         </Link>
 
+        <div className="relative mb-4 max-w-sm">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search task, bin, SKU, or lot…"
+            className="h-9 pl-9 text-[12px]"
+          />
+        </div>
+
         <div className="rounded-md border border-border bg-card">
           {selected.size > 0 && (
             <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
@@ -141,14 +165,14 @@ function SupervisorReviewList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rows.length === 0 ? (
+              {filteredRows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={15} className="py-8 text-center font-mono text-[11px] uppercase text-muted-foreground">
-                    No counted bins yet
+                    {rows.length === 0 ? "No counted bins yet" : "No bins match your search"}
                   </TableCell>
                 </TableRow>
               ) : (
-                rows.map((r) => {
+                filteredRows.map((r) => {
                   const decision = decisions[r.key];
                   return (
                     <TableRow key={r.key} className={cn(decision && "opacity-50")}>
