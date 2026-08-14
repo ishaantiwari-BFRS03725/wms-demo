@@ -5,21 +5,11 @@ import {
   ArrowLeft,
   CheckCircle2,
   Inbox,
-  PackageCheck,
   ScanBarcode,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { getSortTask, type SortTask } from "@/lib/wms/sort-data";
 
 export const Route = createFileRoute("/_wms/sort/$taskId")({
@@ -64,13 +54,6 @@ function SortProcess() {
     sku: null,
   });
   const [putwallError, setPutwallError] = useState<string | null>(null);
-  const [transferred, setTransferred] = useState<Set<string>>(new Set());
-  // separate transfer process: scan putwall -> scan tote -> transfer
-  const [transferOpen, setTransferOpen] = useState(false);
-  const [tStep, setTStep] = useState<"putwall" | "tote">("putwall");
-  const [tPutwall, setTPutwall] = useState("");
-  const [tTote, setTTote] = useState("");
-  const [tError, setTError] = useState<string | null>(null);
 
   const remaining = useMemo(
     () => task.items.filter((it) => !placed[it.sku]),
@@ -100,46 +83,42 @@ function SortProcess() {
   const allSorted =
     task.items.length > 0 && task.items.every((it) => placed[it.sku]);
 
-  // Completed putwalls still awaiting transfer to a tote.
-  const readyPutwalls = putwallEntries.filter(
-    (e) => e.done && !transferred.has(e.pw),
+  // Pigeonholes whose order has been fully sorted. Emptying them into a pick
+  // bin is a separate operator activity handled on the Empty Pigeonhole screen.
+  const completedPutwalls = putwallEntries.filter((e) => e.done);
+
+  // Pool of pigeonholes the system can direct operators to. A pigeonhole is
+  // available until it has been assigned to an order this session.
+  const PIGEONHOLES = useMemo(
+    () => Array.from({ length: 12 }, (_, i) => `PW-${i + 1}`),
+    [],
+  );
+  const occupiedPigeonholes = useMemo(() => {
+    // Read from `placed` (every scan that landed in a pigeonhole, including
+    // unrecognised SKUs that never make it into `orderMap`) so no pigeonhole is
+    // ever double-suggested.
+    return new Set(Object.values(placed));
+  }, [placed]);
+  const nextAvailablePigeonhole = useMemo(
+    () => PIGEONHOLES.find((pw) => !occupiedPigeonholes.has(pw)) ?? null,
+    [PIGEONHOLES, occupiedPigeonholes],
   );
 
-  const openTransfer = () => {
-    setTStep("putwall");
-    setTPutwall("");
-    setTTote("");
-    setTError(null);
-    setTransferOpen(true);
-  };
-
-  const onTransferPutwallScan = (val: string) => {
-    const pw = val.trim().toUpperCase();
-    if (!readyPutwalls.some((e) => e.pw === pw)) {
-      setTError(`${pw} is not a completed putwall ready for transfer.`);
-      return;
-    }
-    setTPutwall(pw);
-    setTError(null);
-    setTStep("tote");
-  };
-
-  const confirmTransfer = () => {
-    if (!tPutwall || !tTote.trim()) return;
-    setTransferred((prev) => new Set(prev).add(tPutwall));
-    setTransferOpen(false);
-  };
-
-  // Derive suggestion fresh every render — avoids stale-closure issues
+  // Derive suggestion fresh every render — avoids stale-closure issues.
+  // Same order seen before -> direct back to its pigeonhole. New order ->
+  // system assigns the next empty pigeonhole itself.
   const currentItem = scan.sku
     ? task.items.find((it) => it.sku === scan.sku) ?? null
     : null;
-  const suggestion = currentItem ? (orderMap[currentItem.orderId] ?? null) : null;
+  const suggestion = scan.sku
+    ? (currentItem ? orderMap[currentItem.orderId] : undefined) ??
+      nextAvailablePigeonhole
+    : null;
 
   // ----- Step 1: scan source tote -----
   if (step === "scan-tote") {
     return (
-      <ScreenShell taskId={task.id} subtitle="Step 1 of 2 · Scan source tote">
+      <ScreenShell subtitle="Scan source tote">
         <Card className="space-y-4 p-4">
           <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
             <ScanBarcode className="h-3.5 w-3.5" />
@@ -169,13 +148,13 @@ function SortProcess() {
   // ----- Step 3: all done -----
   if (step === "done") {
     return (
-      <ScreenShell taskId={task.id} subtitle="Sortation complete">
+      <ScreenShell subtitle="Sortation complete">
         <Card className="space-y-4 p-6 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-status-dispatched/15 text-status-dispatched">
             <CheckCircle2 className="h-7 w-7" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Task {task.id}</h3>
+            <h3 className="text-lg font-semibold">Sortation complete</h3>
             <p className="mt-1 text-sm text-muted-foreground">
               {task.items.length} items sorted into {putwallEntries.length}{" "}
               pigeonholes.
@@ -195,33 +174,20 @@ function SortProcess() {
   // ----- Step 2: sorting loop -----
   const onItemScan = (val: string) => {
     const sku = val.trim().toUpperCase();
-    const item = task.items.find((it) => it.sku.toUpperCase() === sku);
-    const mapped = item ? (orderMap[item.orderId] ?? null) : null;
     setScan({ itemScanned: true, sku });
   };
 
   const onPutwallScan = (val: string) => {
-    if (!scan.sku) return;
+    if (!scan.sku || !suggestion) return;
     const pw = val.trim().toUpperCase();
-    if (!/^PW-\d+$/i.test(pw)) {
-      toast.error("Invalid putwall. Format: PW-1");
+    if (pw !== suggestion) {
+      setPutwallError(`Wrong putwall. Scan ${suggestion} to continue.`);
       return;
     }
     const item = task.items.find((it) => it.sku === scan.sku);
 
     if (item) {
       const existing = orderMap[item.orderId];
-      if (existing && existing !== pw) {
-        setPutwallError(`Wrong putwall. Scan ${existing} to continue.`);
-        return;
-      }
-      const conflict = Object.entries(orderMap).find(
-        ([oId, p]) => p === pw && oId !== item.orderId,
-      );
-      if (conflict) {
-        toast.error(`${pw} is mapped to ${conflict[0]}. Scan a new putwall ID.`);
-        return;
-      }
       if (!existing) {
         setOrderMap((m) => ({ ...m, [item.orderId]: pw }));
       }
@@ -236,8 +202,7 @@ function SortProcess() {
 
   return (
     <ScreenShell
-      taskId={task.id}
-      subtitle={`Step 2 of 2 · Tote ${tote} · ${task.items.length - remaining.length}/${task.items.length} sorted`}
+      subtitle={`Tote ${tote} · ${task.items.length - remaining.length}/${task.items.length} sorted`}
     >
       <div className="space-y-3">
         {/* Scan zone */}
@@ -270,7 +235,9 @@ function SortProcess() {
                   </div>
                   <div>
                     <div className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-status-picked/70">
-                      Suggested putwall
+                      {currentItem && orderMap[currentItem.orderId]
+                        ? "Go to putwall"
+                        : "New order — go to putwall"}
                     </div>
                     <div className="font-mono text-lg font-bold text-status-picked">
                       {suggestion}
@@ -278,8 +245,8 @@ function SortProcess() {
                   </div>
                 </div>
               ) : (
-                <div className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
-                  New order — scan an empty putwall to map it.
+                <div className="rounded-md border border-warn/30 bg-warn-bg p-3 text-xs text-warn">
+                  No empty pigeonholes available.
                 </div>
               )}
               {putwallError ? (
@@ -291,6 +258,7 @@ function SortProcess() {
               <ScanRow
                 label="Scan putwall"
                 placeholder={suggestion ?? "e.g. PW-1"}
+                expected={suggestion}
                 onScan={onPutwallScan}
                 autoFocus
               />
@@ -309,18 +277,16 @@ function SortProcess() {
           )}
         </Card>
 
-        {/* Completed putwalls awaiting transfer — display only. Transfer is a
-            separate scan-driven process started from the button below. */}
-        {readyPutwalls.length > 0 ? (
+        {/* Sorted pigeonholes — display only. Emptying them into a pick bin is
+            a separate activity on the Empty Pigeonhole screen. */}
+        {completedPutwalls.length > 0 ? (
           <Card className="space-y-2 p-4">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                <Inbox className="h-3.5 w-3.5" />
-                Ready to transfer ({readyPutwalls.length})
-              </div>
+            <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+              <Inbox className="h-3.5 w-3.5" />
+              Sorted pigeonholes ({completedPutwalls.length})
             </div>
             <div className="space-y-2">
-              {readyPutwalls.map((e) => (
+              {completedPutwalls.map((e) => (
                 <div
                   key={e.pw}
                   className="flex items-center justify-between gap-2 rounded-md border border-status-picked/40 bg-status-picked/5 p-2.5 text-sm"
@@ -337,10 +303,6 @@ function SortProcess() {
                 </div>
               ))}
             </div>
-            <Button className="h-11 w-full" onClick={openTransfer}>
-              <PackageCheck className="h-4 w-4" />
-              Transfer putwall to tote
-            </Button>
           </Card>
         ) : null}
 
@@ -350,101 +312,34 @@ function SortProcess() {
           </Button>
         ) : null}
       </div>
-
-      <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Transfer putwall to tote</DialogTitle>
-            <DialogDescription>
-              {tStep === "putwall"
-                ? "Scan a completed putwall to begin the transfer."
-                : "Scan the pick tote, then confirm the transfer."}
-            </DialogDescription>
-          </DialogHeader>
-
-          {/* Step 1 — scan completed putwall */}
-          {tStep === "putwall" ? (
-            <div className="space-y-3">
-              {tError ? (
-                <div className="flex items-center gap-2 rounded-md border border-destructive/50 bg-destructive/10 p-2.5 text-sm font-medium text-destructive">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
-                  {tError}
-                </div>
-              ) : null}
-              <ScanRow
-                key="t-putwall"
-                label="Scan completed putwall"
-                placeholder="e.g. PW-1"
-                onScan={onTransferPutwallScan}
-                autoFocus
-              />
-            </div>
-          ) : (
-            /* Step 2 — scan pick tote */
-            <div className="space-y-3">
-              <div className="rounded-md border border-status-picked/40 bg-status-picked/5 p-2.5">
-                <div className="text-[11px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                  Putwall
-                </div>
-                <div className="font-mono text-sm font-semibold text-status-picked">
-                  {tPutwall}
-                </div>
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                  Scan pick tote
-                </label>
-                <Input
-                  autoFocus
-                  className="h-11 font-mono text-sm"
-                  placeholder="Scan pick tote…"
-                  value={tTote}
-                  onChange={(e) => setTTote(e.target.value)}
-                />
-              </div>
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setTransferOpen(false)}>
-              Cancel
-            </Button>
-            <Button disabled={tStep !== "tote" || !tTote.trim()} onClick={confirmTransfer}>
-              <PackageCheck className="h-4 w-4" />
-              Transfer
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </ScreenShell>
   );
 }
 
 function ScreenShell({
-  taskId,
   subtitle,
   children,
 }: {
-  taskId: string;
   subtitle: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="pb-8">
-      <div className="flex items-center justify-between gap-2 border-b border-border bg-background px-4 py-3">
-        <Link
-          to="/sort"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Sort
-        </Link>
-        <div className="text-right">
-          <div className="text-sm font-semibold">{taskId}</div>
-          <div className="text-[11px] text-muted-foreground">{subtitle}</div>
+    <div className="min-h-[calc(100vh-3rem)] bg-muted/40 py-4">
+      <div className="mx-auto w-full max-w-[420px] overflow-hidden rounded-md border border-border bg-background">
+        <div className="flex items-center justify-between gap-2 border-b border-border bg-background px-4 py-3">
+          <Link
+            to="/sort"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Sort
+          </Link>
+          <div className="font-mono text-[10px] uppercase tracking-[0.06em] text-muted-foreground">
+            {subtitle}
+          </div>
         </div>
+        <div className="p-4 pb-6">{children}</div>
       </div>
-      <div className="p-4">{children}</div>
     </div>
   );
 }
@@ -452,11 +347,13 @@ function ScreenShell({
 function ScanRow({
   label,
   placeholder,
+  expected,
   onScan,
   autoFocus,
 }: {
   label: string;
   placeholder: string;
+  expected?: string | null;
   onScan: (value: string) => void;
   autoFocus?: boolean;
 }) {
@@ -475,6 +372,7 @@ function ScanRow({
           setVal("");
           inputRef.current?.focus();
         }}
+        className="flex gap-2"
       >
         <Input
           ref={inputRef}
@@ -484,6 +382,20 @@ function ScanRow({
           placeholder={placeholder}
           className="h-11 font-mono text-sm"
         />
+        {expected ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-11 px-2 text-xs"
+            onClick={() => {
+              onScan(expected);
+              setVal("");
+            }}
+          >
+            Auto
+          </Button>
+        ) : null}
       </form>
     </div>
   );

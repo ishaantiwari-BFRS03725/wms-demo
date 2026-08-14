@@ -750,7 +750,7 @@ function OrdersPage() {
                   >
                     {visibleCols.orderNo && (
                       <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                           <Link
                             to="/orders/$orderNo"
                             params={{ orderNo: o.orderNo }}
@@ -758,7 +758,7 @@ function OrdersPage() {
                           >
                             {o.orderNo}
                           </Link>
-                          <span className="rounded-[2px] border border-border bg-muted px-1.5 py-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                          <span className="rounded-[2px] border border-border px-1.5 py-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
                             {o.orderType}
                           </span>
                         </div>

@@ -115,6 +115,12 @@ const COLUMNS: {
     align: "right",
   },
   {
+    key: "criticality",
+    label: "Criticality",
+    help: "Share of actual demanded units that cannot be fulfilled from current pick-face stock: max(0, Demanded − Available) ÷ Demanded. ≥75% Critical, 40–74% High, <40% Moderate.",
+    align: "right",
+  },
+  {
     key: "packSize",
     label: "Pack Size",
     help: "Units per pack/case for this SKU — replenishment moves in whole packs.",
@@ -149,6 +155,7 @@ interface RepRow {
   sku: string;
   description: string;
   orderCount: number;
+  demandedQty: number;
   qtyAvailable: number;
   packSize: number;
   suggestedQty: number;
@@ -163,6 +170,7 @@ const ROWS: RepRow[] = [
     sku: "600179",
     description: "boAt Airdopes 141 TWS Earbuds",
     orderCount: 34,
+    demandedQty: 76,
     qtyAvailable: 12,
     packSize: 10,
     suggestedQty: 90,
@@ -176,6 +184,7 @@ const ROWS: RepRow[] = [
     sku: "600822",
     description: "boAt Rockerz 450 Bluetooth Headphones",
     orderCount: 18,
+    demandedQty: 30,
     qtyAvailable: 6,
     packSize: 5,
     suggestedQty: 45,
@@ -188,6 +197,7 @@ const ROWS: RepRow[] = [
     sku: "600868",
     description: "boAt Bassheads 100 Wired Earphones",
     orderCount: 52,
+    demandedQty: 140,
     qtyAvailable: 9,
     packSize: 15,
     suggestedQty: 60,
@@ -200,6 +210,7 @@ const ROWS: RepRow[] = [
     sku: "600900",
     description: "boAt Stone 350 Bluetooth Speaker",
     orderCount: 7,
+    demandedQty: 12,
     qtyAvailable: 4,
     packSize: 8,
     suggestedQty: 32,
@@ -213,6 +224,7 @@ const ROWS: RepRow[] = [
     sku: "601000",
     description: "boAt Wave Call Smartwatch",
     orderCount: 23,
+    demandedQty: 41,
     qtyAvailable: 11,
     packSize: 12,
     suggestedQty: 48,
@@ -225,6 +237,7 @@ const ROWS: RepRow[] = [
     sku: "601002",
     description: "boAt Type-C 500 Charging Cable",
     orderCount: 88,
+    demandedQty: 260,
     qtyAvailable: 22,
     packSize: 30,
     suggestedQty: 120,
@@ -238,6 +251,7 @@ const ROWS: RepRow[] = [
     sku: "601005",
     description: "boAt Aavante Bar 1160 Soundbar",
     orderCount: 5,
+    demandedQty: 9,
     qtyAvailable: 3,
     packSize: 5,
     suggestedQty: 25,
@@ -252,6 +266,25 @@ const STATUS_STYLES: Record<RepStatus, string> = {
   Completed: "bg-ok-bg text-ok border-ok/30",
   Cancelled: "bg-risk-bg text-risk border-risk/30",
 };
+
+// Criticality = share of actual demanded units that current pick-face stock
+// cannot cover: max(0, demanded − available) ÷ demanded.
+function criticalityPct(demandedQty: number, qtyAvailable: number): number {
+  if (demandedQty <= 0) return 0;
+  const pending = Math.max(0, demandedQty - qtyAvailable);
+  return Math.round((pending / demandedQty) * 100);
+}
+
+function criticalityBand(pct: number): { label: string; className: string } {
+  if (pct >= 75)
+    return { label: "Critical", className: "bg-risk-bg text-risk border-risk/30" };
+  if (pct >= 40)
+    return { label: "High", className: "bg-warn-bg text-warn border-warn/30" };
+  return {
+    label: "Moderate",
+    className: "bg-muted text-muted-foreground border-border",
+  };
+}
 
 // ─── Filters ─────────────────────────────────────────────────────────────────
 
@@ -780,6 +813,26 @@ function Replenishment() {
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {r.qtyAvailable}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {(() => {
+                        const pct = criticalityPct(
+                          r.demandedQty,
+                          r.qtyAvailable,
+                        );
+                        const band = criticalityBand(pct);
+                        return (
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-1 whitespace-nowrap rounded-[2px] border px-1.5 py-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.06em]",
+                              band.className,
+                            )}
+                          >
+                            <span className="tabular-nums">{pct}%</span>
+                            {band.label}
+                          </span>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {r.packSize}

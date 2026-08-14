@@ -310,12 +310,14 @@ function PickingScreen() {
           {activeProg?.locationScanned ? (
             <>
               <div className="overflow-hidden rounded-md border border-border bg-muted/30">
-                <img
-                  src={activeItem.image}
-                  alt={activeItem.name}
-                  className="h-32 w-full object-cover"
-                  loading="lazy"
-                />
+                <div className="flex h-56 w-full items-center justify-center bg-white p-3">
+                  <img
+                    src={activeItem.image}
+                    alt={activeItem.name}
+                    className="max-h-full max-w-full object-contain"
+                    loading="lazy"
+                  />
+                </div>
                 <div className="space-y-1.5 p-3">
                   <div className="text-sm font-semibold leading-snug">{activeItem.name}</div>
                   <div className="font-mono text-[11px] text-muted-foreground">

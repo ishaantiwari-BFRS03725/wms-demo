@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
   CheckCircle2,
   Maximize2,
   Package,
   PackageCheck,
+  Printer,
   ScanBarcode,
   Search,
   SearchX,
@@ -39,6 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Tooltip,
   TooltipContent,
@@ -47,29 +49,28 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {
-  allPackagingIds,
-  channelPackaging,
   getOrderByTote,
-  slaDeadline,
   type PackItem,
   type PackOrder,
 } from "@/lib/wms/pack-data";
 
-export const Route = createFileRoute("/_wms/pack")({
+export const Route = createFileRoute("/_wms/pack-b2b-v2")({
   head: () => ({
-    meta: [{ title: "Pack — WMS" }],
+    meta: [{ title: "B2B Pack — WMS" }],
   }),
-  component: PackStation,
+  component: PackB2BStation,
 });
 
 type PackStep = "scan-station" | "scan-tote" | "scan-items" | "scan-packaging";
 
-const channelStyles: Record<string, string> = {
-  Amazon: "bg-warn-bg text-warn border-warn/30",
-  Flipkart: "bg-sys-bg text-sys border-sys/30",
-  Shopify: "bg-ok-bg text-ok border-ok/30",
-  Myntra: "bg-ai-bg text-ai border-ai-ring",
-};
+const COURIERS = [
+  "BlueDart",
+  "Delhivery",
+  "XpressBees",
+  "Ecom Express",
+  "DTDC",
+  "India Post",
+];
 
 type PackedRow = {
   sku: string;
@@ -81,7 +82,20 @@ type PackedRow = {
   image: string;
 };
 
-function PackStation() {
+type BoxRecord = {
+  id: string;
+  openedAt: string;
+  closedAt: string | null;
+};
+
+const nowLabel = () =>
+  new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
+function PackB2BStation() {
   const [step, setStep] = useState<PackStep>("scan-station");
   const [stationId, setStationId] = useState("");
   const [toteError, setToteError] = useState<string | null>(null);
@@ -92,23 +106,20 @@ function PackStation() {
   const [lastScannedItem, setLastScannedItem] = useState<PackItem | null>(null);
   const [packedItems, setPackedItems] = useState<PackedRow[]>([]);
   const [itemError, setItemError] = useState<string | null>(null);
-  const [packagingError, setPackagingError] = useState<string | null>(null);
   const [printOpen, setPrintOpen] = useState(false);
-  const [printToteError, setPrintToteError] = useState<string | null>(null);
+  const [shipCourier, setShipCourier] = useState("");
+  const [shipLrNo, setShipLrNo] = useState("");
+  const [shipDims, setShipDims] = useState("");
+  const [shipWeight, setShipWeight] = useState("");
   const [nfDialogOpen, setNfDialogOpen] = useState(false);
   const [nfSelectedSku, setNfSelectedSku] = useState("");
   const [scanKey, setScanKey] = useState(0);
   const [zoomOpen, setZoomOpen] = useState(false);
   const [itemSearch, setItemSearch] = useState("");
-
-
-  // Packing material adherence
-  const [adhTotal, setAdhTotal] = useState(0);
-  const [adhMatches, setAdhMatches] = useState(0);
-  const adherencePct =
-    adhTotal === 0 ? null : Math.round((adhMatches / adhTotal) * 100);
-
-  const recommended = currentOrder ? channelPackaging[currentOrder.channel] : null;
+  const [boxSeq, setBoxSeq] = useState(1);
+  const [boxes, setBoxes] = useState<BoxRecord[]>([]);
+  const [itemView, setItemView] = useState<"item" | "box">("item");
+  const [slipBox, setSlipBox] = useState<BoxRecord | null>(null);
 
   const totalItemQty =
     currentOrder?.items.reduce((s, it) => s + it.qty, 0) ?? 0;
@@ -124,16 +135,16 @@ function PackStation() {
 
   const allItemsDone = !!currentOrder && checkAllDone(scannedQty);
 
-  const boxIdFor = (orderNo: string, n = 1) => `${orderNo}-B${n}`;
+  const boxIdFor = (orderNo: string, n = boxSeq) => `${orderNo}-B${n}`;
 
   const commitToPacked = (item: PackItem) => {
     if (!currentOrder) return;
-    const box = boxIdFor(currentOrder.orderNo, 1);
+    const box = boxIdFor(currentOrder.orderNo);
     setPackedItems((prev) => {
-      const existing = prev.find((p) => p.sku === item.sku);
+      const existing = prev.find((p) => p.sku === item.sku && p.box === box);
       if (existing) {
         return prev.map((p) =>
-          p.sku === item.sku ? { ...p, qty: p.qty + 1 } : p,
+          p.sku === item.sku && p.box === box ? { ...p, qty: p.qty + 1 } : p,
         );
       }
       return [
@@ -167,6 +178,8 @@ function PackStation() {
     setLastScannedItem(null);
     setPackedItems([]);
     setItemError(null);
+    setBoxSeq(1);
+    setBoxes([{ id: boxIdFor(order.orderNo, 1), openedAt: nowLabel(), closedAt: null }]);
     setStep("scan-items");
     return true;
   };
@@ -177,16 +190,6 @@ function PackStation() {
       setScanKey((k) => k + 1);
     } else {
       setToteError(null);
-    }
-  };
-
-  const onPrintToteScan = (val: string) => {
-    if (!loadTote(val)) {
-      setPrintToteError(`No order found for tote ${val.trim().toUpperCase()}`);
-    } else {
-      setPrintOpen(false);
-      setPrintToteError(null);
-      setScanKey((k) => k + 1);
     }
   };
 
@@ -250,20 +253,38 @@ function PackStation() {
     setScanKey((k) => k + 1);
   };
 
-  const onPackagingScan = (val: string) => {
-    if (!allItemsDone) {
-      setPackagingError("Scan all items first before packaging.");
-      setScanKey((k) => k + 1);
-      return;
+  const onCloseBox = () => {
+    if (!currentOrder) return;
+    if (lastScannedItem) {
+      commitToPacked(lastScannedItem);
+      setLastScannedItem(null);
     }
-    const id = val.trim().toUpperCase();
-    if (!id) return;
-    setPackagingError(null);
-    setAdhTotal((n) => n + 1);
-    if (recommended && id === recommended.id) setAdhMatches((n) => n + 1);
-    if (lastScannedItem) commitToPacked(lastScannedItem);
-    setLastScannedItem(null);
+    const closed = boxIdFor(currentOrder.orderNo);
+    const nextId = boxIdFor(currentOrder.orderNo, boxSeq + 1);
+    const closedAt = nowLabel();
+    setBoxes((prev) => [
+      ...prev.map((b) => (b.id === closed ? { ...b, closedAt } : b)),
+      { id: nextId, openedAt: closedAt, closedAt: null },
+    ]);
+    setBoxSeq((n) => n + 1);
+    toast.success(`Box ${closed} closed — label printed`, {
+      description: "A fresh box is now open for the remaining items.",
+    });
+    setScanKey((k) => k + 1);
+  };
+
+  const onFinishPack = () => {
+    setShipCourier(currentOrder?.courier ?? "");
+    setShipLrNo("");
+    setShipDims("");
+    setShipWeight("");
     setPrintOpen(true);
+  };
+
+  const onConfirmClosePack = () => {
+    toast.success("Order packed");
+    setPrintOpen(false);
+    onClosePack();
   };
 
   const onClosePack = () => {
@@ -275,13 +296,14 @@ function PackStation() {
     setPackedItems([]);
     setItemError(null);
     setToteError(null);
+    setBoxSeq(1);
+    setBoxes([]);
     setStep("scan-tote");
     setScanKey((k) => k + 1);
   };
 
   const onClosePrint = () => {
     setPrintOpen(false);
-    setPrintToteError(null);
     onClosePack();
   };
 
@@ -296,6 +318,25 @@ function PackStation() {
       )
     : packedItems;
 
+  const qtyInBox = (boxId: string) =>
+    packedItems.reduce((s, p) => (p.box === boxId ? s + p.qty : s), 0);
+
+  const openBox = boxes.find((b) => b.closedAt === null) ?? null;
+  const closedBoxCount = boxes.filter((b) => b.closedAt !== null).length;
+  const currentBoxUnits = openBox ? qtyInBox(openBox.id) : 0;
+  // Close Box only makes sense once the active box has something in it.
+  const canCloseBox =
+    step === "scan-items" &&
+    !!currentOrder &&
+    (!!lastScannedItem || currentBoxUnits > 0);
+  // Close Pack is offered once every packed box is closed and the fresh box is empty.
+  const canClosePack =
+    step === "scan-items" &&
+    closedBoxCount > 0 &&
+    !!openBox &&
+    !lastScannedItem &&
+    currentBoxUnits === 0;
+
   return (
     <div className="flex h-full flex-col">
       {/* ── Top bar ── */}
@@ -304,7 +345,7 @@ function PackStation() {
         <div className="flex items-center gap-3 text-sm">
           <div className="flex items-center gap-1.5">
             <Package className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium text-muted-foreground">Pack</span>
+            <span className="font-medium text-muted-foreground">B2B Pack</span>
           </div>
           {currentOrder && (
             <>
@@ -317,7 +358,7 @@ function PackStation() {
           )}
         </div>
 
-        {/* Right: station + adherence + close pack */}
+        {/* Right: station + close box + adherence */}
         <div className="flex items-center gap-3">
           {stationId && (
             <span className="text-sm">
@@ -325,50 +366,25 @@ function PackStation() {
               <span className="font-bold font-mono">{stationId}</span>
             </span>
           )}
-          {stationId && (
-            <TooltipProvider delayDuration={150}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span
-                    tabIndex={0}
-                    className={cn(
-                      "cursor-help rounded-[2px] border px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.06em]",
-                      adherencePct === null
-                        ? "border-border bg-muted text-muted-foreground"
-                        : adherencePct >= 90
-                          ? "border-ok/30 bg-ok-bg text-ok"
-                          : adherencePct >= 70
-                            ? "border-warn/30 bg-warn-bg text-warn"
-                            : "border-risk/30 bg-risk-bg text-risk",
-                    )}
-                  >
-                    Adherence {adherencePct === null ? "—" : `${adherencePct}%`}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-[240px] text-xs">
-                  Packing-material adherence — percentage of orders packed using
-                  the system-recommended packaging this session.
-                  {adherencePct !== null && (
-                    <div className="mt-1 text-[10px] text-muted-foreground">
-                      {adhMatches} of {adhTotal} packs matched the recommendation.
-                    </div>
-                  )}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-          {step === "scan-items" && (
+          {canCloseBox && (
             <Button
               variant="outline"
               size="sm"
-              className="hidden h-8 gap-1.5 text-xs"
-              onClick={onClosePack}
+              className="h-8 gap-1.5 text-xs"
+              onClick={onCloseBox}
             >
-              <Package className="h-3.5 w-3.5" />
+              <PackageCheck className="h-3.5 w-3.5" />
+              Close Box
+            </Button>
+          )}
+          {canClosePack && (
+            <Button
+              size="sm"
+              className="h-8 gap-1.5 text-xs"
+              onClick={onFinishPack}
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" />
               Close Pack
-              <kbd className="ml-1 rounded border border-border bg-muted px-1 font-mono text-[10px] text-muted-foreground">
-                ALT+P
-              </kbd>
             </Button>
           )}
         </div>
@@ -439,7 +455,6 @@ function PackStation() {
                     <span className="text-muted-foreground text-[12px]">Channel</span>
                     <ChannelLogo channel={currentOrder.channel} />
                   </div>
-                  <InfoRow label="Courier" value={currentOrder.courier} />
                 </div>
               </div>
 
@@ -580,91 +595,136 @@ function PackStation() {
               </div>
             </div>
 
-            {/* Packaging scan — appears only after all items are scanned */}
-            {allItemsDone && recommended && (
-              <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4 shrink-0 text-primary" />
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">Recommended packaging: </span>
-                    <span className="font-semibold">{recommended.name}</span>
-                    <span className="ml-1.5 font-mono text-[11px] text-muted-foreground">
-                      ({recommended.id})
-                    </span>
-                  </div>
-                </div>
-                {packagingError && <ErrorBanner message={packagingError} />}
-                <ScanRow
-                  key={`pkg-${scanKey}`}
-                  label="Scan packaging material"
-                  placeholder={`e.g. ${recommended.id}`}
-                  onScan={onPackagingScan}
-                  autoFocus
-                />
-              </div>
-            )}
-
-            {/* All Items table */}
+            {/* Items table — Item View / Box View */}
             <div className="pt-2">
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <h2 className="text-sm font-semibold text-foreground">All Items</h2>
-                <div className="relative w-64">
-                  <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    value={itemSearch}
-                    onChange={(e) => setItemSearch(e.target.value)}
-                    placeholder="Search items…"
-                    className="h-8 pl-8 text-xs"
-                  />
+              <Tabs value={itemView} onValueChange={(v) => setItemView(v as "item" | "box")}>
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <TabsList>
+                    <TabsTrigger value="item">Item View</TabsTrigger>
+                    <TabsTrigger value="box">Box View</TabsTrigger>
+                  </TabsList>
+                  {itemView === "item" && (
+                    <div className="relative w-64">
+                      <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        value={itemSearch}
+                        onChange={(e) => setItemSearch(e.target.value)}
+                        placeholder="Search items…"
+                        className="h-8 pl-8 text-xs"
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
-              <div className="overflow-hidden rounded-lg border border-border bg-card">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/30 hover:bg-muted/30">
-                      <TableHead className="text-[11px] font-semibold text-foreground/70">SKU</TableHead>
-                      <TableHead className="text-[11px] font-semibold text-foreground/70">Description</TableHead>
-                      <TableHead className="text-[11px] font-semibold text-foreground/70 text-right">Qty</TableHead>
-                      <TableHead className="text-[11px] font-semibold text-foreground/70">MRP</TableHead>
-                      <TableHead className="text-[11px] font-semibold text-foreground/70">Batch</TableHead>
-                      <TableHead className="text-[11px] font-semibold text-foreground/70">Box No.</TableHead>
-                      <TableHead className="w-16 text-[11px] font-semibold text-foreground/70">Image</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredPacked.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="py-16 text-center">
-                          <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                            <Package className="h-10 w-10 opacity-20" />
-                            <span className="text-sm">No Records Found</span>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredPacked.map((p) => (
-                        <TableRow key={p.sku} className="text-xs [&>td]:py-1">
-                          <TableCell className="font-mono text-muted-foreground">{p.sku}</TableCell>
-                          <TableCell className="font-medium">{p.name}</TableCell>
-                          <TableCell className="text-right tabular-nums font-semibold">{p.qty}</TableCell>
-                          <TableCell>{p.mrp}</TableCell>
-                          <TableCell className="font-mono text-[11px] text-muted-foreground">{p.lot}</TableCell>
-                          <TableCell className="font-mono text-[11px]">{p.box}</TableCell>
-                          <TableCell>
-                            <div className="h-8 w-8 overflow-hidden rounded border border-border bg-muted/20">
-                              <img
-                                src={p.image}
-                                alt={p.name}
-                                className="h-full w-full object-contain p-0.5"
-                              />
-                            </div>
-                          </TableCell>
+
+                <TabsContent value="item" className="mt-0">
+                  <div className="overflow-hidden rounded-lg border border-border bg-card">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/30 hover:bg-muted/30">
+                          <TableHead className="text-[11px] font-semibold text-foreground/70">SKU</TableHead>
+                          <TableHead className="text-[11px] font-semibold text-foreground/70">Description</TableHead>
+                          <TableHead className="text-[11px] font-semibold text-foreground/70 text-right">Qty</TableHead>
+                          <TableHead className="text-[11px] font-semibold text-foreground/70">MRP</TableHead>
+                          <TableHead className="text-[11px] font-semibold text-foreground/70">Batch</TableHead>
+                          <TableHead className="text-[11px] font-semibold text-foreground/70">Box No.</TableHead>
+                          <TableHead className="w-16 text-[11px] font-semibold text-foreground/70">Image</TableHead>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredPacked.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={7} className="py-16 text-center">
+                              <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                                <Package className="h-10 w-10 opacity-20" />
+                                <span className="text-sm">No Records Found</span>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          filteredPacked.map((p) => (
+                            <TableRow key={`${p.sku}-${p.box}`} className="text-xs [&>td]:py-1">
+                              <TableCell className="font-mono text-muted-foreground">{p.sku}</TableCell>
+                              <TableCell className="font-medium">{p.name}</TableCell>
+                              <TableCell className="text-right tabular-nums font-semibold">{p.qty}</TableCell>
+                              <TableCell>{p.mrp}</TableCell>
+                              <TableCell className="font-mono text-[11px] text-muted-foreground">{p.lot}</TableCell>
+                              <TableCell className="font-mono text-[11px]">{p.box}</TableCell>
+                              <TableCell>
+                                <div className="h-8 w-8 overflow-hidden rounded border border-border bg-muted/20">
+                                  <img
+                                    src={p.image}
+                                    alt={p.name}
+                                    className="h-full w-full object-contain p-0.5"
+                                  />
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="box" className="mt-0">
+                  <div className="overflow-hidden rounded-lg border border-border bg-card">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/30 hover:bg-muted/30">
+                          <TableHead className="text-[11px] font-semibold text-foreground/70">Box ID</TableHead>
+                          <TableHead className="text-[11px] font-semibold text-foreground/70 text-right">Quantity</TableHead>
+                          <TableHead className="text-[11px] font-semibold text-foreground/70">Opened at</TableHead>
+                          <TableHead className="text-[11px] font-semibold text-foreground/70">Closed at</TableHead>
+                          <TableHead className="w-20 text-[11px] font-semibold text-foreground/70">Print</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {boxes.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={5} className="py-16 text-center">
+                              <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                                <Package className="h-10 w-10 opacity-20" />
+                                <span className="text-sm">No Records Found</span>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          boxes.map((b) => (
+                            <TableRow key={b.id} className="text-xs [&>td]:py-1">
+                              <TableCell className="font-mono text-[11px]">{b.id}</TableCell>
+                              <TableCell className="text-right tabular-nums font-semibold">
+                                {qtyInBox(b.id)}
+                              </TableCell>
+                              <TableCell className="font-mono text-[11px] text-muted-foreground">
+                                {b.openedAt}
+                              </TableCell>
+                              <TableCell className="font-mono text-[11px] text-muted-foreground">
+                                {b.closedAt ?? (
+                                  <span className="rounded-[3px] border border-warn/30 bg-warn-bg px-1.5 py-0.5 font-sans text-[10px] font-semibold uppercase tracking-[0.06em] text-warn">
+                                    Open
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 gap-1.5 text-xs"
+                                  disabled={!b.closedAt}
+                                  onClick={() => setSlipBox(b)}
+                                >
+                                  <Printer className="h-3.5 w-3.5" />
+                                  Print
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
           </>
         )}
@@ -736,43 +796,236 @@ function PackStation() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Print confirmation + next tote ── */}
+      {/* ── Close Pack — shipment details ── */}
       <Dialog open={printOpen} onOpenChange={() => {}}>
         <DialogContent
           className="max-w-sm"
           onPointerDownOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
         >
-          <div className="flex items-center gap-3 rounded-md border border-status-picked/30 bg-status-picked/5 p-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-status-picked/15">
-              <CheckCircle2 className="h-5 w-5 text-status-picked" />
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PackageCheck className="h-4 w-4" />
+              Close Pack
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                Courier
+              </label>
+              <Select value={shipCourier} onValueChange={setShipCourier}>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select courier…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COURIERS.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <div className="text-sm font-semibold">Invoice &amp; Shipping Label Printed</div>
-              <div className="text-xs text-muted-foreground">Documents sent to printer.</div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                LR Number
+              </label>
+              <Input
+                value={shipLrNo}
+                onChange={(e) => setShipLrNo(e.target.value)}
+                placeholder="e.g. LR-882140"
+                className="h-10 text-sm"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                Dimensions
+              </label>
+              <Input
+                value={shipDims}
+                onChange={(e) => setShipDims(e.target.value)}
+                placeholder="L × W × H (cm)"
+                className="h-10 text-sm"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                Weight
+              </label>
+              <Input
+                value={shipWeight}
+                onChange={(e) => setShipWeight(e.target.value)}
+                placeholder="e.g. 12.5 kg"
+                className="h-10 text-sm"
+              />
             </div>
           </div>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-              <ScanBarcode className="h-3.5 w-3.5" />
-              Scan next tote
-            </div>
-            {printToteError && <ErrorBanner message={printToteError} />}
-            <ScanRow
-              key={`print-tote-${printOpen}`}
-              label=""
-              placeholder="Scan tote barcode…"
-              onScan={onPrintToteScan}
-              autoFocus
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" size="sm" className="w-full" onClick={onClosePrint}>
-              Done — no next tote
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" className="flex-1" onClick={onClosePrint}>
+              Cancel
+            </Button>
+            <Button
+              className="flex-1"
+              disabled={!shipCourier || !shipDims.trim() || !shipWeight.trim()}
+              onClick={onConfirmClosePack}
+            >
+              Confirm &amp; Close Pack
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ── Packing slip (box label) ── */}
+      <Dialog open={!!slipBox} onOpenChange={(o) => !o && setSlipBox(null)}>
+        <DialogContent className="max-w-[380px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Printer className="h-4 w-4" />
+              Packing Slip
+            </DialogTitle>
+          </DialogHeader>
+          {slipBox && currentOrder && (
+            <PackingSlip
+              boxId={slipBox.id}
+              order={currentOrder}
+              items={packedItems.filter((p) => p.box === slipBox.id)}
+            />
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => setSlipBox(null)}>
+              Close
+            </Button>
+            <Button
+              className="flex-1 gap-1.5"
+              onClick={() => {
+                toast.success(`Packing slip for ${slipBox?.id} sent to printer`);
+                setSlipBox(null);
+              }}
+            >
+              <Printer className="h-3.5 w-3.5" />
+              Print
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+/** Compact packing slip for a single box. */
+function PackingSlip({
+  boxId,
+  order,
+  items,
+}: {
+  boxId: string;
+  order: PackOrder;
+  items: PackedRow[];
+}) {
+  const totalQty = items.reduce((s, p) => s + p.qty, 0);
+  const ship = order.shipTo;
+  return (
+    <div className="mx-auto flex aspect-[210/297] w-full max-h-[70vh] flex-col overflow-y-auto rounded-sm border border-black bg-white px-4 py-3 text-[12px] leading-tight text-black">
+      <div className="flex items-start justify-between gap-3 pb-2">
+        <div className="min-w-0 space-y-0.5">
+          <div>
+            <span className="text-neutral-600">Order No: </span>
+            <span className="font-mono font-semibold">{order.orderNo}</span>
+          </div>
+          <div>
+            <span className="text-neutral-600">Box ID: </span>
+            <span className="font-mono font-semibold">{boxId}</span>
+          </div>
+          {ship && (
+            <div className="pt-1">
+              <div className="text-[10px] font-mono uppercase tracking-[0.06em] text-neutral-500">
+                Dispatch to
+              </div>
+              <div className="font-semibold">{ship.name}</div>
+              <div>{ship.address}</div>
+              <div>
+                {ship.city}, {ship.state} — {ship.pincode}
+              </div>
+            </div>
+          )}
+        </div>
+        <QrCode value={boxId} />
+      </div>
+
+      <table className="mt-2 w-full border-collapse text-[11px]">
+        <thead>
+          <tr className="bg-neutral-100 text-[9px] font-mono uppercase tracking-[0.06em] text-neutral-600">
+            <th className="border border-black px-1 py-0.5 w-6 text-center font-medium">Sr</th>
+            <th className="border border-black px-1 py-0.5 text-left font-medium">SKU</th>
+            <th className="border border-black px-1 py-0.5 w-9 text-center font-medium">Qty</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((p, i) => (
+            <tr key={p.sku}>
+              <td className="border border-black px-1 py-0.5 text-center tabular-nums">{i + 1}</td>
+              <td className="border border-black px-1 py-0.5 font-mono">{p.sku}</td>
+              <td className="border border-black px-1 py-0.5 text-center tabular-nums">{p.qty}</td>
+            </tr>
+          ))}
+          <tr className="font-semibold">
+            <td className="border border-black px-1 py-0.5 text-right" colSpan={2}>
+              Total
+            </td>
+            <td className="border border-black px-1 py-0.5 text-center tabular-nums">{totalQty}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div className="mt-auto pt-2 text-center text-[9px] text-neutral-500">
+        Powered by Shiprocket WMS
+      </div>
+    </div>
+  );
+}
+
+// A deterministic QR-style matrix — purely a demo placeholder, not a real code.
+function QrCode({ value }: { value: string }) {
+  const cells = useMemo(() => {
+    const N = 21;
+    let h = 0;
+    for (let i = 0; i < value.length; i++) h = (h * 31 + value.charCodeAt(i)) | 0;
+    const grid: boolean[] = [];
+    let x = Math.abs(h) || 1;
+    for (let i = 0; i < N * N; i++) {
+      x = (x * 1664525 + 1013904223) | 0;
+      grid.push((Math.abs(x) & 7) > 3);
+    }
+    const finder = (r0: number, c0: number) => {
+      for (let r = 0; r < 7; r++) {
+        for (let c = 0; c < 7; c++) {
+          const on =
+            r === 0 || r === 6 || c === 0 || c === 6 ||
+            (r >= 2 && r <= 4 && c >= 2 && c <= 4);
+          grid[(r0 + r) * N + (c0 + c)] = on;
+        }
+      }
+    };
+    finder(0, 0);
+    finder(0, N - 7);
+    finder(N - 7, 0);
+    return { grid, N };
+  }, [value]);
+
+  return (
+    <div
+      className="grid h-20 w-20 shrink-0 gap-0 rounded-sm border border-black bg-white p-1"
+      style={{ gridTemplateColumns: `repeat(${cells.N}, minmax(0, 1fr))` }}
+    >
+      {cells.grid.map((on, i) => (
+        <div key={i} className={on ? "bg-black" : "bg-white"} />
+      ))}
     </div>
   );
 }

@@ -201,6 +201,22 @@ export const GRN_TASKS: GrnTask[] = ["BOX-7F3A-001", "BOX-22C9-004", "BOX-9011-0
 let grnSeq = 4471;
 export const genGrnDocId = () => `GRN-2024-${String(grnSeq++).padStart(6, "0")}`;
 
+// USN (Unique Serial Number) — one per rejected unit. The barcode is printed
+// once the box GRN is completed so each bad piece can be tracked individually.
+let usnSeq = 90001;
+export const genUsn = () => `USN-${String(usnSeq++).padStart(7, "0")}`;
+
+// WID (Warehouse Item ID) — one per good unit. Good QC prints WID labels the
+// same way bad QC prints USNs; only the label kind differs between the modes.
+let widSeq = 50001;
+export const genWid = () => `WID-${String(widSeq++).padStart(7, "0")}`;
+
+// The QC mode is a property of the scanned bin, not an operator choice: bins
+// carrying "BAD"/"REJ" resolve to bad QC (USN labels), everything else to good
+// QC (WID labels). This lets one scan set the whole downstream flow.
+export const binQcType = (lpn: string): "good" | "bad" =>
+  /BAD|REJ/.test(lpn.trim().toUpperCase()) ? "bad" : "good";
+
 // Barcode pattern for printed GRN documents.
 export const grnBarcodePattern = (seed: string): number[] => {
   let h = 0;

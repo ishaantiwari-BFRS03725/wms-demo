@@ -50,3 +50,22 @@ export const sortTasks: SortTask[] = [
 ];
 
 export const getSortTask = (id: string) => sortTasks.find((t) => t.id === id);
+
+// Sorted pigeonholes waiting to be emptied into a pick bin. In a live WMS this
+// would come from the sortation backend; here it seeds the Empty Pigeonhole
+// HHT screen.
+export interface SortedPigeonhole {
+  id: string;
+  orderId: string;
+  items: number;
+  wave: string;
+  sortedAgo: string;
+}
+
+export const sortedPigeonholes: SortedPigeonhole[] = [
+  { id: "PW-1", orderId: "ORD-ABC-12", items: 2, wave: "WAVE-0612-A", sortedAgo: "4m ago" },
+  { id: "PW-2", orderId: "ORD-DEF-44", items: 2, wave: "WAVE-0612-A", sortedAgo: "9m ago" },
+  { id: "PW-3", orderId: "ORD-GHI-77", items: 2, wave: "WAVE-0612-A", sortedAgo: "12m ago" },
+  { id: "PW-5", orderId: "ORD-JKL-09", items: 3, wave: "WAVE-0611-C", sortedAgo: "18m ago" },
+  { id: "PW-8", orderId: "ORD-MNO-31", items: 1, wave: "WAVE-0611-C", sortedAgo: "26m ago" },
+];

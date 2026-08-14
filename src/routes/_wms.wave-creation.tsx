@@ -112,6 +112,7 @@ interface WaveSchedule {
   slaWindow: string;          // SLA option value e.g. "1-2", or ""
   // quantity / amount filters
   orderQtyType: "" | "single" | "multi";  // single- vs multi-quantity orders
+  skuCountType: "" | "single" | "multi";  // single- vs multi-SKU orders
   saleAmountMin: string;
   // fulfillment filters
   couriers: string[];
@@ -142,6 +143,7 @@ const SEED: WaveSchedule[] = [
     sellers: ["Acme Traders", "Blue Star Retail"],
     slaWindow: "1-2",
     orderQtyType: "",
+    skuCountType: "multi",
     saleAmountMin: "",
     couriers: ["Bluedart", "Delhivery"],
     channels: ["Amazon", "Flipkart"],
@@ -164,6 +166,7 @@ const SEED: WaveSchedule[] = [
     sellers: [],
     slaWindow: "3-5",
     orderQtyType: "multi",
+    skuCountType: "",
     saleAmountMin: "500",
     couriers: [],
     channels: [],
@@ -192,6 +195,7 @@ const EMPTY_FORM: WaveForm = {
   sellers: [],
   slaWindow: "",
   orderQtyType: "",
+  skuCountType: "",
   saleAmountMin: "",
   couriers: [],
   channels: [],
@@ -259,6 +263,7 @@ function WaveCreation() {
       sellers: w.sellers,
       slaWindow: w.slaWindow,
       orderQtyType: w.orderQtyType,
+      skuCountType: w.skuCountType,
       saleAmountMin: w.saleAmountMin,
       couriers: w.couriers,
       channels: w.channels,
@@ -500,6 +505,39 @@ function WaveCreation() {
                 </div>
               </Section>
 
+              {/* Number of SKUs */}
+              <Section label="Number of SKUs" hint="Filter by distinct SKU count per order.">
+                <div className="flex flex-wrap items-center gap-2">
+                  {([
+                    { value: "single", label: "Single SKU order" },
+                    { value: "multi",  label: "Multi SKU order" },
+                  ] as const).map((opt) => {
+                    const selected = f.skuCountType === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => set({ skuCountType: selected ? "" : opt.value })}
+                        className={cn(
+                          "flex items-center gap-2 rounded-[3px] border px-3 py-2 text-[13px] transition-colors",
+                          selected
+                            ? "border-sys/40 bg-sys-bg text-sys"
+                            : "border-border bg-background text-foreground hover:bg-muted",
+                        )}
+                      >
+                        <span className={cn(
+                          "flex h-3.5 w-3.5 items-center justify-center rounded-full border",
+                          selected ? "border-sys" : "border-muted-foreground/40",
+                        )}>
+                          {selected && <span className="h-1.5 w-1.5 rounded-full bg-sys" />}
+                        </span>
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Section>
+
               {/* Sale Amount */}
               <Section label="Sale Amount" hint="Include orders with total value above this amount.">
                 <div className="relative w-44">
@@ -664,6 +702,9 @@ function WaveCard({
 
   if (wave.orderQtyType) {
     tags.push({ label: wave.orderQtyType === "single" ? "Single qty" : "Multi qty", cls: "bg-orange-50 text-orange-700 border-orange-200" });
+  }
+  if (wave.skuCountType) {
+    tags.push({ label: wave.skuCountType === "single" ? "Single SKU" : "Multi SKU", cls: "bg-indigo-50 text-indigo-700 border-indigo-200" });
   }
   if (wave.saleAmountMin) tags.push({ label: `Sale ≥ ₹${wave.saleAmountMin}`, cls: "bg-teal-50 text-teal-700 border-teal-200" });
 

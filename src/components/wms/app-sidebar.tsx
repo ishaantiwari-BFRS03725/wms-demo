@@ -6,6 +6,7 @@ import {
   ArrowLeftRight,
   ArrowUpFromLine,
   BadgeCheck,
+  Ban,
   Bell,
   Bot,
   Boxes,
@@ -32,6 +33,7 @@ import {
   Settings2,
   ShuffleIcon,
   SquarePen,
+  Table2,
   TrendingUp,
   Users,
   Waypoints,
@@ -54,11 +56,7 @@ import {
   Smartphone,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Sidebar,
   SidebarContent,
@@ -133,9 +131,9 @@ const sections: NavSection[] = [
       { title: "Returns Evaluation", url: "/returns-evaluation", icon: UserRoundCheck },
       { title: "RTO · Origin", url: "/returns-rto", icon: RotateCcw },
       { title: "RTV · Vendor", url: "/returns-rtv", icon: Building2 },
+      { title: "Purchase Return", url: "/purchase-return", icon: Undo2 },
       { title: "CIR · Customer", url: "/returns-cir", icon: MessagesSquare },
       { title: "QC Station", url: "/qc-station", icon: ScanLine },
-      { title: "Cycle Count", url: "/cycle-count", icon: ClipboardCheck },
     ],
   },
   {
@@ -154,9 +152,7 @@ const sections: NavSection[] = [
   },
   {
     label: "Devices",
-    items: [
-      { title: "Floor Handhelds", url: "/floor-handhelds", icon: Smartphone },
-    ],
+    items: [{ title: "Floor Handhelds", url: "/floor-handhelds", icon: Smartphone }],
   },
   {
     label: "Outbound",
@@ -176,13 +172,21 @@ const sections: NavSection[] = [
           { title: "Zone Insights", url: "/lane-congestion", icon: Footprints },
         ],
       },
-      { title: "Sort", url: "/sort", icon: ShuffleIcon },
-      { title: "Putwall", url: "/putwall", icon: LayoutGrid },
+      {
+        title: "Sorting",
+        icon: ShuffleIcon,
+        children: [
+          { title: "Sort", url: "/sort", icon: ShuffleIcon },
+          { title: "Putwall Management", url: "/putwall", icon: LayoutGrid },
+          { title: "Putwall Transfer", url: "/sort/empty", icon: PackageOpen },
+        ],
+      },
       {
         title: "Packing",
         icon: Boxes,
         children: [
           { title: "Pack", url: "/pack", icon: Boxes },
+          { title: "B2B Pack", url: "/pack-b2b-v2", icon: Layers },
           {
             title: "View Packlists",
             url: "/view-pack",
@@ -213,18 +217,33 @@ const sections: NavSection[] = [
     items: [
       { title: "Gate Entry", url: "/gate-entry", icon: DoorOpen },
       { title: "Unloading", url: "/unloading", icon: PackageOpen },
-      { title: "GRN", url: "/grn", icon: ClipboardCheck },
+      {
+        title: "GRN",
+        icon: ClipboardCheck,
+        children: [
+          { title: "GRN", url: "/grn", icon: ClipboardCheck },
+          { title: "View GRNs", url: "/view-grn", icon: ClipboardList },
+        ],
+      },
       {
         title: "Sales Return GRN",
         url: "/sales-return-grn",
         icon: ClipboardCheck,
       },
-      { title: "Putaway", url: "/putaway", icon: MoveDown },
+      {
+        title: "Putaway",
+        icon: MoveDown,
+        children: [
+          { title: "Putaway", url: "/putaway", icon: MoveDown },
+          { title: "View Putaway", url: "/view-putaway", icon: ClipboardList },
+        ],
+      },
     ],
   },
   {
     label: "Inventory",
     items: [
+      { title: "Inventory View", url: "/inventory-view", icon: Boxes },
       {
         title: "Detailed Inventory View",
         url: "/detailed-inventory-view",
@@ -243,6 +262,14 @@ const sections: NavSection[] = [
         ],
       },
       { title: "Approvals", url: "/approvals", icon: BadgeCheck },
+      {
+        title: "Cycle Count",
+        icon: ClipboardCheck,
+        children: [
+          { title: "Tasks", url: "/cycle-count", icon: ClipboardCheck },
+          { title: "Cycle Count Config", url: "/cycle-count-config", icon: Settings2 },
+        ],
+      },
       { title: "Replenishment", url: "/replenishment", icon: PackagePlus },
       {
         title: "Slotting",
@@ -258,13 +285,13 @@ const sections: NavSection[] = [
     label: "Masters",
     items: [
       { title: "Dock Management", url: "/dock-management", icon: Warehouse },
+      { title: "Table ID Master", url: "/table-id-master", icon: Table2 },
+      { title: "Reject Reason Master", url: "/reject-reason-master", icon: Ban },
     ],
   },
   {
     label: "Configuration",
-    items: [
-      { title: "Warehouse Settings", url: "/warehouse-settings", icon: Settings2 },
-    ],
+    items: [{ title: "Warehouse Settings", url: "/warehouse-settings", icon: Settings2 }],
   },
   {
     label: "Reports",
