@@ -25,6 +25,7 @@ import { Route as WmsSlottingConfigRouteImport } from './routes/_wms.slotting-co
 import { Route as WmsSlottingRouteImport } from './routes/_wms.slotting'
 import { Route as WmsSitePerformanceRouteImport } from './routes/_wms.site-performance'
 import { Route as WmsSalesReturnGrnRouteImport } from './routes/_wms.sales-return-grn'
+import { Route as WmsRunDemoRouteImport } from './routes/_wms.run-demo'
 import { Route as WmsReturnsRtvRouteImport } from './routes/_wms.returns-rtv'
 import { Route as WmsReturnsRtoRouteImport } from './routes/_wms.returns-rto'
 import { Route as WmsReturnsIntakeRouteImport } from './routes/_wms.returns-intake'
@@ -176,6 +177,11 @@ const WmsSitePerformanceRoute = WmsSitePerformanceRouteImport.update({
 const WmsSalesReturnGrnRoute = WmsSalesReturnGrnRouteImport.update({
   id: '/sales-return-grn',
   path: '/sales-return-grn',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsRunDemoRoute = WmsRunDemoRouteImport.update({
+  id: '/run-demo',
+  path: '/run-demo',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsReturnsRtvRoute = WmsReturnsRtvRouteImport.update({
@@ -601,6 +607,7 @@ export interface FileRoutesByFullPath {
   '/returns-intake': typeof WmsReturnsIntakeRoute
   '/returns-rto': typeof WmsReturnsRtoRoute
   '/returns-rtv': typeof WmsReturnsRtvRoute
+  '/run-demo': typeof WmsRunDemoRoute
   '/sales-return-grn': typeof WmsSalesReturnGrnRoute
   '/site-performance': typeof WmsSitePerformanceRoute
   '/slotting': typeof WmsSlottingRoute
@@ -691,6 +698,7 @@ export interface FileRoutesByTo {
   '/returns-intake': typeof WmsReturnsIntakeRoute
   '/returns-rto': typeof WmsReturnsRtoRoute
   '/returns-rtv': typeof WmsReturnsRtvRoute
+  '/run-demo': typeof WmsRunDemoRoute
   '/sales-return-grn': typeof WmsSalesReturnGrnRoute
   '/site-performance': typeof WmsSitePerformanceRoute
   '/slotting': typeof WmsSlottingRoute
@@ -783,6 +791,7 @@ export interface FileRoutesById {
   '/_wms/returns-intake': typeof WmsReturnsIntakeRoute
   '/_wms/returns-rto': typeof WmsReturnsRtoRoute
   '/_wms/returns-rtv': typeof WmsReturnsRtvRoute
+  '/_wms/run-demo': typeof WmsRunDemoRoute
   '/_wms/sales-return-grn': typeof WmsSalesReturnGrnRoute
   '/_wms/site-performance': typeof WmsSitePerformanceRoute
   '/_wms/slotting': typeof WmsSlottingRoute
@@ -875,6 +884,7 @@ export interface FileRouteTypes {
     | '/returns-intake'
     | '/returns-rto'
     | '/returns-rtv'
+    | '/run-demo'
     | '/sales-return-grn'
     | '/site-performance'
     | '/slotting'
@@ -965,6 +975,7 @@ export interface FileRouteTypes {
     | '/returns-intake'
     | '/returns-rto'
     | '/returns-rtv'
+    | '/run-demo'
     | '/sales-return-grn'
     | '/site-performance'
     | '/slotting'
@@ -1056,6 +1067,7 @@ export interface FileRouteTypes {
     | '/_wms/returns-intake'
     | '/_wms/returns-rto'
     | '/_wms/returns-rtv'
+    | '/_wms/run-demo'
     | '/_wms/sales-return-grn'
     | '/_wms/site-performance'
     | '/_wms/slotting'
@@ -1210,6 +1222,13 @@ declare module '@tanstack/react-router' {
       path: '/sales-return-grn'
       fullPath: '/sales-return-grn'
       preLoaderRoute: typeof WmsSalesReturnGrnRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/run-demo': {
+      id: '/_wms/run-demo'
+      path: '/run-demo'
+      fullPath: '/run-demo'
+      preLoaderRoute: typeof WmsRunDemoRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/returns-rtv': {
@@ -1779,6 +1798,7 @@ interface WmsRouteChildren {
   WmsReturnsIntakeRoute: typeof WmsReturnsIntakeRoute
   WmsReturnsRtoRoute: typeof WmsReturnsRtoRoute
   WmsReturnsRtvRoute: typeof WmsReturnsRtvRoute
+  WmsRunDemoRoute: typeof WmsRunDemoRoute
   WmsSalesReturnGrnRoute: typeof WmsSalesReturnGrnRoute
   WmsSitePerformanceRoute: typeof WmsSitePerformanceRoute
   WmsSlottingRoute: typeof WmsSlottingRoute
@@ -1869,6 +1889,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsReturnsIntakeRoute: WmsReturnsIntakeRoute,
   WmsReturnsRtoRoute: WmsReturnsRtoRoute,
   WmsReturnsRtvRoute: WmsReturnsRtvRoute,
+  WmsRunDemoRoute: WmsRunDemoRoute,
   WmsSalesReturnGrnRoute: WmsSalesReturnGrnRoute,
   WmsSitePerformanceRoute: WmsSitePerformanceRoute,
   WmsSlottingRoute: WmsSlottingRoute,

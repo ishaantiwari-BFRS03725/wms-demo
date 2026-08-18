@@ -59,6 +59,7 @@ import {
   ScanBarcode,
   Sheet,
   Smartphone,
+  PlayCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -100,6 +101,10 @@ interface NavSection {
 }
 
 const sections: NavSection[] = [
+  {
+    label: "Guided Demos",
+    items: [{ title: "Run Demo", url: "/run-demo", icon: PlayCircle }],
+  },
   {
     label: "Command Center",
     items: [
@@ -304,6 +309,18 @@ const sections: NavSection[] = [
     items: [{ title: "Reports", url: "/reports", icon: FileBarChart }],
   },
 ];
+
+export interface FlatNavItem extends NavItem {
+  parent?: string;
+}
+
+export const flatNavItems: FlatNavItem[] = sections.flatMap((s) =>
+  s.items.flatMap((i) =>
+    isModule(i)
+      ? i.children.map((c) => ({ ...c, parent: i.title }))
+      : [{ title: i.title, url: i.url, icon: i.icon }],
+  ),
+);
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
