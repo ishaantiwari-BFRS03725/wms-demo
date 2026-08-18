@@ -122,6 +122,7 @@ const sections: NavSection[] = [
   {
     label: "Exceptions",
     items: [
+      { title: "Exceptions", url: "/exceptions", icon: AlertTriangle },
       { title: "Inbound Exceptions", url: "/inbound-exceptions", icon: ArrowDownToLine },
       { title: "Outbound Exceptions", url: "/outbound-exceptions", icon: ArrowUpFromLine },
       { title: "Incidents", url: "/incidents", icon: Siren },

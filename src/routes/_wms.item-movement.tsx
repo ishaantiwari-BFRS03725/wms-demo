@@ -31,6 +31,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import {
+  type GoodToBadTicket,
+  closeTicketIfComplete,
+  scanUsn,
+  useGoodToBadTickets,
+} from "@/lib/wms/good-to-bad-data";
 
 export const Route = createFileRoute("/_wms/item-movement")({
   head: () => ({
@@ -181,9 +187,7 @@ const BIN_TASKS: BinMovementTask[] = [
     fromLocation: "RX-LPN-204",
     binNo: "LPN-7081",
     toLocation: "BULK09-13",
-    items: [
-      { sku: "600822", name: "boAt Rockerz 450 Bluetooth Headphones", qty: 24 },
-    ],
+    items: [{ sku: "600822", name: "boAt Rockerz 450 Bluetooth Headphones", qty: 24 }],
   },
 ];
 
@@ -193,17 +197,20 @@ const BIN_TASKS: BinMovementTask[] = [
 function ItemMovement() {
   const [batchActive, setBatchActive] = useState(false);
   const [activeBinTaskId, setActiveBinTaskId] = useState<string | null>(null);
+  const [activeGtbTicketId, setActiveGtbTicketId] = useState<string | null>(null);
   const [doneIds, setDoneIds] = useState<string[]>([]);
   const [adHocActive, setAdHocActive] = useState(false);
 
   const activeBinTask = BIN_TASKS.find((t) => t.id === activeBinTaskId) ?? null;
 
+  const gtbTickets = useGoodToBadTickets().filter((t) => t.status !== "Closed");
+  const activeGtbTicket = gtbTickets.find((t) => t.id === activeGtbTicketId) ?? null;
+
   const openTasks = TASKS.filter((t) => !doneIds.includes(t.id));
   const openBinTasks = BIN_TASKS.filter((t) => !doneIds.includes(t.id));
-  const allDone = openTasks.length === 0 && openBinTasks.length === 0;
+  const allDone = openTasks.length === 0 && openBinTasks.length === 0 && gtbTickets.length === 0;
 
-  const markDone = (id: string) =>
-    setDoneIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+  const markDone = (id: string) => setDoneIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
 
   if (adHocActive) {
     return <AdHocMovementFlow onExit={() => setAdHocActive(false)} />;
@@ -238,6 +245,16 @@ function ItemMovement() {
     );
   }
 
+  if (activeGtbTicket) {
+    return (
+      <GoodToBadMovementFlow
+        ticket={activeGtbTicket}
+        onExit={() => setActiveGtbTicketId(null)}
+        onComplete={() => setActiveGtbTicketId(null)}
+      />
+    );
+  }
+
   return (
     <div className="min-h-[calc(100vh-3rem)] bg-muted/40 py-4">
       <div className="mx-auto w-full max-w-[420px] space-y-3">
@@ -266,9 +283,7 @@ function ItemMovement() {
             <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
               <CheckCircle2 className="h-7 w-7 text-status-picked" />
               <div className="text-sm font-medium">All tasks completed</div>
-              <div className="text-[11px] text-muted-foreground">
-                No pending movement tasks.
-              </div>
+              <div className="text-[11px] text-muted-foreground">No pending movement tasks.</div>
             </div>
           ) : (
             <div className="divide-y divide-border">
@@ -285,21 +300,14 @@ function ItemMovement() {
                     </div>
                   </div>
                   {openTasks.map((t) => (
-                    <div
-                      key={t.id}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left"
-                    >
+                    <div key={t.id} className="flex w-full items-center gap-3 px-4 py-3 text-left">
                       <div className="min-w-0 flex-1">
-                        <div className="font-mono text-sm font-semibold">
-                          {t.id}
-                        </div>
+                        <div className="font-mono text-sm font-semibold">{t.id}</div>
                         <div className="mt-0.5 truncate text-xs text-muted-foreground">
                           {t.reason}
                         </div>
                         <div className="mt-1 flex items-center gap-1.5 text-[11px]">
-                          <span className="font-mono font-medium">
-                            {t.fromBin}
-                          </span>
+                          <span className="font-mono font-medium">{t.fromBin}</span>
                           <ChevronRight className="h-3 w-3 text-muted-foreground" />
                           <span className="font-mono font-medium">{t.toBin}</span>
                         </div>
@@ -310,10 +318,7 @@ function ItemMovement() {
                     </div>
                   ))}
                   <div className="px-4 py-3">
-                    <Button
-                      className="h-11 w-full"
-                      onClick={() => setBatchActive(true)}
-                    >
+                    <Button className="h-11 w-full" onClick={() => setBatchActive(true)}>
                       <Package className="h-4 w-4" />
                       Start movement · pick into tote
                     </Button>
@@ -337,30 +342,92 @@ function ItemMovement() {
                         <Package className="h-3.5 w-3.5" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="font-mono text-sm font-semibold">
-                          {t.id}
-                        </div>
+                        <div className="font-mono text-sm font-semibold">{t.id}</div>
                         <div className="mt-0.5 truncate text-xs text-muted-foreground">
                           {t.reason}
                         </div>
                         <div className="mt-1 flex items-center gap-1.5 text-[11px]">
-                          <span className="font-mono font-medium">
-                            {t.fromLocation}
-                          </span>
+                          <span className="font-mono font-medium">{t.fromLocation}</span>
                           <ChevronRight className="h-3 w-3 text-muted-foreground" />
-                          <span className="font-mono font-medium">
-                            {t.toLocation}
-                          </span>
+                          <span className="font-mono font-medium">{t.toLocation}</span>
                         </div>
                         <div className="mt-0.5 font-mono text-[11px] text-muted-foreground">
-                          Bin: {t.binNo} · {t.items.length}{" "}
-                          {t.items.length === 1 ? "SKU" : "SKUs"},{" "}
+                          Bin: {t.binNo} · {t.items.length} {t.items.length === 1 ? "SKU" : "SKUs"},{" "}
                           {t.items.reduce((s, i) => s + i.qty, 0)} units
                         </div>
                       </div>
                       <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                     </button>
                   ))}
+                </>
+              )}
+
+              {gtbTickets.length > 0 && (
+                <>
+                  <div className="px-4 py-2 text-[10px] font-semibold font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                    Item · Good-to-Bad QC
+                  </div>
+                  {gtbTickets.map((t) => {
+                    const readyToMove = t.status === "Ready to Move";
+                    const movedCount = t.usns.filter((u) => u.status === "moved").length;
+                    const row = (
+                      <div className="flex w-full items-center gap-3 px-4 py-3 text-left">
+                        <div
+                          className={cn(
+                            "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
+                            readyToMove
+                              ? "bg-primary/10 text-primary"
+                              : "bg-muted text-muted-foreground",
+                          )}
+                        >
+                          <Tags className="h-3.5 w-3.5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-mono text-sm font-semibold">{t.taskId}</div>
+                          <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                            Damage Segregation · {t.id}
+                          </div>
+                          <div className="mt-1 flex items-center gap-1.5 text-[11px]">
+                            <span className="font-mono font-medium">{t.fromBin}</span>
+                            <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                            <span className="font-mono font-medium">{t.toBin}</span>
+                          </div>
+                        </div>
+                        <div className="flex shrink-0 flex-col items-end gap-1">
+                          <span
+                            className={cn(
+                              "rounded-[3px] border px-1.5 py-0.5 font-mono text-[10px] uppercase",
+                              readyToMove
+                                ? "border-warn/40 bg-warn-bg text-warn"
+                                : "border-muted-foreground/30 bg-muted text-muted-foreground",
+                            )}
+                          >
+                            {t.status}
+                          </span>
+                          <span className="font-mono text-[10px] text-muted-foreground">
+                            {movedCount}/{t.requestedQty} moved
+                          </span>
+                        </div>
+                        {readyToMove && (
+                          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        )}
+                      </div>
+                    );
+                    return readyToMove ? (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setActiveGtbTicketId(t.id)}
+                        className="w-full transition-colors hover:bg-muted/50"
+                      >
+                        {row}
+                      </button>
+                    ) : (
+                      <div key={t.id} className="opacity-60">
+                        {row}
+                      </div>
+                    );
+                  })}
                 </>
               )}
             </div>
@@ -468,11 +535,7 @@ function AdHocItemFlow({ onComplete }: { onComplete: () => void }) {
       {/* Step 1 — From bin */}
       {stage === "from-bin" && (
         <Card className="space-y-3 p-4">
-          <SuggestRow
-            icon={MapPin}
-            label="Source bin or location"
-            value="e.g. BULK16-02"
-          />
+          <SuggestRow icon={MapPin} label="Source bin or location" value="e.g. BULK16-02" />
           <FreeScanRow
             label="Scan or type from bin"
             demoValue="BULK16-02"
@@ -491,11 +554,7 @@ function AdHocItemFlow({ onComplete }: { onComplete: () => void }) {
 
           {!scannedSku ? (
             <>
-              <SuggestRow
-                icon={Tags}
-                label="Item barcode or SKU"
-                value="e.g. 600179"
-              />
+              <SuggestRow icon={Tags} label="Item barcode or SKU" value="e.g. 600179" />
               <FreeScanRow
                 label="Scan item barcode / SKU"
                 demoValue="600179"
@@ -518,12 +577,8 @@ function AdHocItemFlow({ onComplete }: { onComplete: () => void }) {
                     />
                   </div>
                   <div className="space-y-0.5 p-3">
-                    <div className="text-sm font-semibold leading-snug">
-                      {itemInfo.name}
-                    </div>
-                    <div className="font-mono text-[11px] text-muted-foreground">
-                      {scannedSku}
-                    </div>
+                    <div className="text-sm font-semibold leading-snug">{itemInfo.name}</div>
+                    <div className="font-mono text-[11px] text-muted-foreground">{scannedSku}</div>
                   </div>
                 </div>
               ) : (
@@ -546,9 +601,7 @@ function AdHocItemFlow({ onComplete }: { onComplete: () => void }) {
                   autoFocus
                   inputMode="numeric"
                   value={qty}
-                  onChange={(e) =>
-                    setQty(e.target.value.replace(/[^0-9]/g, ""))
-                  }
+                  onChange={(e) => setQty(e.target.value.replace(/[^0-9]/g, ""))}
                   className="h-11 text-base font-mono"
                 />
               </div>
@@ -576,12 +629,7 @@ function AdHocItemFlow({ onComplete }: { onComplete: () => void }) {
                 />
               )}
               {cap.mrp && (
-                <ReadonlyField
-                  icon={IndianRupee}
-                  label="MRP"
-                  value={cap.mrpValue ?? "—"}
-                  mono
-                />
+                <ReadonlyField icon={IndianRupee} label="MRP" value={cap.mrpValue ?? "—"} mono />
               )}
 
               <Button
@@ -604,11 +652,7 @@ function AdHocItemFlow({ onComplete }: { onComplete: () => void }) {
             label="Item"
             value={`${scannedSku}${itemInfo ? " · " + itemInfo.name : ""}`}
           />
-          <SuggestRow
-            icon={MapPin}
-            label="Destination bin or location"
-            value="e.g. PICK01-A1"
-          />
+          <SuggestRow icon={MapPin} label="Destination bin or location" value="e.g. PICK01-A1" />
           <FreeScanRow
             label="Scan or type to bin"
             demoValue="PICK01-A1"
@@ -649,12 +693,8 @@ function AdHocItemFlow({ onComplete }: { onComplete: () => void }) {
               <div className="text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
                 Item
               </div>
-              <div className="text-sm font-semibold">
-                {itemInfo?.name ?? scannedSku}
-              </div>
-              <div className="font-mono text-[11px] text-muted-foreground">
-                {scannedSku}
-              </div>
+              <div className="text-sm font-semibold">{itemInfo?.name ?? scannedSku}</div>
+              <div className="font-mono text-[11px] text-muted-foreground">{scannedSku}</div>
             </div>
             <div>
               <div className="text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
@@ -698,11 +738,7 @@ function AdHocBinFlow({ onComplete }: { onComplete: () => void }) {
       {/* Step 1 — Source location */}
       {stage === "source-location" && (
         <Card className="space-y-3 p-4">
-          <SuggestRow
-            icon={MapPin}
-            label="Source location"
-            value="e.g. BULK16-02"
-          />
+          <SuggestRow icon={MapPin} label="Source location" value="e.g. BULK16-02" />
           <FreeScanRow
             label="Scan or type source location"
             demoValue="BULK16-02"
@@ -726,11 +762,7 @@ function AdHocBinFlow({ onComplete }: { onComplete: () => void }) {
               setStage("source-location");
             }}
           />
-          <SuggestRow
-            icon={Package}
-            label="Bin at this location"
-            value="e.g. BIN-A12-402"
-          />
+          <SuggestRow icon={Package} label="Bin at this location" value="e.g. BIN-A12-402" />
           <FreeScanRow
             label="Scan bin"
             demoValue="BIN-A12-402"
@@ -748,11 +780,7 @@ function AdHocBinFlow({ onComplete }: { onComplete: () => void }) {
           <ConfirmedStrip label="Bin" value={binNo} />
           {!destScanned ? (
             <>
-              <SuggestRow
-                icon={MapPin}
-                label="Destination location"
-                value="e.g. BULK10-14"
-              />
+              <SuggestRow icon={MapPin} label="Destination location" value="e.g. BULK10-14" />
               <FreeScanRow
                 label="Scan or type destination"
                 demoValue="BULK10-14"
@@ -778,17 +806,13 @@ function AdHocBinFlow({ onComplete }: { onComplete: () => void }) {
                     <div className="text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
                       From
                     </div>
-                    <div className="font-mono text-sm font-semibold">
-                      {sourceLocation}
-                    </div>
+                    <div className="font-mono text-sm font-semibold">{sourceLocation}</div>
                   </div>
                   <div>
                     <div className="text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
                       To
                     </div>
-                    <div className="font-mono text-sm font-semibold">
-                      {destLocation}
-                    </div>
+                    <div className="font-mono text-sm font-semibold">{destLocation}</div>
                   </div>
                 </div>
                 <div>
@@ -850,9 +874,7 @@ function MovementBatchFlow({
   const [putIdx, setPutIdx] = useState(0);
   const [toScanned, setToScanned] = useState(false);
   const [putaway, setPutaway] = useState<Record<string, PutawayState>>(() =>
-    Object.fromEntries(
-      tasks.map((t) => [t.id, { toBin: t.toBin, editing: false }]),
-    ),
+    Object.fromEntries(tasks.map((t) => [t.id, { toBin: t.toBin, editing: false }])),
   );
 
   const totalUnits = tasks.reduce((s, t) => s + t.suggestedQty, 0);
@@ -900,15 +922,10 @@ function MovementBatchFlow({
         <div className="mb-3 rounded-md border border-border bg-muted/20 px-3 py-2.5 text-[11px] text-muted-foreground">
           <span className="font-semibold text-foreground">{tasks.length}</span>{" "}
           {tasks.length === 1 ? "task" : "tasks"} ·{" "}
-          <span className="font-semibold text-foreground">{totalUnits}</span>{" "}
-          units to move
+          <span className="font-semibold text-foreground">{totalUnits}</span> units to move
         </div>
         <Card className="space-y-3 p-4">
-          <SuggestRow
-            icon={Package}
-            label="Scan a pick tote"
-            value="e.g. TOTE-4471"
-          />
+          <SuggestRow icon={Package} label="Scan a pick tote" value="e.g. TOTE-4471" />
           <FreeScanRow
             label="Scan tote LPN"
             demoValue="TOTE-4471"
@@ -934,11 +951,7 @@ function MovementBatchFlow({
 
         {!fromScanned ? (
           <Card className="mt-3 space-y-3 p-4">
-            <SuggestRow
-              icon={MapPin}
-              label="Go to From bin"
-              value={pickTask.fromBin}
-            />
+            <SuggestRow icon={MapPin} label="Go to From bin" value={pickTask.fromBin} />
             <ScanRow
               label="Scan From bin"
               placeholder={pickTask.fromBin}
@@ -962,12 +975,8 @@ function MovementBatchFlow({
                 />
               </div>
               <div className="space-y-1 p-3">
-                <div className="text-sm font-semibold leading-snug">
-                  {pickTask.name}
-                </div>
-                <div className="font-mono text-[11px] text-muted-foreground">
-                  {pickTask.sku}
-                </div>
+                <div className="text-sm font-semibold leading-snug">{pickTask.name}</div>
+                <div className="font-mono text-[11px] text-muted-foreground">{pickTask.sku}</div>
               </div>
             </div>
 
@@ -983,70 +992,63 @@ function MovementBatchFlow({
               />
             ) : (
               <>
-            <ConfirmedStrip label="Item" value={pickTask.sku} />
-            <div className="space-y-2">
-              <FieldHeader icon={Hash} label="Quantity to tote" />
-              <p className="text-[11px] text-muted-foreground">
-                Suggested{" "}
-                <span className="font-semibold text-foreground">
-                  {pickTask.suggestedQty}
-                </span>{" "}
-                units.
-              </p>
-              <Input
-                inputMode="numeric"
-                value={qty}
-                onChange={(e) => setQty(e.target.value.replace(/[^0-9]/g, ""))}
-                className="h-11 text-base font-mono"
-              />
-            </div>
+                <ConfirmedStrip label="Item" value={pickTask.sku} />
+                <div className="space-y-2">
+                  <FieldHeader icon={Hash} label="Quantity to tote" />
+                  <p className="text-[11px] text-muted-foreground">
+                    Suggested{" "}
+                    <span className="font-semibold text-foreground">{pickTask.suggestedQty}</span>{" "}
+                    units.
+                  </p>
+                  <Input
+                    inputMode="numeric"
+                    value={qty}
+                    onChange={(e) => setQty(e.target.value.replace(/[^0-9]/g, ""))}
+                    className="h-11 text-base font-mono"
+                  />
+                </div>
 
-            {cap.batch && (
-              <ReadonlyField
-                icon={Tags}
-                label="Batch being moved"
-                value={cap.batchNo ?? "—"}
-                mono
-              />
-            )}
-            {cap.expiry && (
-              <ReadonlyField
-                icon={CalendarClock}
-                label="Expiry date"
-                value={cap.expiryDate ?? "—"}
-              />
-            )}
-            {cap.mfg && (
-              <ReadonlyField
-                icon={Calendar}
-                label="Manufacturing date"
-                value={cap.mfgDate ?? "—"}
-              />
-            )}
-            {cap.mrp && (
-              <ReadonlyField
-                icon={IndianRupee}
-                label="MRP"
-                value={cap.mrpValue ?? "—"}
-                mono
-              />
-            )}
+                {cap.batch && (
+                  <ReadonlyField
+                    icon={Tags}
+                    label="Batch being moved"
+                    value={cap.batchNo ?? "—"}
+                    mono
+                  />
+                )}
+                {cap.expiry && (
+                  <ReadonlyField
+                    icon={CalendarClock}
+                    label="Expiry date"
+                    value={cap.expiryDate ?? "—"}
+                  />
+                )}
+                {cap.mfg && (
+                  <ReadonlyField
+                    icon={Calendar}
+                    label="Manufacturing date"
+                    value={cap.mfgDate ?? "—"}
+                  />
+                )}
+                {cap.mrp && (
+                  <ReadonlyField icon={IndianRupee} label="MRP" value={cap.mrpValue ?? "—"} mono />
+                )}
 
-            <Button
-              className="h-11 w-full"
-              disabled={!qty || Number(qty) <= 0}
-              onClick={() => {
-                if (Number(qty) > pickTask.suggestedQty) {
-                  toast.error("Quantity exceeds the suggested amount");
-                  return;
-                }
-                toast.success("Added to tote");
-                advancePick(Number(qty));
-              }}
-            >
-              <Package className="h-4 w-4" />
-              Add to tote
-            </Button>
+                <Button
+                  className="h-11 w-full"
+                  disabled={!qty || Number(qty) <= 0}
+                  onClick={() => {
+                    if (Number(qty) > pickTask.suggestedQty) {
+                      toast.error("Quantity exceeds the suggested amount");
+                      return;
+                    }
+                    toast.success("Added to tote");
+                    advancePick(Number(qty));
+                  }}
+                >
+                  <Package className="h-4 w-4" />
+                  Add to tote
+                </Button>
               </>
             )}
           </Card>
@@ -1092,9 +1094,8 @@ function MovementBatchFlow({
               <span className="font-semibold">
                 {pickedQty[putTask.id] ?? putTask.suggestedQty} units
               </span>{" "}
-              from tote{" "}
-              <span className="font-mono font-semibold">{tote}</span>, then scan
-              the To bin below and place them there.
+              from tote <span className="font-mono font-semibold">{tote}</span>, then scan the To
+              bin below and place them there.
             </p>
           </div>
           <div className="overflow-hidden rounded-md border border-border bg-muted/30">
@@ -1108,12 +1109,8 @@ function MovementBatchFlow({
             </div>
             <div className="flex items-center justify-between gap-2 p-3">
               <div className="min-w-0">
-                <div className="truncate text-sm font-semibold leading-snug">
-                  {putTask.name}
-                </div>
-                <div className="font-mono text-[11px] text-muted-foreground">
-                  {putTask.sku}
-                </div>
+                <div className="truncate text-sm font-semibold leading-snug">{putTask.name}</div>
+                <div className="font-mono text-[11px] text-muted-foreground">{putTask.sku}</div>
               </div>
               <span className="shrink-0 font-mono text-xs font-semibold">
                 {pickedQty[putTask.id] ?? putTask.suggestedQty} units
@@ -1135,9 +1132,7 @@ function MovementBatchFlow({
                       Change
                     </button>
                   </div>
-                  <div className="font-mono text-2xl font-semibold tracking-tight">
-                    {put.toBin}
-                  </div>
+                  <div className="font-mono text-2xl font-semibold tracking-tight">{put.toBin}</div>
                   <ScanRow
                     label="Scan To bin to put away"
                     placeholder={put.toBin}
@@ -1206,8 +1201,8 @@ function MovementBatchFlow({
         <div>
           <h3 className="text-lg font-semibold">Movement complete</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            {tasks.length} {tasks.length === 1 ? "item" : "items"} ·{" "}
-            {pickedUnits} units picked into {tote} and put away.
+            {tasks.length} {tasks.length === 1 ? "item" : "items"} · {pickedUnits} units picked into{" "}
+            {tote} and put away.
           </p>
         </div>
         <Button className="h-11 w-full" onClick={onComplete}>
@@ -1308,8 +1303,7 @@ function DropZoneDialog({
         <DialogHeader>
           <DialogTitle>Drop tote at drop zone</DialogTitle>
           <DialogDescription>
-            Leave the tote at a drop zone so putaway can be done later. Scan the
-            drop zone barcode.
+            Leave the tote at a drop zone so putaway can be done later. Scan the drop zone barcode.
           </DialogDescription>
         </DialogHeader>
         <div>
@@ -1337,15 +1331,7 @@ function DropZoneDialog({
   );
 }
 
-function ProgressStrip({
-  label,
-  value,
-  max,
-}: {
-  label: string;
-  value: number;
-  max: number;
-}) {
+function ProgressStrip({ label, value, max }: { label: string; value: number; max: number }) {
   const pct = max === 0 ? 0 : Math.round((value / max) * 100);
   return (
     <div className="mt-2">
@@ -1356,10 +1342,7 @@ function ProgressStrip({
         </span>
       </div>
       <div className="h-2 overflow-hidden rounded-[2px] bg-muted">
-        <div
-          className="h-full bg-status-picked transition-all"
-          style={{ width: `${pct}%` }}
-        />
+        <div className="h-full bg-status-picked transition-all" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
@@ -1416,28 +1399,20 @@ function BinMovementFlow({
               <span className="text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
                 From
               </span>
-              <span className="ml-auto truncate font-mono font-semibold">
-                {task.fromLocation}
-              </span>
+              <span className="ml-auto truncate font-mono font-semibold">{task.fromLocation}</span>
             </div>
             <div className="flex items-center gap-1.5 rounded-md border border-border bg-muted/30 px-2 py-1.5 text-[11px]">
               <ArrowDownToLine className="h-3 w-3 shrink-0 text-muted-foreground" />
               <span className="text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
                 To
               </span>
-              <span className="ml-auto truncate font-mono font-semibold">
-                {task.toLocation}
-              </span>
+              <span className="ml-auto truncate font-mono font-semibold">{task.toLocation}</span>
             </div>
           </div>
 
           {stage === "source-location" && (
             <Card className="space-y-3 p-4">
-              <SuggestRow
-                icon={MapPin}
-                label="Go to source location"
-                value={task.fromLocation}
-              />
+              <SuggestRow icon={MapPin} label="Go to source location" value={task.fromLocation} />
               <ScanRow
                 label="Scan source location"
                 placeholder={task.fromLocation}
@@ -1453,11 +1428,7 @@ function BinMovementFlow({
           {stage === "bin" && (
             <Card className="space-y-3 p-4">
               <ConfirmedStrip label="Location" value={task.fromLocation} />
-              <SuggestRow
-                icon={Package}
-                label="Scan bin at this location"
-                value={task.binNo}
-              />
+              <SuggestRow icon={Package} label="Scan bin at this location" value={task.binNo} />
               <ScanRow
                 label="Scan bin"
                 placeholder={task.binNo}
@@ -1475,18 +1446,13 @@ function BinMovementFlow({
               <ConfirmedStrip label="Bin" value={task.binNo} />
               {!destScanned ? (
                 <>
-                  <SuggestRow
-                    icon={MapPin}
-                    label="Go to destination"
-                    value={task.toLocation}
-                  />
+                  <SuggestRow icon={MapPin} label="Go to destination" value={task.toLocation} />
                   <ScanRow
                     label="Scan destination location"
                     placeholder={task.toLocation}
                     expected={task.toLocation}
                     onScan={(val) => {
-                      if (norm(val) === norm(task.toLocation))
-                        setDestScanned(true);
+                      if (norm(val) === norm(task.toLocation)) setDestScanned(true);
                       else toast.error("Wrong destination scanned");
                     }}
                   />
@@ -1503,32 +1469,179 @@ function BinMovementFlow({
                         <div className="text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
                           From
                         </div>
-                        <div className="font-mono text-sm font-semibold">
-                          {task.fromLocation}
-                        </div>
+                        <div className="font-mono text-sm font-semibold">{task.fromLocation}</div>
                       </div>
                       <div>
                         <div className="text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
                           To
                         </div>
-                        <div className="font-mono text-sm font-semibold">
-                          {task.toLocation}
-                        </div>
+                        <div className="font-mono text-sm font-semibold">{task.toLocation}</div>
                       </div>
                     </div>
                     <div>
                       <div className="text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
                         Bin
                       </div>
-                      <div className="font-mono text-sm font-semibold">
-                        {task.binNo}
-                      </div>
+                      <div className="font-mono text-sm font-semibold">{task.binNo}</div>
                     </div>
                   </div>
                   <Button className="h-11 w-full" onClick={complete}>
                     Confirm bin movement
                   </Button>
                 </div>
+              )}
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Good-to-Bad QC movement flow (task-driven, USN-gated) ──────────────────
+
+type GtbStage = "from-bin" | "to-bin" | "sku" | "usn";
+
+function GoodToBadMovementFlow({
+  ticket,
+  onExit,
+  onComplete,
+}: {
+  ticket: GoodToBadTicket;
+  onExit: () => void;
+  onComplete: () => void;
+}) {
+  const [stage, setStage] = useState<GtbStage>("from-bin");
+
+  const printedUsns = ticket.usns.filter((u) => u.status === "printed");
+  const movedCount = ticket.usns.filter((u) => u.status === "moved").length;
+  const canConfirm = ticket.usns.length > 0 && printedUsns.length === 0;
+
+  const confirmMove = () => {
+    closeTicketIfComplete(ticket.id);
+    toast.success(
+      movedCount >= ticket.requestedQty
+        ? `${ticket.taskId} moved and closed — ${ticket.id} resolved`
+        : `${movedCount} of ${ticket.requestedQty} units moved for ${ticket.id}`,
+    );
+    onComplete();
+  };
+
+  return (
+    <div className="min-h-[calc(100vh-3rem)] bg-muted/40 py-4">
+      <div className="mx-auto w-full max-w-[420px] overflow-hidden rounded-md border border-border bg-background">
+        <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
+          <button
+            type="button"
+            onClick={onExit}
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Tasks
+          </button>
+          <div className="text-right">
+            <div className="text-sm font-semibold">{ticket.taskId}</div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.06em] text-muted-foreground">
+              Good-to-Bad QC · {ticket.id}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 pb-6 space-y-3">
+          {stage === "from-bin" && (
+            <Card className="space-y-3 p-4">
+              <SuggestRow icon={MapPin} label="Scan From bin" value={ticket.fromBin} />
+              <ScanRow
+                label="Scan From bin"
+                placeholder={ticket.fromBin}
+                expected={ticket.fromBin}
+                onScan={(val) => {
+                  if (norm(val) === norm(ticket.fromBin)) setStage("to-bin");
+                  else toast.error("Wrong From bin scanned");
+                }}
+              />
+            </Card>
+          )}
+
+          {stage === "to-bin" && (
+            <Card className="space-y-3 p-4">
+              <ConfirmedStrip label="From bin" value={ticket.fromBin} />
+              <SuggestRow icon={MapPin} label="Scan To bin" value={ticket.toBin} />
+              <ScanRow
+                label="Scan To bin"
+                placeholder={ticket.toBin}
+                expected={ticket.toBin}
+                onScan={(val) => {
+                  if (norm(val) === norm(ticket.toBin)) setStage("sku");
+                  else toast.error("Wrong To bin scanned");
+                }}
+              />
+            </Card>
+          )}
+
+          {stage === "sku" && (
+            <Card className="space-y-3 p-4">
+              <ConfirmedStrip label="From bin" value={ticket.fromBin} />
+              <ConfirmedStrip label="To bin" value={ticket.toBin} />
+              <SuggestRow icon={Tags} label="Scan SKU / EAN" value={ticket.sku} />
+              <ScanRow
+                label="Scan item barcode"
+                placeholder={ticket.sku}
+                expected={ticket.sku}
+                onScan={(val) => {
+                  if (norm(val) === norm(ticket.sku)) setStage("usn");
+                  else toast.error("Wrong item scanned");
+                }}
+              />
+            </Card>
+          )}
+
+          {stage === "usn" && (
+            <Card className="space-y-3 p-4">
+              <ConfirmedStrip label="From → To" value={`${ticket.fromBin} → ${ticket.toBin}`} />
+              <ConfirmedStrip label="Item" value={`${ticket.sku} · ${ticket.skuName}`} />
+
+              <ProgressStrip label="USNs scanned" value={movedCount} max={ticket.usns.length} />
+
+              {printedUsns.length > 0 ? (
+                <>
+                  <ScanRow
+                    label="Scan pasted USN sticker"
+                    placeholder="e.g. USN-600822-000101"
+                    expected={printedUsns[0].id}
+                    onScan={(val) => {
+                      const result = scanUsn(ticket.id, val);
+                      if (!result.ok) toast.error(result.error);
+                    }}
+                  />
+                  <div className="space-y-1.5">
+                    <FieldHeader icon={Hash} label="Awaiting scan" />
+                    <div className="flex flex-wrap gap-1.5">
+                      {printedUsns.map((u) => (
+                        <span
+                          key={u.id}
+                          className="rounded-[3px] border border-warn/40 bg-warn-bg px-1.5 py-0.5 font-mono text-[10px] text-warn"
+                        >
+                          {u.id}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center gap-2 rounded-md border border-ok/40 bg-ok-bg px-3 py-2.5 text-xs text-ok">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  All printed USNs scanned
+                </div>
+              )}
+
+              <Button className="h-11 w-full" disabled={!canConfirm} onClick={confirmMove}>
+                Confirm Move
+              </Button>
+              {!canConfirm && (
+                <p className="text-center text-[11px] text-muted-foreground">
+                  Scan every printed USN before confirming the move.
+                </p>
               )}
             </Card>
           )}
@@ -1555,9 +1668,7 @@ function ConfirmedStrip({
     <div className="flex items-center gap-2 rounded-md border border-border bg-muted/30 px-3 py-2">
       <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-status-picked" />
       <span className="text-xs text-muted-foreground">{label}</span>
-      <span className="ml-auto truncate font-mono text-xs font-semibold">
-        {value}
-      </span>
+      <span className="ml-auto truncate font-mono text-xs font-semibold">{value}</span>
       {onClear && (
         <button
           type="button"
@@ -1586,9 +1697,7 @@ function SuggestRow({
         <Icon className="h-3.5 w-3.5" />
         {label}
       </div>
-      <div className="mt-1 font-mono text-2xl font-semibold tracking-tight">
-        {value}
-      </div>
+      <div className="mt-1 font-mono text-2xl font-semibold tracking-tight">{value}</div>
     </div>
   );
 }
@@ -1623,9 +1732,7 @@ function ReadonlyField({
     <div className="space-y-1.5">
       <FieldHeader icon={icon} label={label} />
       <div className="flex items-center justify-between rounded-md border border-border bg-background px-3 py-2.5">
-        <span className={cn("text-sm font-semibold", mono && "font-mono")}>
-          {value}
-        </span>
+        <span className={cn("text-sm font-semibold", mono && "font-mono")}>{value}</span>
         <span className="text-[10px] font-mono uppercase tracking-[0.06em] text-muted-foreground">
           System
         </span>

@@ -60,6 +60,7 @@ import { Route as WmsGrnRouteImport } from './routes/_wms.grn'
 import { Route as WmsGatepassLogRouteImport } from './routes/_wms.gatepass-log'
 import { Route as WmsGateEntryRouteImport } from './routes/_wms.gate-entry'
 import { Route as WmsFloorHandheldsRouteImport } from './routes/_wms.floor-handhelds'
+import { Route as WmsExceptionsRouteImport } from './routes/_wms.exceptions'
 import { Route as WmsDriftFeedbackRouteImport } from './routes/_wms.drift-feedback'
 import { Route as WmsDockManagementRouteImport } from './routes/_wms.dock-management'
 import { Route as WmsDispatchRouteImport } from './routes/_wms.dispatch'
@@ -352,6 +353,11 @@ const WmsFloorHandheldsRoute = WmsFloorHandheldsRouteImport.update({
   path: '/floor-handhelds',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsExceptionsRoute = WmsExceptionsRouteImport.update({
+  id: '/exceptions',
+  path: '/exceptions',
+  getParentRoute: () => WmsRoute,
+} as any)
 const WmsDriftFeedbackRoute = WmsDriftFeedbackRouteImport.update({
   id: '/drift-feedback',
   path: '/drift-feedback',
@@ -559,6 +565,7 @@ export interface FileRoutesByFullPath {
   '/dispatch': typeof WmsDispatchRoute
   '/dock-management': typeof WmsDockManagementRoute
   '/drift-feedback': typeof WmsDriftFeedbackRoute
+  '/exceptions': typeof WmsExceptionsRoute
   '/floor-handhelds': typeof WmsFloorHandheldsRoute
   '/gate-entry': typeof WmsGateEntryRoute
   '/gatepass-log': typeof WmsGatepassLogRoute
@@ -648,6 +655,7 @@ export interface FileRoutesByTo {
   '/dispatch': typeof WmsDispatchRoute
   '/dock-management': typeof WmsDockManagementRoute
   '/drift-feedback': typeof WmsDriftFeedbackRoute
+  '/exceptions': typeof WmsExceptionsRoute
   '/floor-handhelds': typeof WmsFloorHandheldsRoute
   '/gate-entry': typeof WmsGateEntryRoute
   '/gatepass-log': typeof WmsGatepassLogRoute
@@ -739,6 +747,7 @@ export interface FileRoutesById {
   '/_wms/dispatch': typeof WmsDispatchRoute
   '/_wms/dock-management': typeof WmsDockManagementRoute
   '/_wms/drift-feedback': typeof WmsDriftFeedbackRoute
+  '/_wms/exceptions': typeof WmsExceptionsRoute
   '/_wms/floor-handhelds': typeof WmsFloorHandheldsRoute
   '/_wms/gate-entry': typeof WmsGateEntryRoute
   '/_wms/gatepass-log': typeof WmsGatepassLogRoute
@@ -830,6 +839,7 @@ export interface FileRouteTypes {
     | '/dispatch'
     | '/dock-management'
     | '/drift-feedback'
+    | '/exceptions'
     | '/floor-handhelds'
     | '/gate-entry'
     | '/gatepass-log'
@@ -919,6 +929,7 @@ export interface FileRouteTypes {
     | '/dispatch'
     | '/dock-management'
     | '/drift-feedback'
+    | '/exceptions'
     | '/floor-handhelds'
     | '/gate-entry'
     | '/gatepass-log'
@@ -1009,6 +1020,7 @@ export interface FileRouteTypes {
     | '/_wms/dispatch'
     | '/_wms/dock-management'
     | '/_wms/drift-feedback'
+    | '/_wms/exceptions'
     | '/_wms/floor-handhelds'
     | '/_wms/gate-entry'
     | '/_wms/gatepass-log'
@@ -1445,6 +1457,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsFloorHandheldsRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/exceptions': {
+      id: '/_wms/exceptions'
+      path: '/exceptions'
+      fullPath: '/exceptions'
+      preLoaderRoute: typeof WmsExceptionsRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/drift-feedback': {
       id: '/_wms/drift-feedback'
       path: '/drift-feedback'
@@ -1724,6 +1743,7 @@ interface WmsRouteChildren {
   WmsDispatchRoute: typeof WmsDispatchRoute
   WmsDockManagementRoute: typeof WmsDockManagementRoute
   WmsDriftFeedbackRoute: typeof WmsDriftFeedbackRoute
+  WmsExceptionsRoute: typeof WmsExceptionsRoute
   WmsFloorHandheldsRoute: typeof WmsFloorHandheldsRoute
   WmsGateEntryRoute: typeof WmsGateEntryRoute
   WmsGatepassLogRoute: typeof WmsGatepassLogRoute
@@ -1813,6 +1833,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsDispatchRoute: WmsDispatchRoute,
   WmsDockManagementRoute: WmsDockManagementRoute,
   WmsDriftFeedbackRoute: WmsDriftFeedbackRoute,
+  WmsExceptionsRoute: WmsExceptionsRoute,
   WmsFloorHandheldsRoute: WmsFloorHandheldsRoute,
   WmsGateEntryRoute: WmsGateEntryRoute,
   WmsGatepassLogRoute: WmsGatepassLogRoute,

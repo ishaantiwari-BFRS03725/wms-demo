@@ -22,6 +22,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import {
+  BAD_QUARANTINE_BINS,
+  DAMAGE_SEGREGATION_REASON,
+  createGoodToBadTicket,
+  isBadQuarantineBin,
+} from "@/lib/wms/good-to-bad-data";
 
 export const Route = createFileRoute("/_wms/movement-task-create")({
   head: () => ({
@@ -43,6 +49,7 @@ interface CreatedTask {
   qty?: number;
   reason: string;
   createdAt: string;
+  ticketId?: string;
 }
 
 const SKU_OPTIONS = [
@@ -61,6 +68,7 @@ const ITEM_REASONS = [
   "Putaway · Inward → Bulk",
   "Quality hold · Move to quarantine",
   "Customer request",
+  DAMAGE_SEGREGATION_REASON,
 ];
 
 const BIN_REASONS = [
@@ -120,9 +128,7 @@ const UPLOAD_PREVIEW: CreatedTask[] = [
 function MovementTaskCreate() {
   const [tab, setTab] = useState<"form" | "upload">("form");
   const [tasks, setTasks] = useState<CreatedTask[]>([]);
-  const [uploadPreview, setUploadPreview] = useState<CreatedTask[] | null>(
-    null,
-  );
+  const [uploadPreview, setUploadPreview] = useState<CreatedTask[] | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const movCounterRef = useRef(3004);
   const binCounterRef = useRef(4003);
@@ -132,8 +138,7 @@ function MovementTaskCreate() {
     toast.success(`Task ${task.id} created`);
   };
 
-  const removeTask = (id: string) =>
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+  const removeTask = (id: string) => setTasks((prev) => prev.filter((t) => t.id !== id));
 
   const importPreview = () => {
     if (!uploadPreview) return;
@@ -152,8 +157,8 @@ function MovementTaskCreate() {
       <div>
         <h1 className="text-xl font-semibold">Create Movement Tasks</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          Add item or bin movement tasks individually via form, or bulk-import
-          from an Excel / CSV file.
+          Add item or bin movement tasks individually via form, or bulk-import from an Excel / CSV
+          file.
         </p>
       </div>
 
@@ -183,11 +188,15 @@ function MovementTaskCreate() {
             <TaskForm
               onAdd={(formData) => {
                 const isItem = formData.type === "item";
-                const skuEntry = SKU_OPTIONS.find(
-                  (s) => s.sku === formData.sku,
-                );
+                const skuEntry = SKU_OPTIONS.find((s) => s.sku === formData.sku);
+                const taskId = isItem ? nextMovId() : nextBinId();
+                const isGoodToBad =
+                  isItem &&
+                  formData.reason === DAMAGE_SEGREGATION_REASON &&
+                  isBadQuarantineBin(formData.to);
+
                 addTask({
-                  id: isItem ? nextMovId() : nextBinId(),
+                  id: taskId,
                   type: formData.type,
                   from: formData.from,
                   to: formData.to,
@@ -203,7 +212,23 @@ function MovementTaskCreate() {
                     hour: "2-digit",
                     minute: "2-digit",
                   }),
+                  ticketId: isGoodToBad
+                    ? createGoodToBadTicket({
+                        taskId,
+                        sku: formData.sku,
+                        skuName: skuEntry?.name ?? formData.sku,
+                        fromBin: formData.from,
+                        toBin: formData.to,
+                        requestedQty: Number(formData.qty),
+                      }).id
+                    : undefined,
                 });
+
+                if (isGoodToBad) {
+                  toast.success(
+                    `Linked exception ticket opened for ${taskId} — generate USNs on the Exceptions screen before it can be worked`,
+                  );
+                }
               }}
             />
           ) : (
@@ -275,7 +300,15 @@ function MovementTaskCreate() {
                   {t.sku ?? t.binNo ?? "—"}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {t.qty != null ? `${t.qty} units` : t.reason.split(" ·")[0]}
+                  {t.ticketId ? (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-warn-bg px-2 py-0.5 font-mono text-[10px] font-medium text-warn">
+                      {t.ticketId} · Open
+                    </span>
+                  ) : t.qty != null ? (
+                    `${t.qty} units`
+                  ) : (
+                    t.reason.split(" ·")[0]
+                  )}
                 </span>
                 <button
                   type="button"
@@ -327,9 +360,7 @@ function TaskForm({ onAdd }: { onAdd: (data: FormData) => void }) {
     from.trim() &&
     to.trim() &&
     reason &&
-    (formType === "bin"
-      ? binNo.trim()
-      : sku && qty && Number(qty) > 0);
+    (formType === "bin" ? binNo.trim() : sku && qty && Number(qty) > 0);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -338,7 +369,15 @@ function TaskForm({ onAdd }: { onAdd: (data: FormData) => void }) {
       toast.error("From and To locations cannot be the same");
       return;
     }
-    onAdd({ type: formType, from: from.trim(), to: to.trim(), sku, qty, binNo: binNo.trim(), reason });
+    onAdd({
+      type: formType,
+      from: from.trim(),
+      to: to.trim(),
+      sku,
+      qty,
+      binNo: binNo.trim(),
+      reason,
+    });
     setFrom("");
     setTo("");
     setSku("");
@@ -421,9 +460,7 @@ function TaskForm({ onAdd }: { onAdd: (data: FormData) => void }) {
                 {SKU_OPTIONS.map((s) => (
                   <SelectItem key={s.sku} value={s.sku}>
                     <span className="font-mono">{s.sku}</span>
-                    <span className="ml-2 text-muted-foreground">
-                      {s.name}
-                    </span>
+                    <span className="ml-2 text-muted-foreground">{s.name}</span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -475,6 +512,13 @@ function TaskForm({ onAdd }: { onAdd: (data: FormData) => void }) {
             ))}
           </SelectContent>
         </Select>
+        {formType === "item" && reason === DAMAGE_SEGREGATION_REASON && (
+          <p className="text-[11px] text-muted-foreground">
+            Moving into a Bad/Quarantine bin ({BAD_QUARANTINE_BINS.join(", ")}) auto-opens a linked
+            exception ticket — USNs must be generated there before the task can be worked in Item
+            Movement.
+          </p>
+        )}
       </div>
 
       <Button type="submit" disabled={!isValid} className="gap-2">
@@ -512,12 +556,8 @@ function UploadTab({
             <FileSpreadsheet className="h-6 w-6 text-muted-foreground" />
           </div>
           <div className="text-center">
-            <p className="text-sm font-medium">
-              Click to upload or drag and drop
-            </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Accepts .xlsx and .csv files
-            </p>
+            <p className="text-sm font-medium">Click to upload or drag and drop</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Accepts .xlsx and .csv files</p>
           </div>
           <Button variant="outline" size="sm" className="gap-2" type="button">
             <Upload className="h-3.5 w-3.5" />
@@ -560,20 +600,11 @@ function UploadTab({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold">
-                Preview — {preview.length} tasks found
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Review before importing
-              </p>
+              <p className="text-sm font-semibold">Preview — {preview.length} tasks found</p>
+              <p className="text-xs text-muted-foreground">Review before importing</p>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                type="button"
-                onClick={onClear}
-              >
+              <Button variant="outline" size="sm" type="button" onClick={onClear}>
                 Cancel
               </Button>
               <Button size="sm" type="button" onClick={onImport} className="gap-2">
@@ -598,9 +629,7 @@ function UploadTab({
                   key={t.id}
                   className="grid grid-cols-[5rem_5rem_1fr_1fr_6rem_6rem] items-center gap-3 px-4 py-3 text-sm"
                 >
-                  <span className="font-mono text-xs font-semibold">
-                    {t.id}
-                  </span>
+                  <span className="font-mono text-xs font-semibold">{t.id}</span>
                   <span>
                     {t.type === "item" ? (
                       <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-[10px] font-medium">
