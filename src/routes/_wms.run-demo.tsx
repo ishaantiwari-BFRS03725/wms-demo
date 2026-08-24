@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ArrowLeftRight, Play } from "lucide-react";
 import { PageHeader } from "@/components/wms/page-header";
 import { Button } from "@/components/ui/button";
+import { GOOD_TO_BAD_TOUR, startTour } from "@/lib/wms/demo-tour";
 
 export const Route = createFileRoute("/_wms/run-demo")({
   head: () => ({
@@ -12,6 +13,7 @@ export const Route = createFileRoute("/_wms/run-demo")({
 
 interface DemoCard {
   id: string;
+  tour?: string;
   title: string;
   description: string;
   icon: typeof ArrowLeftRight;
@@ -21,11 +23,12 @@ interface DemoCard {
 const DEMOS: DemoCard[] = [
   {
     id: "good-to-bad",
+    tour: GOOD_TO_BAD_TOUR,
     title: "Good-to-Bad Movement",
     description:
       "Walks through moving damaged stock from a good bin into quarantine — creating the movement task, auto-raising the QC exception ticket, generating USNs, and scanning the units across on the floor.",
     icon: ArrowLeftRight,
-    available: false,
+    available: true,
   },
 ];
 
@@ -67,7 +70,11 @@ function RunDemo() {
                 {demo.description}
               </p>
 
-              <Button className="mt-4 gap-2" disabled={!demo.available}>
+              <Button
+                className="mt-4 gap-2"
+                disabled={!demo.available || !demo.tour}
+                onClick={() => demo.tour && startTour(demo.tour)}
+              >
                 <Play className="h-4 w-4" />
                 Play demo
               </Button>

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar, flatNavItems } from "@/components/wms/app-sidebar";
+import { DemoOverlay } from "@/components/wms/demo-overlay";
 import {
   CommandDialog,
   CommandEmpty,
@@ -118,6 +119,7 @@ function WmsLayout() {
           </main>
         </div>
       </div>
+      <DemoOverlay />
     </SidebarProvider>
   );
 }

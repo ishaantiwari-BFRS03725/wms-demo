@@ -393,7 +393,7 @@ function TaskForm({ onAdd }: { onAdd: (data: FormData) => void }) {
         <label className="text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
           Task type
         </label>
-        <div className="flex overflow-hidden rounded-md border border-border w-fit">
+        <div data-demo="mtc-type" className="flex overflow-hidden rounded-md border border-border w-fit">
           {(["item", "bin"] as const).map((t) => (
             <button
               key={t}
@@ -424,6 +424,7 @@ function TaskForm({ onAdd }: { onAdd: (data: FormData) => void }) {
             From {formType === "bin" ? "Location" : "Bin"}
           </label>
           <Input
+            data-demo="mtc-from"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
             placeholder="e.g. BULK16-02"
@@ -437,6 +438,7 @@ function TaskForm({ onAdd }: { onAdd: (data: FormData) => void }) {
             To {formType === "bin" ? "Location" : "Bin"}
           </label>
           <Input
+            data-demo="mtc-to"
             value={to}
             onChange={(e) => setTo(e.target.value)}
             placeholder="e.g. PICK01-A1"
@@ -453,7 +455,7 @@ function TaskForm({ onAdd }: { onAdd: (data: FormData) => void }) {
               SKU
             </label>
             <Select value={sku} onValueChange={setSku}>
-              <SelectTrigger className="font-mono">
+              <SelectTrigger data-demo="mtc-sku" className="font-mono">
                 <SelectValue placeholder="Select SKU…" />
               </SelectTrigger>
               <SelectContent>
@@ -473,6 +475,7 @@ function TaskForm({ onAdd }: { onAdd: (data: FormData) => void }) {
               Quantity
             </label>
             <Input
+              data-demo="mtc-qty"
               inputMode="numeric"
               value={qty}
               onChange={(e) => setQty(e.target.value.replace(/[^0-9]/g, ""))}
@@ -501,7 +504,7 @@ function TaskForm({ onAdd }: { onAdd: (data: FormData) => void }) {
           Reason
         </label>
         <Select value={reason} onValueChange={setReason}>
-          <SelectTrigger>
+          <SelectTrigger data-demo="mtc-reason">
             <SelectValue placeholder="Select reason…" />
           </SelectTrigger>
           <SelectContent>
@@ -521,7 +524,7 @@ function TaskForm({ onAdd }: { onAdd: (data: FormData) => void }) {
         )}
       </div>
 
-      <Button type="submit" disabled={!isValid} className="gap-2">
+      <Button data-demo="mtc-add" type="submit" disabled={!isValid} className="gap-2">
         <Plus className="h-4 w-4" />
         Add Task
       </Button>

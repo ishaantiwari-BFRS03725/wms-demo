@@ -65,7 +65,7 @@ function ExceptionsScreen() {
       />
 
       <div className="p-7">
-        <div className="rounded-md border border-border bg-card">
+        <div data-demo="exc-table" className="rounded-md border border-border bg-card">
           <Table>
             <TableHeader>
               <TableRow>

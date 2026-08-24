@@ -258,7 +258,7 @@ function ItemMovement() {
   return (
     <div className="min-h-[calc(100vh-3rem)] bg-muted/40 py-4">
       <div className="mx-auto w-full max-w-[420px] space-y-3">
-        <div className="overflow-hidden rounded-md border border-border bg-background">
+        <div data-demo="im-list" className="overflow-hidden rounded-md border border-border bg-background">
           <div className="flex items-center gap-2 border-b border-border px-4 py-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
               <ArrowLeftRight className="h-4 w-4" />
