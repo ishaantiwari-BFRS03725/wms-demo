@@ -1,5 +1,7 @@
 # Changelog
 
+- 2026-09-08: GRN QC compact redesign (`/grn-compact`) — added to the sidebar as "GRN Compact" under Inbound → GRN (alongside GRN and View GRNs), reversing the earlier "URL-only, not in sidebar" call.
+
 - 2026-09-08: GRN QC compact redesign (`/grn-compact`) — narrowed the left (scan/QC form) column from 560px to 460px and let the scanned-items panel on the right take the freed width. Its table now shows an EAN column (deterministic demo barcode per SKU) in place of SKU, plus a new MRP column placed right next to Batch/Expiry.
 
 - 2026-09-08: GRN QC compact redesign (`/grn-compact`) — added a "Change LPN" button next to the GRN bin number in the top strip. Clicking it swaps the bin display for an inline scan-new-LPN input (with Cancel) right there in the header, matching the real GRN screen's "change bin" affordance; scanning/entering a value updates the bin shown for the rest of the session.

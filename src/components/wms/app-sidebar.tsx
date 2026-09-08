@@ -26,6 +26,7 @@ import {
   LayoutGrid,
   LifeBuoy,
   MessagesSquare,
+  Monitor,
   MoveDown,
   Network,
   Package,
@@ -234,6 +235,7 @@ const sections: NavSection[] = [
         children: [
           { title: "GRN", url: "/grn", icon: ClipboardCheck },
           { title: "View GRNs", url: "/view-grn", icon: ClipboardList },
+          { title: "GRN Compact", url: "/grn-compact", icon: Monitor },
         ],
       },
       {
