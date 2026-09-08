@@ -57,6 +57,7 @@ import { Route as WmsItemInfoUpdateRouteImport } from './routes/_wms.item-info-u
 import { Route as WmsInventoryViewRouteImport } from './routes/_wms.inventory-view'
 import { Route as WmsIncidentsRouteImport } from './routes/_wms.incidents'
 import { Route as WmsInboundExceptionsRouteImport } from './routes/_wms.inbound-exceptions'
+import { Route as WmsGrnCompactRouteImport } from './routes/_wms.grn-compact'
 import { Route as WmsGrnRouteImport } from './routes/_wms.grn'
 import { Route as WmsGatepassLogRouteImport } from './routes/_wms.gatepass-log'
 import { Route as WmsGateEntryRouteImport } from './routes/_wms.gate-entry'
@@ -339,6 +340,11 @@ const WmsInboundExceptionsRoute = WmsInboundExceptionsRouteImport.update({
   path: '/inbound-exceptions',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsGrnCompactRoute = WmsGrnCompactRouteImport.update({
+  id: '/grn-compact',
+  path: '/grn-compact',
+  getParentRoute: () => WmsRoute,
+} as any)
 const WmsGrnRoute = WmsGrnRouteImport.update({
   id: '/grn',
   path: '/grn',
@@ -576,6 +582,7 @@ export interface FileRoutesByFullPath {
   '/gate-entry': typeof WmsGateEntryRoute
   '/gatepass-log': typeof WmsGatepassLogRoute
   '/grn': typeof WmsGrnRoute
+  '/grn-compact': typeof WmsGrnCompactRoute
   '/inbound-exceptions': typeof WmsInboundExceptionsRoute
   '/incidents': typeof WmsIncidentsRoute
   '/inventory-view': typeof WmsInventoryViewRoute
@@ -667,6 +674,7 @@ export interface FileRoutesByTo {
   '/gate-entry': typeof WmsGateEntryRoute
   '/gatepass-log': typeof WmsGatepassLogRoute
   '/grn': typeof WmsGrnRoute
+  '/grn-compact': typeof WmsGrnCompactRoute
   '/inbound-exceptions': typeof WmsInboundExceptionsRoute
   '/incidents': typeof WmsIncidentsRoute
   '/inventory-view': typeof WmsInventoryViewRoute
@@ -760,6 +768,7 @@ export interface FileRoutesById {
   '/_wms/gate-entry': typeof WmsGateEntryRoute
   '/_wms/gatepass-log': typeof WmsGatepassLogRoute
   '/_wms/grn': typeof WmsGrnRoute
+  '/_wms/grn-compact': typeof WmsGrnCompactRoute
   '/_wms/inbound-exceptions': typeof WmsInboundExceptionsRoute
   '/_wms/incidents': typeof WmsIncidentsRoute
   '/_wms/inventory-view': typeof WmsInventoryViewRoute
@@ -853,6 +862,7 @@ export interface FileRouteTypes {
     | '/gate-entry'
     | '/gatepass-log'
     | '/grn'
+    | '/grn-compact'
     | '/inbound-exceptions'
     | '/incidents'
     | '/inventory-view'
@@ -944,6 +954,7 @@ export interface FileRouteTypes {
     | '/gate-entry'
     | '/gatepass-log'
     | '/grn'
+    | '/grn-compact'
     | '/inbound-exceptions'
     | '/incidents'
     | '/inventory-view'
@@ -1036,6 +1047,7 @@ export interface FileRouteTypes {
     | '/_wms/gate-entry'
     | '/_wms/gatepass-log'
     | '/_wms/grn'
+    | '/_wms/grn-compact'
     | '/_wms/inbound-exceptions'
     | '/_wms/incidents'
     | '/_wms/inventory-view'
@@ -1448,6 +1460,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsInboundExceptionsRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/grn-compact': {
+      id: '/_wms/grn-compact'
+      path: '/grn-compact'
+      fullPath: '/grn-compact'
+      preLoaderRoute: typeof WmsGrnCompactRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/grn': {
       id: '/_wms/grn'
       path: '/grn'
@@ -1767,6 +1786,7 @@ interface WmsRouteChildren {
   WmsGateEntryRoute: typeof WmsGateEntryRoute
   WmsGatepassLogRoute: typeof WmsGatepassLogRoute
   WmsGrnRoute: typeof WmsGrnRoute
+  WmsGrnCompactRoute: typeof WmsGrnCompactRoute
   WmsInboundExceptionsRoute: typeof WmsInboundExceptionsRoute
   WmsIncidentsRoute: typeof WmsIncidentsRoute
   WmsInventoryViewRoute: typeof WmsInventoryViewRoute
@@ -1858,6 +1878,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsGateEntryRoute: WmsGateEntryRoute,
   WmsGatepassLogRoute: WmsGatepassLogRoute,
   WmsGrnRoute: WmsGrnRoute,
+  WmsGrnCompactRoute: WmsGrnCompactRoute,
   WmsInboundExceptionsRoute: WmsInboundExceptionsRoute,
   WmsIncidentsRoute: WmsIncidentsRoute,
   WmsInventoryViewRoute: WmsInventoryViewRoute,
