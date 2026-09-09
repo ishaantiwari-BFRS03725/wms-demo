@@ -34,6 +34,7 @@ import {
   PackageCheck,
   PackageOpen,
   PackagePlus,
+  Ticket,
   Settings2,
   ShuffleIcon,
   SquarePen,
@@ -228,7 +229,12 @@ const sections: NavSection[] = [
     label: "Inbound",
     items: [
       { title: "Gate Entry", url: "/gate-entry", icon: DoorOpen },
-      { title: "Gate Pass Processing", url: "/unloading", icon: PackageOpen },
+      {
+        title: "Gate Pass Processing",
+        url: "/gate-pass-processing",
+        icon: Ticket,
+      },
+      { title: "Unloading", url: "/unloading", icon: PackageOpen },
       {
         title: "GRN",
         icon: ClipboardCheck,

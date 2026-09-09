@@ -366,6 +366,32 @@ export const stockCountForConsignment = (c: GatePassConsignment): number => {
   return c.boxCount * perBox;
 };
 
+// The sellers riding on a single inbound vehicle. Gate Pass Processing issues
+// one gate pass per selected seller, so we resolve the vehicle's manifest
+// deterministically from the scanned entry. 2–4 sellers, each with its own ASN
+// and box count.
+export interface GatePassSeller {
+  seller: SellerRecord;
+  asn: string;
+  boxCount: number;
+}
+
+export const sellersForGatePass = (id: string): GatePassSeller[] => {
+  const key = id.trim().toUpperCase();
+  const h = hash(key);
+  const count = 2 + (h % 3); // 2–4 sellers on the vehicle
+  const start = h % SELLER_DIRECTORY.length;
+  return Array.from({ length: count }, (_, i) => {
+    const seller = SELLER_DIRECTORY[(start + i) % SELLER_DIRECTORY.length];
+    const sh = hash(key + seller.id);
+    return {
+      seller,
+      asn: seller.asn,
+      boxCount: 6 + (sh % 19), // 6–24 boxes per seller
+    };
+  });
+};
+
 export const consignmentForGatePass = (id: string): GatePassConsignment => {
   const key = id.trim().toUpperCase();
   const seller = SELLER_DIRECTORY[hash(key) % SELLER_DIRECTORY.length];

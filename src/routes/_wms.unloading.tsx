@@ -3,10 +3,7 @@ import { useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
   AlertTriangle,
-  Anchor,
-  ArrowDownToLine,
   ArrowRight,
-  ArrowUpFromLine,
   Camera,
   CheckCircle2,
   ClipboardCheck,
@@ -15,11 +12,9 @@ import {
   Package,
   PackageOpen,
   Printer,
-  RotateCcw,
   ScanBarcode,
   ThumbsDown,
   ThumbsUp,
-  Truck,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -29,13 +24,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -52,13 +40,12 @@ import {
   gateBarcodePattern,
   genBoxIds,
   isReturnGatePass,
-  stockCountForConsignment,
   type GatePassConsignment,
 } from "@/lib/wms/gate-entry-data";
 
 export const Route = createFileRoute("/_wms/unloading")({
   head: () => ({
-    meta: [{ title: "Gate Pass Processing" }],
+    meta: [{ title: "Unloading" }],
   }),
   component: Unloading,
 });
@@ -70,16 +57,12 @@ type Step =
   | "scan-awbs"
   | "complete"
   // standard flow
-  | "dock"
-  | "activity-type"
   | "count"
   | "print-boxes"
   | "scan-boxes"
   | "pod"
   | "digital-pod"
-  | "done"
-  // outbound / pickup — no unloading, closes after the gate pass
-  | "released";
+  | "done";
 
 interface ScannedReturn {
   awb: string;
@@ -138,11 +121,6 @@ function Unloading() {
   const [consignment, setConsignment] = useState<GatePassConsignment | null>(
     null,
   );
-  const [dockId, setDockId] = useState("");
-  const [activityType, setActivityType] = useState<
-    "inward" | "outward" | "return" | null
-  >(null);
-  const [poAsn, setPoAsn] = useState("");
   const [boxCount, setBoxCount] = useState(0);
   const [boxIds, setBoxIds] = useState<string[]>([]);
   const [scanned, setScanned] = useState<ScannedBox[]>([]);
@@ -165,22 +143,7 @@ function Unloading() {
   const guardCount = consignment?.boxCount ?? 0;
   const shortfall = guardCount - boxCount;
   const exceptionRaised = shortfall > 0;
-  const stockCount = consignment ? stockCountForConsignment(consignment) : 0;
   const docsComplete = REQUIRED_DOCS.every((d) => docs[d.key]);
-
-  // PO / ASN references the operator picks against for an inward consignment.
-  const poAsnOptions = useMemo(() => {
-    if (!consignment) return [] as { value: string; label: string }[];
-    const num = consignment.asn.replace(/\D/g, "").slice(-4) || "0001";
-    return [
-      { value: consignment.asn, label: `${consignment.asn} · ASN` },
-      { value: `PO-2024-${num}`, label: `PO-2024-${num} · Purchase Order` },
-      {
-        value: `PO-2024-${num}-R2`,
-        label: `PO-2024-${num}-R2 · Purchase Order (rev.)`,
-      },
-    ];
-  }, [consignment]);
 
   const onGatePassScan = (val: string) => {
     const id = val.trim().toUpperCase();
@@ -194,7 +157,7 @@ function Unloading() {
       const c = consignmentForGatePass(id);
       setConsignment(c);
       setBoxCount(c.boxCount);
-      setStep("dock");
+      setStep("count");
     }
     setScanKey((k) => k + 1);
   };
@@ -235,26 +198,6 @@ function Unloading() {
   };
 
   // --- Standard handlers ---
-  const confirmDock = () => {
-    if (!dockId.trim()) return;
-    setStep("activity-type");
-  };
-
-  // Inbound & returns unload (box-based flow); outbound & pickup have nothing to
-  // unload, so the gate pass simply closes and the vehicle is released.
-  const activityUnloads =
-    activityType === "inward" || activityType === "return";
-  const activityCloses = activityType === "outward";
-
-  const confirmActivity = () => {
-    if (activityUnloads) {
-      if (!poAsn || boxCount < 1) return;
-      setStep("count");
-    } else if (activityCloses) {
-      setStep("released");
-    }
-  };
-
   const confirmCount = () => {
     if (boxCount < 1 || !gatePass) return;
     setBoxIds(genBoxIds(gatePass, boxCount));
@@ -299,9 +242,6 @@ function Unloading() {
     setAcknowledgements([]);
     setClosedAt(null);
     setConsignment(null);
-    setDockId("");
-    setActivityType(null);
-    setPoAsn("");
     setBoxCount(0);
     setBoxIds([]);
     setBoxesPrinted(false);
@@ -328,7 +268,7 @@ function Unloading() {
         <div className="flex items-center justify-between gap-2 border-b border-border bg-background px-4 py-3">
           <div className="flex items-center gap-1.5 text-sm font-semibold">
             <PackageOpen className="h-4 w-4 text-muted-foreground" />
-            Gate Pass Processing
+            Unloading
             {consignment && (
               <span className="text-muted-foreground">· Inbound</span>
             )}
@@ -345,9 +285,6 @@ function Unloading() {
                 </span>
               </div>
             )}
-            {dockId.trim() && step !== "dock" && (
-              <DockTag dockId={dockId} />
-            )}
           </div>
         </div>
 
@@ -360,8 +297,8 @@ function Unloading() {
                 Scan Gate Pass
               </div>
               <p className="text-xs text-muted-foreground">
-                Created at gate entry. A return gate pass opens the returns flow;
-                any other pass opens standard unloading.
+                Issued during Gate Pass Processing. A return gate pass opens the
+                returns flow; any other pass opens standard unloading.
               </p>
               <ScanRow
                 key={`gp-${scanKey}`}
@@ -374,205 +311,10 @@ function Unloading() {
 
           {/* ----------------- STANDARD FLOW ----------------- */}
 
-          {/* Step — Marry to dock */}
-          {step === "dock" && consignment && (
-            <>
-              <ConsignmentCard c={consignment} />
-              <Card className="space-y-3 p-4">
-                <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                  <Anchor className="h-3.5 w-3.5" />
-                  Marry to Dock
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Scan or enter the dock the vehicle has been assigned to.
-                </p>
-                <ScanRow
-                  key={`dock-${scanKey}`}
-                  placeholder="e.g. DOCK-FK-03"
-                  onScan={(v) => setDockId(v.trim().toUpperCase())}
-                  value={dockId}
-                  onChange={(v) => setDockId(v.toUpperCase())}
-                  autoFocus
-                />
-              </Card>
-              <Button
-                className="h-11 w-full"
-                disabled={!dockId.trim()}
-                onClick={confirmDock}
-              >
-                <Anchor className="mr-2 h-4 w-4" />
-                Marry gate pass to dock
-              </Button>
-            </>
-          )}
-
-          {/* Step — Activity type + PO/ASN selection */}
-          {step === "activity-type" && consignment && (
-            <>
-              <ConsignmentCard c={consignment} />
-              <Card className="space-y-3 p-4">
-                <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                  <ArrowDownToLine className="h-3.5 w-3.5" />
-                  Activity Type
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Select what this vehicle is here for.
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  <ActivityOption
-                    label="Inbound"
-                    hint="Receiving — unloads"
-                    icon={<ArrowDownToLine className="h-4 w-4" />}
-                    selected={activityType === "inward"}
-                    onClick={() => setActivityType("inward")}
-                  />
-                  <ActivityOption
-                    label="Return"
-                    hint="Customer returns — unloads"
-                    icon={<RotateCcw className="h-4 w-4" />}
-                    selected={activityType === "return"}
-                    onClick={() => setActivityType("return")}
-                  />
-                  <ActivityOption
-                    label="Outbound"
-                    hint="Dispatch — no unloading"
-                    icon={<ArrowUpFromLine className="h-4 w-4" />}
-                    selected={activityType === "outward"}
-                    onClick={() => {
-                      setActivityType("outward");
-                      setPoAsn("");
-                    }}
-                  />
-                </div>
-
-                {activityUnloads && (
-                  <div className="space-y-3">
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                        Scan ASN, STN, PO or other
-                      </label>
-                      <Select value={poAsn} onValueChange={setPoAsn}>
-                        <SelectTrigger className="h-11">
-                          <SelectValue placeholder="Select ASN / STN / PO / other…" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {poAsnOptions.map((o) => (
-                            <SelectItem key={o.value} value={o.value}>
-                              {o.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {poAsn && (
-                      <>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="space-y-1.5">
-                            <label className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                              Box Count
-                            </label>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-11 w-11 shrink-0 text-lg"
-                                onClick={() =>
-                                  setBoxCount((n) => Math.max(1, n - 1))
-                                }
-                              >
-                                –
-                              </Button>
-                              <Input
-                                value={String(boxCount)}
-                                onChange={(e) => {
-                                  const n =
-                                    Number(
-                                      e.target.value.replace(/[^0-9]/g, ""),
-                                    ) || 0;
-                                  setBoxCount(Math.max(0, n));
-                                }}
-                                inputMode="numeric"
-                                className="h-11 text-center font-mono text-lg font-bold"
-                              />
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-11 w-11 shrink-0 text-lg"
-                                onClick={() => setBoxCount((n) => n + 1)}
-                              >
-                                +
-                              </Button>
-                            </div>
-                          </div>
-                          <div className="space-y-1.5">
-                            <label className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                              Stock Count
-                            </label>
-                            <div className="flex h-11 items-center justify-between rounded-md border border-border bg-muted/30 px-3">
-                              <span className="font-mono text-lg font-bold tabular-nums">
-                                {stockCount}
-                              </span>
-                              <span className="text-[10px] text-muted-foreground">
-                                units · ASN
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                            Vendor
-                          </label>
-                          <div className="flex h-11 items-center rounded-md border border-border bg-muted/30 px-3 text-sm font-medium">
-                            {consignment.seller.name}
-                            <span className="ml-2 font-mono text-[11px] text-muted-foreground">
-                              {consignment.seller.id}
-                            </span>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {activityCloses && (
-                  <div className="flex items-start gap-2 rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                    <span>
-                      No unloading for outbound. The gate pass closes and the
-                      vehicle is released once confirmed.
-                    </span>
-                  </div>
-                )}
-              </Card>
-              <Button
-                className="h-11 w-full"
-                disabled={
-                  activityUnloads
-                    ? !poAsn || boxCount < 1
-                    : !activityCloses
-                }
-                onClick={confirmActivity}
-              >
-                {activityCloses ? (
-                  <>
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Close gate pass &amp; release vehicle
-                  </>
-                ) : (
-                  <>
-                    <ArrowRight className="mr-2 h-4 w-4" />
-                    Continue
-                  </>
-                )}
-              </Button>
-            </>
-          )}
-
           {/* Step — Box count + shortage exception */}
           {step === "count" && consignment && (
             <>
+              <ConsignmentCard c={consignment} />
               <Card className="space-y-3 p-4">
                 <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
                   <Package className="h-3.5 w-3.5" />
@@ -1012,8 +754,8 @@ function Unloading() {
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {scanned.length - rejectedCount} accepted
-                    {rejectedCount > 0 ? ` · ${rejectedCount} rejected` : ""} at{" "}
-                    {dockId} · POD captured
+                    {rejectedCount > 0 ? ` · ${rejectedCount} rejected` : ""} ·
+                    POD captured
                   </div>
                 </div>
               </Card>
@@ -1044,29 +786,6 @@ function Unloading() {
               </Button>
               <Button variant="outline" className="h-11 w-full" onClick={reset}>
                 Start new unloading
-              </Button>
-            </>
-          )}
-
-          {/* Step — Outbound / pickup released (no unloading) */}
-          {step === "released" && consignment && (
-            <>
-              <Card className="space-y-2 p-4 text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-status-dispatched/15 text-status-dispatched">
-                  <Truck className="h-6 w-6" />
-                </div>
-                <div>
-                  <div className="text-base font-semibold">
-                    Gate pass processed
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Outbound — no unloading required. Vehicle released
-                    {dockId.trim() ? ` from ${dockId}` : ""}.
-                  </div>
-                </div>
-              </Card>
-              <Button variant="outline" className="h-11 w-full" onClick={reset}>
-                Start new gate pass
               </Button>
             </>
           )}
@@ -1243,7 +962,7 @@ function Unloading() {
                   label="Sellers"
                   value={`${consignment.seller.name} (${scanned.length})`}
                 />
-                <PodRow label="PO / ASN" value={poAsn || consignment.asn} />
+                <PodRow label="PO / ASN" value={consignment.asn} />
                 <PodRow label="Boxes Received" value={String(scanned.length)} />
                 <PodRow label="Damaged" value={String(rejectedCount)} />
                 <PodRow label="Inbound POC" value={pocName} />
@@ -1348,56 +1067,6 @@ function Unloading() {
         </DialogContent>
       </Dialog>
     </div>
-  );
-}
-
-function DockTag({ dockId }: { dockId: string }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className="text-[10px] font-mono uppercase tracking-[0.08em] text-muted-foreground">
-        Dock
-      </span>
-      <span className="font-mono text-xs font-semibold text-foreground">
-        {dockId}
-      </span>
-    </div>
-  );
-}
-
-function ActivityOption({
-  label,
-  hint,
-  icon,
-  selected,
-  onClick,
-}: {
-  label: string;
-  hint: string;
-  icon: React.ReactNode;
-  selected: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex flex-col items-start gap-1 rounded-md border-2 px-3 py-2.5 text-left transition-colors",
-        selected
-          ? "border-primary bg-primary/5"
-          : "border-border hover:border-primary/40 hover:bg-muted/40",
-      )}
-    >
-      <span
-        className={cn(
-          "flex items-center gap-1.5 text-sm font-semibold",
-          selected ? "text-primary" : "text-foreground",
-        )}
-      >
-        {icon}
-        {label}
-      </span>
-      <span className="text-[11px] text-muted-foreground">{hint}</span>
-    </button>
   );
 }
 

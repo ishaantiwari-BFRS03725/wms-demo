@@ -1,5 +1,17 @@
 # Changelog
 
+- 2026-09-09: Gate Pass Processing (`/gate-pass-processing`) — removed the separate Vendor selection dropdown from the Activity Type step. Each "Scan ASN, STN, PO or other" option now directly carries its own seller (one option per `SELLER_DIRECTORY` entry, keyed off its ASN); picking a PO/ASN shows that seller read-only as Vendor. Fewer taps to add a PO/ASN — no need to pick vendor first.
+
+- 2026-09-09: Gate Pass Processing (`/gate-pass-processing`) — reworked the Activity Type step for Inbound/Return: Vendor is now a selector (from `SELLER_DIRECTORY`) picked per PO/ASN rather than fixed to the entry's consignment, since a vehicle's PO/ASNs can span different sellers, unrelated to any manifest. Removed the multi-seller vehicle manifest (`sellersForGatePass`) entirely from this flow — the Issue Gate Passes step now only lists (and pre-selects) the exact PO/ASN entries added on the previous screen, one gate pass per entry.
+
+- 2026-09-09: Gate Pass Processing (`/gate-pass-processing`) — removed the "Total boxes (guard)" card (`ManifestCard`) from the Activity Type step. Added an "Add PO/ASN" button below Vendor so multiple PO/ASNs can be queued up (each with its own box count) and processed together; queued entries show in a removable list, and Continue is now gated on having at least one added PO/ASN.
+
+- 2026-09-09: Gate Pass Processing (`/gate-pass-processing`) — removed the "N sellers on vehicle" label from the `ManifestCard` on the Activity Type step (unused `PackageOpen` icon import also removed).
+
+- 2026-09-09: Gate Pass Processing (`/gate-pass-processing`) — after selecting Inbound (or Return), the activity step now shows the PO/ASN selection form again: "Scan ASN, STN, PO or other" dropdown, box-count stepper, read-only Stock Count (units·ASN), and Vendor name/id. Continue is gated on a PO/ASN pick + box count ≥ 1 before proceeding to per-seller gate pass issuance.
+
+- 2026-09-09: Split Gate Pass Processing and Unloading into two menus. New `/gate-pass-processing` route: scan gate entry → marry to dock → activity type → issue one gate pass per selected seller (multi-select, pre-selected; each shows ASN + box count) → printable per-seller gate pass stickers (barcode, seller, ASN, boxes, dock); Outbound still releases the vehicle with no unloading. Added `sellersForGatePass(id)` (2–4 sellers per vehicle, each with ASN + box count) to `gate-entry-data.ts`. `/unloading` is now just the box flow: scan gate pass → box count → print box IDs → scan boxes → POD → digital POD → done (dock/activity/outbound steps removed; those moved to Gate Pass Processing). Sidebar now lists both "Gate Pass Processing" (Ticket icon) and "Unloading".
+
 - 2026-09-09: Gate Pass Processing (`/unloading`) — box ID labels now carry the seller name: shown in the sticker header (replacing the "Inbound Box" tag) and as a dedicated "Seller" row alongside ASN and Unloaded date.
 
 - 2026-09-09: Gate Pass Processing (`/unloading`) — removed the Pickup activity option. Activity Type is now Inbound / Return / Outbound; only Outbound closes the gate pass without unloading.

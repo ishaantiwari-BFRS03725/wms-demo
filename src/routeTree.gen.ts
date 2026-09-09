@@ -60,6 +60,7 @@ import { Route as WmsInboundExceptionsRouteImport } from './routes/_wms.inbound-
 import { Route as WmsGrnCompactRouteImport } from './routes/_wms.grn-compact'
 import { Route as WmsGrnRouteImport } from './routes/_wms.grn'
 import { Route as WmsGatepassLogRouteImport } from './routes/_wms.gatepass-log'
+import { Route as WmsGatePassProcessingRouteImport } from './routes/_wms.gate-pass-processing'
 import { Route as WmsGateEntryRouteImport } from './routes/_wms.gate-entry'
 import { Route as WmsFloorHandheldsRouteImport } from './routes/_wms.floor-handhelds'
 import { Route as WmsExceptionsRouteImport } from './routes/_wms.exceptions'
@@ -355,6 +356,11 @@ const WmsGatepassLogRoute = WmsGatepassLogRouteImport.update({
   path: '/gatepass-log',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsGatePassProcessingRoute = WmsGatePassProcessingRouteImport.update({
+  id: '/gate-pass-processing',
+  path: '/gate-pass-processing',
+  getParentRoute: () => WmsRoute,
+} as any)
 const WmsGateEntryRoute = WmsGateEntryRouteImport.update({
   id: '/gate-entry',
   path: '/gate-entry',
@@ -580,6 +586,7 @@ export interface FileRoutesByFullPath {
   '/exceptions': typeof WmsExceptionsRoute
   '/floor-handhelds': typeof WmsFloorHandheldsRoute
   '/gate-entry': typeof WmsGateEntryRoute
+  '/gate-pass-processing': typeof WmsGatePassProcessingRoute
   '/gatepass-log': typeof WmsGatepassLogRoute
   '/grn': typeof WmsGrnRoute
   '/grn-compact': typeof WmsGrnCompactRoute
@@ -672,6 +679,7 @@ export interface FileRoutesByTo {
   '/exceptions': typeof WmsExceptionsRoute
   '/floor-handhelds': typeof WmsFloorHandheldsRoute
   '/gate-entry': typeof WmsGateEntryRoute
+  '/gate-pass-processing': typeof WmsGatePassProcessingRoute
   '/gatepass-log': typeof WmsGatepassLogRoute
   '/grn': typeof WmsGrnRoute
   '/grn-compact': typeof WmsGrnCompactRoute
@@ -766,6 +774,7 @@ export interface FileRoutesById {
   '/_wms/exceptions': typeof WmsExceptionsRoute
   '/_wms/floor-handhelds': typeof WmsFloorHandheldsRoute
   '/_wms/gate-entry': typeof WmsGateEntryRoute
+  '/_wms/gate-pass-processing': typeof WmsGatePassProcessingRoute
   '/_wms/gatepass-log': typeof WmsGatepassLogRoute
   '/_wms/grn': typeof WmsGrnRoute
   '/_wms/grn-compact': typeof WmsGrnCompactRoute
@@ -860,6 +869,7 @@ export interface FileRouteTypes {
     | '/exceptions'
     | '/floor-handhelds'
     | '/gate-entry'
+    | '/gate-pass-processing'
     | '/gatepass-log'
     | '/grn'
     | '/grn-compact'
@@ -952,6 +962,7 @@ export interface FileRouteTypes {
     | '/exceptions'
     | '/floor-handhelds'
     | '/gate-entry'
+    | '/gate-pass-processing'
     | '/gatepass-log'
     | '/grn'
     | '/grn-compact'
@@ -1045,6 +1056,7 @@ export interface FileRouteTypes {
     | '/_wms/exceptions'
     | '/_wms/floor-handhelds'
     | '/_wms/gate-entry'
+    | '/_wms/gate-pass-processing'
     | '/_wms/gatepass-log'
     | '/_wms/grn'
     | '/_wms/grn-compact'
@@ -1481,6 +1493,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsGatepassLogRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/gate-pass-processing': {
+      id: '/_wms/gate-pass-processing'
+      path: '/gate-pass-processing'
+      fullPath: '/gate-pass-processing'
+      preLoaderRoute: typeof WmsGatePassProcessingRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/gate-entry': {
       id: '/_wms/gate-entry'
       path: '/gate-entry'
@@ -1784,6 +1803,7 @@ interface WmsRouteChildren {
   WmsExceptionsRoute: typeof WmsExceptionsRoute
   WmsFloorHandheldsRoute: typeof WmsFloorHandheldsRoute
   WmsGateEntryRoute: typeof WmsGateEntryRoute
+  WmsGatePassProcessingRoute: typeof WmsGatePassProcessingRoute
   WmsGatepassLogRoute: typeof WmsGatepassLogRoute
   WmsGrnRoute: typeof WmsGrnRoute
   WmsGrnCompactRoute: typeof WmsGrnCompactRoute
@@ -1876,6 +1896,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsExceptionsRoute: WmsExceptionsRoute,
   WmsFloorHandheldsRoute: WmsFloorHandheldsRoute,
   WmsGateEntryRoute: WmsGateEntryRoute,
+  WmsGatePassProcessingRoute: WmsGatePassProcessingRoute,
   WmsGatepassLogRoute: WmsGatepassLogRoute,
   WmsGrnRoute: WmsGrnRoute,
   WmsGrnCompactRoute: WmsGrnCompactRoute,
