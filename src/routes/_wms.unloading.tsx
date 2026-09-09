@@ -4,6 +4,9 @@ import {
   AlertCircle,
   AlertTriangle,
   Anchor,
+  ArrowDownToLine,
+  ArrowRight,
+  ArrowUpFromLine,
   Camera,
   CheckCircle2,
   ClipboardCheck,
@@ -12,9 +15,11 @@ import {
   Package,
   PackageOpen,
   Printer,
+  RotateCcw,
   ScanBarcode,
   ThumbsDown,
   ThumbsUp,
+  Truck,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -24,6 +29,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,15 +48,17 @@ import {
 } from "@/lib/wms/inbound-data";
 import {
   consignmentForGatePass,
+  driverVehicleFor,
   gateBarcodePattern,
   genBoxIds,
   isReturnGatePass,
+  stockCountForConsignment,
   type GatePassConsignment,
 } from "@/lib/wms/gate-entry-data";
 
 export const Route = createFileRoute("/_wms/unloading")({
   head: () => ({
-    meta: [{ title: "Unloading — Inbound" }],
+    meta: [{ title: "Gate Pass Processing" }],
   }),
   component: Unloading,
 });
@@ -57,11 +71,15 @@ type Step =
   | "complete"
   // standard flow
   | "dock"
+  | "activity-type"
   | "count"
   | "print-boxes"
   | "scan-boxes"
   | "pod"
-  | "done";
+  | "digital-pod"
+  | "done"
+  // outbound / pickup — no unloading, closes after the gate pass
+  | "released";
 
 interface ScannedReturn {
   awb: string;
@@ -80,12 +98,28 @@ interface ScannedBox {
   qc: "ok" | "rejected";
 }
 
+// Documents the dock guard must photograph from the driver before POD. Each is
+// the warehouse's proof of what arrived and under whose authority.
+const REQUIRED_DOCS = [
+  { key: "courier", label: "Courier document" },
+  { key: "lr", label: "LR copy" },
+  { key: "invoice", label: "Invoice" },
+  { key: "po-asn", label: "PO / ASN copy" },
+  { key: "eway", label: "E-way bill" },
+];
+
 const dateLabel = (d: Date) =>
   d.toLocaleString("en-IN", {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
+
+// dd-mm-yyyy HH:mm for the POD printout.
+const podTimestamp = (d: Date) => {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${p(d.getDate())}-${p(d.getMonth() + 1)}-${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+};
 
 function Unloading() {
   const [step, setStep] = useState<Step>("scan-gatepass");
@@ -105,13 +139,24 @@ function Unloading() {
     null,
   );
   const [dockId, setDockId] = useState("");
+  const [activityType, setActivityType] = useState<
+    "inward" | "outward" | "return" | null
+  >(null);
+  const [poAsn, setPoAsn] = useState("");
   const [boxCount, setBoxCount] = useState(0);
   const [boxIds, setBoxIds] = useState<string[]>([]);
   const [scanned, setScanned] = useState<ScannedBox[]>([]);
   const [boxPrintOpen, setBoxPrintOpen] = useState(false);
   const [boxesPrinted, setBoxesPrinted] = useState(false);
+  const [docs, setDocs] = useState<Record<string, boolean>>({});
   const [podCaptured, setPodCaptured] = useState(false);
   const [damagedCaptured, setDamagedCaptured] = useState(false);
+  const [driverSig, setDriverSig] = useState(false);
+  const [supervisorSig, setSupervisorSig] = useState(false);
+  const [pocName, setPocName] = useState("");
+  const [driverPhoto, setDriverPhoto] = useState(false);
+  const [podPrintOpen, setPodPrintOpen] = useState(false);
+  const [podClosedAt, setPodClosedAt] = useState<Date | null>(null);
   const unloadDate = useMemo(() => new Date(), []);
 
   const identified = returns.filter((r) => r.bucket === "identified");
@@ -120,6 +165,22 @@ function Unloading() {
   const guardCount = consignment?.boxCount ?? 0;
   const shortfall = guardCount - boxCount;
   const exceptionRaised = shortfall > 0;
+  const stockCount = consignment ? stockCountForConsignment(consignment) : 0;
+  const docsComplete = REQUIRED_DOCS.every((d) => docs[d.key]);
+
+  // PO / ASN references the operator picks against for an inward consignment.
+  const poAsnOptions = useMemo(() => {
+    if (!consignment) return [] as { value: string; label: string }[];
+    const num = consignment.asn.replace(/\D/g, "").slice(-4) || "0001";
+    return [
+      { value: consignment.asn, label: `${consignment.asn} · ASN` },
+      { value: `PO-2024-${num}`, label: `PO-2024-${num} · Purchase Order` },
+      {
+        value: `PO-2024-${num}-R2`,
+        label: `PO-2024-${num}-R2 · Purchase Order (rev.)`,
+      },
+    ];
+  }, [consignment]);
 
   const onGatePassScan = (val: string) => {
     const id = val.trim().toUpperCase();
@@ -176,7 +237,22 @@ function Unloading() {
   // --- Standard handlers ---
   const confirmDock = () => {
     if (!dockId.trim()) return;
-    setStep("count");
+    setStep("activity-type");
+  };
+
+  // Inbound & returns unload (box-based flow); outbound & pickup have nothing to
+  // unload, so the gate pass simply closes and the vehicle is released.
+  const activityUnloads =
+    activityType === "inward" || activityType === "return";
+  const activityCloses = activityType === "outward";
+
+  const confirmActivity = () => {
+    if (activityUnloads) {
+      if (!poAsn || boxCount < 1) return;
+      setStep("count");
+    } else if (activityCloses) {
+      setStep("released");
+    }
   };
 
   const confirmCount = () => {
@@ -207,6 +283,13 @@ function Unloading() {
   const setBoxQc = (id: string, qc: "ok" | "rejected") =>
     setScanned((prev) => prev.map((b) => (b.id === id ? { ...b, qc } : b)));
 
+  const generatePod = () => {
+    if (!pocName.trim() || !driverPhoto) return;
+    setPodClosedAt(new Date());
+    setPodPrintOpen(true);
+    setStep("done");
+  };
+
   const reset = () => {
     setStep("scan-gatepass");
     setGatePass(null);
@@ -217,12 +300,21 @@ function Unloading() {
     setClosedAt(null);
     setConsignment(null);
     setDockId("");
+    setActivityType(null);
+    setPoAsn("");
     setBoxCount(0);
     setBoxIds([]);
     setBoxesPrinted(false);
     setScanned([]);
+    setDocs({});
     setPodCaptured(false);
     setDamagedCaptured(false);
+    setDriverSig(false);
+    setSupervisorSig(false);
+    setPocName("");
+    setDriverPhoto(false);
+    setPodPrintOpen(false);
+    setPodClosedAt(null);
     setScanKey((k) => k + 1);
   };
 
@@ -236,7 +328,7 @@ function Unloading() {
         <div className="flex items-center justify-between gap-2 border-b border-border bg-background px-4 py-3">
           <div className="flex items-center gap-1.5 text-sm font-semibold">
             <PackageOpen className="h-4 w-4 text-muted-foreground" />
-            Unloading
+            Gate Pass Processing
             {consignment && (
               <span className="text-muted-foreground">· Inbound</span>
             )}
@@ -310,6 +402,170 @@ function Unloading() {
               >
                 <Anchor className="mr-2 h-4 w-4" />
                 Marry gate pass to dock
+              </Button>
+            </>
+          )}
+
+          {/* Step — Activity type + PO/ASN selection */}
+          {step === "activity-type" && consignment && (
+            <>
+              <ConsignmentCard c={consignment} />
+              <Card className="space-y-3 p-4">
+                <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                  <ArrowDownToLine className="h-3.5 w-3.5" />
+                  Activity Type
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Select what this vehicle is here for.
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <ActivityOption
+                    label="Inbound"
+                    hint="Receiving — unloads"
+                    icon={<ArrowDownToLine className="h-4 w-4" />}
+                    selected={activityType === "inward"}
+                    onClick={() => setActivityType("inward")}
+                  />
+                  <ActivityOption
+                    label="Return"
+                    hint="Customer returns — unloads"
+                    icon={<RotateCcw className="h-4 w-4" />}
+                    selected={activityType === "return"}
+                    onClick={() => setActivityType("return")}
+                  />
+                  <ActivityOption
+                    label="Outbound"
+                    hint="Dispatch — no unloading"
+                    icon={<ArrowUpFromLine className="h-4 w-4" />}
+                    selected={activityType === "outward"}
+                    onClick={() => {
+                      setActivityType("outward");
+                      setPoAsn("");
+                    }}
+                  />
+                </div>
+
+                {activityUnloads && (
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                        Scan ASN, STN, PO or other
+                      </label>
+                      <Select value={poAsn} onValueChange={setPoAsn}>
+                        <SelectTrigger className="h-11">
+                          <SelectValue placeholder="Select ASN / STN / PO / other…" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {poAsnOptions.map((o) => (
+                            <SelectItem key={o.value} value={o.value}>
+                              {o.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {poAsn && (
+                      <>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-1.5">
+                            <label className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                              Box Count
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-11 w-11 shrink-0 text-lg"
+                                onClick={() =>
+                                  setBoxCount((n) => Math.max(1, n - 1))
+                                }
+                              >
+                                –
+                              </Button>
+                              <Input
+                                value={String(boxCount)}
+                                onChange={(e) => {
+                                  const n =
+                                    Number(
+                                      e.target.value.replace(/[^0-9]/g, ""),
+                                    ) || 0;
+                                  setBoxCount(Math.max(0, n));
+                                }}
+                                inputMode="numeric"
+                                className="h-11 text-center font-mono text-lg font-bold"
+                              />
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-11 w-11 shrink-0 text-lg"
+                                onClick={() => setBoxCount((n) => n + 1)}
+                              >
+                                +
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                              Stock Count
+                            </label>
+                            <div className="flex h-11 items-center justify-between rounded-md border border-border bg-muted/30 px-3">
+                              <span className="font-mono text-lg font-bold tabular-nums">
+                                {stockCount}
+                              </span>
+                              <span className="text-[10px] text-muted-foreground">
+                                units · ASN
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                            Vendor
+                          </label>
+                          <div className="flex h-11 items-center rounded-md border border-border bg-muted/30 px-3 text-sm font-medium">
+                            {consignment.seller.name}
+                            <span className="ml-2 font-mono text-[11px] text-muted-foreground">
+                              {consignment.seller.id}
+                            </span>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {activityCloses && (
+                  <div className="flex items-start gap-2 rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>
+                      No unloading for outbound. The gate pass closes and the
+                      vehicle is released once confirmed.
+                    </span>
+                  </div>
+                )}
+              </Card>
+              <Button
+                className="h-11 w-full"
+                disabled={
+                  activityUnloads
+                    ? !poAsn || boxCount < 1
+                    : !activityCloses
+                }
+                onClick={confirmActivity}
+              >
+                {activityCloses ? (
+                  <>
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Close gate pass &amp; release vehicle
+                  </>
+                ) : (
+                  <>
+                    <ArrowRight className="mr-2 h-4 w-4" />
+                    Continue
+                  </>
+                )}
               </Button>
             </>
           )}
@@ -529,9 +785,32 @@ function Unloading() {
             </>
           )}
 
-          {/* Step — POD capture */}
+          {/* Step — POD capture + documents from driver */}
           {step === "pod" && (
             <>
+              <Card className="space-y-3 p-4">
+                <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                  <Camera className="h-3.5 w-3.5" />
+                  Documents from driver
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Photograph every document handed over at the dock. These are the
+                  warehouse's proof of what arrived and under whose authority.
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {REQUIRED_DOCS.map((d) => (
+                    <DocTile
+                      key={d.key}
+                      label={d.label}
+                      captured={!!docs[d.key]}
+                      onClick={() =>
+                        setDocs((prev) => ({ ...prev, [d.key]: !prev[d.key] }))
+                      }
+                    />
+                  ))}
+                </div>
+              </Card>
+
               <Card className="space-y-3 p-4">
                 <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
                   <Camera className="h-3.5 w-3.5" />
@@ -620,11 +899,102 @@ function Unloading() {
 
               <Button
                 className="h-11 w-full"
-                disabled={!podCaptured}
-                onClick={() => setStep("done")}
+                disabled={!podCaptured || !docsComplete}
+                onClick={() => setStep("digital-pod")}
+              >
+                <ArrowRight className="mr-2 h-4 w-4" />
+                Continue to digital POD
+              </Button>
+            </>
+          )}
+
+          {/* Step — Digital POD (signatures + POC + driver photo) */}
+          {step === "digital-pod" && consignment && (
+            <>
+              <Card className="space-y-3 p-4">
+                <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                  <ClipboardCheck className="h-3.5 w-3.5" />
+                  Digital POD
+                </div>
+                <SignaturePad
+                  label="Courier / driver signature"
+                  signed={driverSig}
+                  onChange={setDriverSig}
+                />
+                <SignaturePad
+                  label="Inbound supervisor signature"
+                  signed={supervisorSig}
+                  onChange={setSupervisorSig}
+                />
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                    Inbound POC name <span className="text-destructive">*</span>
+                  </label>
+                  <Input
+                    value={pocName}
+                    onChange={(e) => setPocName(e.target.value)}
+                    placeholder="Who received the stock"
+                    className="h-11"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                    Driver photo
+                  </label>
+                  <button
+                    onClick={() => setDriverPhoto((v) => !v)}
+                    className={cn(
+                      "flex w-full flex-col items-center gap-1.5 rounded-md border-2 border-dashed px-3 py-6 text-center transition-colors",
+                      driverPhoto
+                        ? "border-status-dispatched/40 bg-status-dispatched/5"
+                        : "border-border hover:border-primary/40 hover:bg-muted/40",
+                    )}
+                  >
+                    {driverPhoto ? (
+                      <CheckCircle2 className="h-5 w-5 text-status-dispatched" />
+                    ) : (
+                      <Camera className="h-5 w-5 text-muted-foreground" />
+                    )}
+                    <span className="text-xs font-medium">Driver at dock</span>
+                    <span
+                      className={cn(
+                        "text-[10px] font-semibold font-mono uppercase tracking-[0.06em]",
+                        driverPhoto
+                          ? "text-status-dispatched"
+                          : "text-destructive",
+                      )}
+                    >
+                      {driverPhoto ? "Captured" : "Required"}
+                    </span>
+                  </button>
+                </div>
+
+                <div className="space-y-1.5 border-t border-border pt-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Seller</span>
+                    <span className="font-medium">{consignment.seller.name}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Boxes received</span>
+                    <span className="font-mono font-bold tabular-nums">
+                      {scanned.length}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Damaged</span>
+                    <span className="font-mono font-bold tabular-nums">
+                      {rejectedCount}
+                    </span>
+                  </div>
+                </div>
+              </Card>
+              <Button
+                className="h-11 w-full"
+                disabled={!pocName.trim() || !driverPhoto}
+                onClick={generatePod}
               >
                 <CheckCircle2 className="mr-2 h-4 w-4" />
-                Complete unloading
+                Generate POD &amp; close inward
               </Button>
             </>
           )}
@@ -665,8 +1035,38 @@ function Unloading() {
                   </span>
                 </div>
               )}
+              <Button
+                className="h-11 w-full"
+                onClick={() => setPodPrintOpen(true)}
+              >
+                <Printer className="mr-2 h-4 w-4" />
+                Print Proof of Delivery
+              </Button>
               <Button variant="outline" className="h-11 w-full" onClick={reset}>
                 Start new unloading
+              </Button>
+            </>
+          )}
+
+          {/* Step — Outbound / pickup released (no unloading) */}
+          {step === "released" && consignment && (
+            <>
+              <Card className="space-y-2 p-4 text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-status-dispatched/15 text-status-dispatched">
+                  <Truck className="h-6 w-6" />
+                </div>
+                <div>
+                  <div className="text-base font-semibold">
+                    Gate pass processed
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Outbound — no unloading required. Vehicle released
+                    {dockId.trim() ? ` from ${dockId}` : ""}.
+                  </div>
+                </div>
+              </Card>
+              <Button variant="outline" className="h-11 w-full" onClick={reset}>
+                Start new gate pass
               </Button>
             </>
           )}
@@ -795,6 +1195,98 @@ function Unloading() {
         </div>
       </div>
 
+      {/* Inbound POD printout dialog */}
+      <Dialog open={podPrintOpen} onOpenChange={setPodPrintOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Printer className="h-4 w-4" />
+              Inbound Proof of Delivery
+            </DialogTitle>
+          </DialogHeader>
+          {consignment && podClosedAt && (
+            <div className="rounded-md border border-border bg-background p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="text-sm font-bold">
+                    Inbound Proof of Delivery
+                  </div>
+                  <div className="text-[10px] font-mono uppercase tracking-[0.08em] text-muted-foreground">
+                    Warehouse #122 · Delhi NCR
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] font-mono uppercase tracking-[0.08em] text-muted-foreground">
+                    Printed
+                  </div>
+                  <div className="font-mono text-xs font-semibold">
+                    {podTimestamp(podClosedAt)}
+                  </div>
+                </div>
+              </div>
+              <div className="my-3 border-t-2 border-foreground" />
+              <dl className="space-y-1.5">
+                <PodRow label="Gate Entry" value={gatePass ?? "—"} />
+                <PodRow
+                  label="Vehicle"
+                  value={driverVehicleFor(gatePass ?? "").vehicle}
+                />
+                <PodRow
+                  label="Driver"
+                  value={driverVehicleFor(gatePass ?? "").driver}
+                />
+                <PodRow
+                  label="Seller Type"
+                  value={consignment.community ?? "Direct"}
+                />
+                <PodRow
+                  label="Sellers"
+                  value={`${consignment.seller.name} (${scanned.length})`}
+                />
+                <PodRow label="PO / ASN" value={poAsn || consignment.asn} />
+                <PodRow label="Boxes Received" value={String(scanned.length)} />
+                <PodRow label="Damaged" value={String(rejectedCount)} />
+                <PodRow label="Inbound POC" value={pocName} />
+                <PodRow label="Closed At" value={podTimestamp(podClosedAt)} />
+              </dl>
+              <div className="mt-6 grid grid-cols-2 gap-6">
+                <div>
+                  <div className="border-t border-foreground pt-1 text-[10px] font-mono uppercase tracking-[0.08em] text-muted-foreground">
+                    Driver signature
+                  </div>
+                </div>
+                <div>
+                  <div className="border-t border-foreground pt-1 text-[10px] font-mono uppercase tracking-[0.08em] text-muted-foreground">
+                    Warehouse signature
+                  </div>
+                </div>
+              </div>
+              <div className="my-3 border-t border-dashed border-border" />
+              <p className="text-[11px] text-muted-foreground">
+                Stock is now the warehouse's responsibility and stands handed
+                over to the inbound supervisor.
+              </p>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setPodPrintOpen(false)}
+            >
+              Close
+            </Button>
+            <Button
+              onClick={() =>
+                toast.success("Proof of Delivery sent to printer.")
+              }
+            >
+              <Printer className="mr-2 h-4 w-4" />
+              Print
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Box label print dialog */}
       <Dialog open={boxPrintOpen} onOpenChange={setBoxPrintOpen}>
         <DialogContent className="max-w-md">
@@ -810,6 +1302,7 @@ function Unloading() {
                 <BoxSticker
                   key={id}
                   boxId={id}
+                  seller={consignment.seller.name}
                   asn={consignment.asn}
                   date={dateLabel(unloadDate)}
                 />
@@ -871,6 +1364,179 @@ function DockTag({ dockId }: { dockId: string }) {
   );
 }
 
+function ActivityOption({
+  label,
+  hint,
+  icon,
+  selected,
+  onClick,
+}: {
+  label: string;
+  hint: string;
+  icon: React.ReactNode;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex flex-col items-start gap-1 rounded-md border-2 px-3 py-2.5 text-left transition-colors",
+        selected
+          ? "border-primary bg-primary/5"
+          : "border-border hover:border-primary/40 hover:bg-muted/40",
+      )}
+    >
+      <span
+        className={cn(
+          "flex items-center gap-1.5 text-sm font-semibold",
+          selected ? "text-primary" : "text-foreground",
+        )}
+      >
+        {icon}
+        {label}
+      </span>
+      <span className="text-[11px] text-muted-foreground">{hint}</span>
+    </button>
+  );
+}
+
+function SignaturePad({
+  label,
+  signed,
+  onChange,
+}: {
+  label: string;
+  signed: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const drawing = useRef(false);
+  const last = useRef<{ x: number; y: number } | null>(null);
+
+  const point = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const c = ref.current!;
+    const r = c.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * (c.width / r.width),
+      y: (e.clientY - r.top) * (c.height / r.height),
+    };
+  };
+
+  const down = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    ref.current?.setPointerCapture(e.pointerId);
+    drawing.current = true;
+    last.current = point(e);
+  };
+
+  const move = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!drawing.current) return;
+    const g = ref.current?.getContext("2d");
+    if (!g) return;
+    const p = point(e);
+    g.strokeStyle = "#0f172a";
+    g.lineWidth = 2;
+    g.lineCap = "round";
+    g.lineJoin = "round";
+    g.beginPath();
+    g.moveTo(last.current!.x, last.current!.y);
+    g.lineTo(p.x, p.y);
+    g.stroke();
+    last.current = p;
+    if (!signed) onChange(true);
+  };
+
+  const end = () => {
+    drawing.current = false;
+    last.current = null;
+  };
+
+  const clear = () => {
+    const c = ref.current;
+    const g = c?.getContext("2d");
+    if (c && g) g.clearRect(0, 0, c.width, c.height);
+    onChange(false);
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+          {label}
+        </span>
+        <button
+          onClick={clear}
+          className="text-[11px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+        >
+          Clear
+        </button>
+      </div>
+      <canvas
+        ref={ref}
+        width={600}
+        height={180}
+        onPointerDown={down}
+        onPointerMove={move}
+        onPointerUp={end}
+        onPointerLeave={end}
+        className={cn(
+          "h-28 w-full touch-none rounded-md border bg-background",
+          signed ? "border-status-dispatched/40" : "border-border",
+        )}
+      />
+    </div>
+  );
+}
+
+function PodRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline gap-3">
+      <dt className="w-32 shrink-0 text-[10px] font-mono uppercase tracking-[0.08em] text-muted-foreground">
+        {label}
+      </dt>
+      <dd className="flex-1 font-mono text-sm font-semibold">{value}</dd>
+    </div>
+  );
+}
+
+function DocTile({
+  label,
+  captured,
+  onClick,
+}: {
+  label: string;
+  captured: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex flex-col items-center gap-1.5 rounded-md border-2 border-dashed px-3 py-4 text-center transition-colors",
+        captured
+          ? "border-status-dispatched/40 bg-status-dispatched/5"
+          : "border-border hover:border-primary/40 hover:bg-muted/40",
+      )}
+    >
+      {captured ? (
+        <CheckCircle2 className="h-5 w-5 text-status-dispatched" />
+      ) : (
+        <Camera className="h-5 w-5 text-muted-foreground" />
+      )}
+      <span className="text-xs font-medium">{label}</span>
+      <span
+        className={cn(
+          "text-[10px] font-semibold font-mono uppercase tracking-[0.06em]",
+          captured ? "text-status-dispatched" : "text-destructive",
+        )}
+      >
+        {captured ? "Captured" : "Required"}
+      </span>
+    </button>
+  );
+}
+
 function ConsignmentCard({ c }: { c: GatePassConsignment }) {
   return (
     <Card className="space-y-2 p-4">
@@ -913,21 +1579,21 @@ function Fact({
 
 function BoxSticker({
   boxId,
+  seller,
   asn,
   date,
 }: {
   boxId: string;
+  seller: string;
   asn: string;
   date: string;
 }) {
   const bars = useMemo(() => gateBarcodePattern(boxId), [boxId]);
   return (
     <div className="rounded-md border-2 border-dashed border-border bg-background p-4">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-[10px] font-semibold font-mono uppercase tracking-[0.08em] text-muted-foreground">
-          Inbound Box
-        </span>
-        <span className="rounded-[3px] bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="truncate text-[11px] font-semibold">{seller}</span>
+        <span className="shrink-0 rounded-[3px] bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
           {date}
         </span>
       </div>
@@ -950,6 +1616,7 @@ function BoxSticker({
       </div>
       <div className="my-3 border-t border-dashed border-border" />
       <dl className="space-y-1 text-xs">
+        <StickerRow label="Seller" value={seller} />
         <StickerRow label="ASN" value={asn} />
         <StickerRow label="Unloaded" value={date} />
       </dl>

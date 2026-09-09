@@ -1,5 +1,35 @@
 # Changelog
 
+- 2026-09-09: Gate Pass Processing (`/unloading`) — box ID labels now carry the seller name: shown in the sticker header (replacing the "Inbound Box" tag) and as a dedicated "Seller" row alongside ASN and Unloaded date.
+
+- 2026-09-09: Gate Pass Processing (`/unloading`) — removed the Pickup activity option. Activity Type is now Inbound / Return / Outbound; only Outbound closes the gate pass without unloading.
+
+- 2026-09-09: Renamed the Unloading screen to "Gate Pass Processing" (sidebar nav, page title, top-bar label; route path stays `/unloading`). Activity Type step now offers Inbound / Return / Outbound / Pickup (2×2). Inbound & Return unload via the box-based flow (PO/ASN + box count form); Outbound & Pickup have no unloading — they close the gate pass and release the vehicle via a new "released" completion step ("Close gate pass & release vehicle").
+
+- 2026-09-09: Unloading (`/unloading`) — "Generate POD & close inward" now pops an Inbound Proof of Delivery printout dialog (gate entry, vehicle/driver via deterministic `driverVehicleFor`, seller type, sellers + boxes, PO/ASN, boxes received, damaged, inbound POC, closed-at timestamp, signature lines, handover note) with Close/Print actions. The done screen gains a "Print Proof of Delivery" button to reopen it.
+
+- 2026-09-09: Unloading (`/unloading`) — added a Digital POD screen after the file-upload/POD screen. It has two drawable signature pads (courier/driver + inbound supervisor, canvas-based with Clear), a required Inbound POC name field, a required Driver photo tile, and a summary (seller, boxes received, damaged). "Generate POD & close inward" is gated on POC name + driver photo and completes the unloading. The prior screen's button now reads "Continue to digital POD".
+
+- 2026-09-09: Unloading (`/unloading`) — merged the driver Documents tiles onto the POD screen instead of a separate step. The POD screen now shows the five required doc tiles (Courier document, LR copy, Invoice, PO/ASN copy, E-way bill) plus POD capture and optional damaged-boxes photo. "Complete unloading" is gated until POD is captured AND all documents are captured. Scan-boxes now continues straight to POD.
+
+- 2026-09-09: Unloading (`/unloading`) — added a Documents step between box scanning and POD. Five required tiles (Courier document, LR copy, Invoice, PO/ASN copy, E-way bill) toggle Required → Captured on tap; Continue to POD is gated until all are captured. Docs reset on new unloading.
+
+- 2026-09-09: Unloading (`/unloading`) — enriched the Inward branch of the Activity Type step to mirror the gate-entry seller form. Selecting an ASN/PO reveals a Box Count stepper, a read-only Stock Count (ASN units, derived via `stockCountForConsignment`), and the Vendor name/id. Continue is gated on a chosen reference and box count ≥ 1.
+
+- 2026-09-09: Unloading (`/unloading`) — added a Return option to the Activity Type step (now Inward / Outward / Return, 3-up). Return shows a "Return flow will be defined next" placeholder like Outward; only Inward proceeds to box count.
+
+- 2026-09-09: Unloading (`/unloading`) — added an Activity Type step after dock marry-up in the standard flow. Operator picks Inward or Outward; selecting Inward reveals a PO/ASN dropdown (ASN + derived PO options) and Continue is gated until one is chosen. Outward shows an "Outward flow will be defined next" placeholder. Only Inward proceeds to box count.
+
+- 2026-09-09: Gate Entry (`/gate-entry`) — added a condition-driven Vehicle Photos block in Vehicle Details. "Good" requires 2 tiles (front & back); any non-good condition requires 6 tiles (front, back, damage left/right/top/rear close-up), matching the HTML demo. Tiles toggle Required → Captured on click, a mandatory badge reflects the mode, and Vehicle Condition is now marked required with a helper hint. Preview is gated until the required photos are captured.
+
+- 2026-09-09: Gate Entry (`/gate-entry`) — added a driving licence photo upload option inline next to the Driver License number field (Vehicle Details). Toggles between "Upload photo" and a "Photo added" confirmed state; optional.
+
+- 2026-09-09: Gate Entry (`/gate-entry`) — the flow now opens with a "Select Gate Entry Type" step (Seller / Visitor / Scrap / Infra), matching the HTML demo. Only Seller is in scope; Visitor/Scrap/Infra are shown disabled with a "Not in this demo" tag. Seller is preselected and "Continue with Seller" advances to Details. Stepper is back to Type → Details → Preview. Note: this gate-entry type is distinct from the activity type (Inward/Pickup/Return) which was moved to unloading.
+
+- 2026-09-09: Gate Entry (`/gate-entry`) — removed activity type (Inward/Pickup/Return) from the gate entry flow; it will be captured at the unloading screen instead. Dropped the "Type" step and the "Activity Type" section, plus the inward-only "Seller & Activity Details" card (seller/dock/documents) that moved with it. Gate entry is now a 2-step Details → Preview flow that registers the vehicle and cuts a single generic gate pass (no per-activity passes). Gate pass card/sticker no longer show activity/seller/dock.
+
+- 2026-09-09: Gate Entry (`/gate-entry`) — made Dock selection non-mandatory during gate entry creation. Removed `!dock` from the Submit Seller Details gate, marked the Dock placeholder "(optional)", and made empty-dock states render gracefully ("No dock assigned"). Mirrors the same change applied to the Gate-Entry-Exit-Demo.html wireframe.
+
 - 2026-09-08: GRN QC compact redesign (`/grn-compact`) — added to the sidebar as "GRN Compact" under Inbound → GRN (alongside GRN and View GRNs), reversing the earlier "URL-only, not in sidebar" call.
 
 - 2026-09-08: GRN QC compact redesign (`/grn-compact`) — narrowed the left (scan/QC form) column from 560px to 460px and let the scanned-items panel on the right take the freed width. Its table now shows an EAN column (deterministic demo barcode per SKU) in place of SKU, plus a new MRP column placed right next to Batch/Expiry.

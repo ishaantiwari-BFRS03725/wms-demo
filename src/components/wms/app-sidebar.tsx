@@ -228,7 +228,7 @@ const sections: NavSection[] = [
     label: "Inbound",
     items: [
       { title: "Gate Entry", url: "/gate-entry", icon: DoorOpen },
-      { title: "Unloading", url: "/unloading", icon: PackageOpen },
+      { title: "Gate Pass Processing", url: "/unloading", icon: PackageOpen },
       {
         title: "GRN",
         icon: ClipboardCheck,

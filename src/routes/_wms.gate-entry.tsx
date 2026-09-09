@@ -1,20 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
-  ArrowDownToLine,
   ArrowLeft,
   ArrowRight,
-  ArrowUpFromLine,
   Boxes,
+  Camera,
   CheckCircle2,
   Eye,
   Hash,
+  Package,
   Printer,
-  RotateCcw,
-  Search,
   ShieldCheck,
+  Trash2,
   Truck,
   Upload,
+  User,
+  Wrench,
 } from "lucide-react";
 import {
   Dialog,
@@ -30,29 +31,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
-  ACTIVITY_META,
-  DOCKS,
   gateBarcodePattern,
   genGatePassId,
-  SELLER_DIRECTORY,
   TRANSPORTERS,
   VEHICLE_CONDITIONS,
   VEHICLE_TYPES,
-  type ActivityType,
 } from "@/lib/wms/gate-entry-data";
 
 export const Route = createFileRoute("/_wms/gate-entry")({
@@ -70,24 +58,52 @@ const STEPS: { id: Step; label: string }[] = [
   { id: "preview", label: "Preview" },
 ];
 
-const ACTIVITY_ICON: Record<ActivityType, React.ReactNode> = {
-  inward: <ArrowDownToLine className="h-5 w-5" />,
-  pickup: <ArrowUpFromLine className="h-5 w-5" />,
-  returns: <RotateCcw className="h-5 w-5" />,
-};
+// Gate entry type — only the Seller flow is built in this demo; the others are
+// shown for context but out of scope.
+type GateEntryType = "seller" | "visitor" | "scrap" | "infra";
 
-const ACTIVITY_DESC: Record<ActivityType, string> = {
-  inward: "Goods arriving into the warehouse.",
-  pickup: "Vehicle collecting outbound consignments.",
-  returns: "Customer or vendor returns coming back in.",
-};
+const GATE_ENTRY_TYPES: {
+  id: GateEntryType;
+  label: string;
+  desc: string;
+  icon: React.ReactNode;
+  inScope: boolean;
+}[] = [
+  {
+    id: "seller",
+    label: "Seller",
+    desc: "Seller / vendor deliveries & returns",
+    icon: <Package className="h-6 w-6" />,
+    inScope: true,
+  },
+  {
+    id: "visitor",
+    label: "Visitor",
+    desc: "Visitor entry management",
+    icon: <User className="h-6 w-6" />,
+    inScope: false,
+  },
+  {
+    id: "scrap",
+    label: "Scrap",
+    desc: "Scrap material movement",
+    icon: <Trash2 className="h-6 w-6" />,
+    inScope: false,
+  },
+  {
+    id: "infra",
+    label: "Infra",
+    desc: "Infrastructure & maintenance",
+    icon: <Wrench className="h-6 w-6" />,
+    inScope: false,
+  },
+];
 
-// One gate pass is cut per selected activity — a vehicle at the gate for
-// both Inward and Pickup gets two separate passes, sharing the same vehicle
-// & driver details.
+// Gate entry registers the vehicle at the gate and cuts a single gate pass.
+// The activity type (Inward / Pickup / Return) and its seller / dock / document
+// details are captured later, at the unloading screen.
 interface GatePass {
   id: string;
-  activity: ActivityType;
   dateTime: string;
   gateNumber: string;
   transporter: string;
@@ -97,8 +113,6 @@ interface GatePass {
   driverLicense: string;
   vehicleCondition: string;
   vehicleType: string;
-  sellerName?: string;
-  dock?: string;
 }
 
 const defaultDateTime = () => {
@@ -110,11 +124,8 @@ const defaultDateTime = () => {
 function GateEntry() {
   const [step, setStep] = useState<Step>("type");
 
-  // Type — a vehicle can be at the gate for more than one reason at once
-  // (e.g. dropping off Inward stock and collecting a Pickup).
-  const [activities, setActivities] = useState<ActivityType[]>([]);
-  const toggleActivity = (a: ActivityType) =>
-    setActivities((prev) => (prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]));
+  // Gate entry type — Seller is the only in-scope flow in this demo.
+  const [gateEntryType, setGateEntryType] = useState<GateEntryType>("seller");
 
   // Gate entry details
   const [dateTime, setDateTime] = useState(defaultDateTime);
@@ -128,32 +139,43 @@ function GateEntry() {
   const [driverLicense, setDriverLicense] = useState("");
   const [vehicleCondition, setVehicleCondition] = useState<string>(VEHICLE_CONDITIONS[0]);
   const [vehicleType, setVehicleType] = useState("");
+  const [licensePhotoUploaded, setLicensePhotoUploaded] = useState(false);
+  const [vehiclePhotos, setVehiclePhotos] = useState<Record<string, boolean>>({});
+  const toggleVehiclePhoto = (key: string) =>
+    setVehiclePhotos((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  // Seller & activity details (Inward only)
-  const [sellerId, setSellerId] = useState("");
-  const [dock, setDock] = useState("");
-  const [documentsUploaded, setDocumentsUploaded] = useState(false);
-  const [sellerDetailsSubmitted, setSellerDetailsSubmitted] = useState(false);
-
-  // Output — one gate pass per selected activity
+  // Output — one gate pass per registered vehicle
   const [passes, setPasses] = useState<GatePass[]>([]);
   const [printOne, setPrintOne] = useState<GatePass | null>(null);
 
-  const typeValid = activities.length > 0;
+  // Good vehicles need only front & back; anything else is treated as damaged
+  // and requires all four sides photographed.
+  const vehicleGood = vehicleCondition === "Good";
+  const vehiclePhotoTiles = vehicleGood
+    ? [
+        { key: "front", label: "Vehicle front" },
+        { key: "back", label: "Vehicle back" },
+      ]
+    : [
+        { key: "front", label: "Vehicle front" },
+        { key: "back", label: "Vehicle back" },
+        { key: "left", label: "Damage — left" },
+        { key: "right", label: "Damage — right" },
+        { key: "top", label: "Damage — top" },
+        { key: "rear", label: "Damage — rear close-up" },
+      ];
+  const photosComplete = vehiclePhotoTiles.every((t) => vehiclePhotos[t.key]);
+
   const detailsValid =
     dateTime.trim() &&
     transporter.trim() &&
     driverName.trim() &&
     vehicleNumber.trim() &&
-    (!activities.includes("inward") || sellerDetailsSubmitted);
-
-  const selectedSeller = SELLER_DIRECTORY.find((s) => s.id === sellerId);
+    photosComplete;
 
   const submit = () => {
-    if (activities.length === 0) return;
-    const generated: GatePass[] = activities.map((a) => ({
-      id: genGatePassId(a === "returns"),
-      activity: a,
+    const pass: GatePass = {
+      id: genGatePassId(),
       dateTime,
       gateNumber,
       transporter,
@@ -163,15 +185,14 @@ function GateEntry() {
       driverLicense,
       vehicleCondition,
       vehicleType,
-      ...(a === "inward" ? { sellerName: selectedSeller?.name, dock } : {}),
-    }));
-    setPasses(generated);
+    };
+    setPasses([pass]);
     setStep("complete");
   };
 
   const reset = () => {
     setStep("type");
-    setActivities([]);
+    setGateEntryType("seller");
     setDateTime(defaultDateTime());
     setGateNumber("1");
     setTransporter("");
@@ -181,10 +202,8 @@ function GateEntry() {
     setDriverLicense("");
     setVehicleCondition(VEHICLE_CONDITIONS[0]);
     setVehicleType("");
-    setSellerId("");
-    setDock("");
-    setDocumentsUploaded(false);
-    setSellerDetailsSubmitted(false);
+    setLicensePhotoUploaded(false);
+    setVehiclePhotos({});
     setPasses([]);
     setPrintOne(null);
   };
@@ -214,30 +233,33 @@ function GateEntry() {
       <div className="mx-auto max-w-4xl px-6 py-6">
         {/* Step 1 — Type */}
         {step === "type" && (
-          <div className="space-y-5">
-            <div>
-              <h2 className="text-base font-semibold">Select Activity Type</h2>
-              <p className="text-sm text-muted-foreground">
-                What is this vehicle at the gate for? Select all that apply.
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-base font-semibold">Select Gate Entry Type</h2>
+              <p className="mx-auto max-w-xl text-sm text-muted-foreground">
+                Executed at the warehouse gate. Gate entry is universal — the activity type and
+                seller details are captured later at unloading, not here.
               </p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {(Object.keys(ACTIVITY_META) as ActivityType[]).map((a) => (
-                <ActivityCard
-                  key={a}
-                  active={activities.includes(a)}
-                  onClick={() => toggleActivity(a)}
-                  icon={ACTIVITY_ICON[a]}
-                  title={ACTIVITY_META[a].label}
-                  desc={ACTIVITY_DESC[a]}
+            <div className="grid gap-4 sm:grid-cols-2">
+              {GATE_ENTRY_TYPES.map((t) => (
+                <TypeCard
+                  key={t.id}
+                  active={gateEntryType === t.id}
+                  inScope={t.inScope}
+                  onClick={() => t.inScope && setGateEntryType(t.id)}
+                  icon={t.icon}
+                  title={t.label}
+                  desc={t.desc}
                 />
               ))}
             </div>
-            <NavRow
-              onNext={() => setStep("details")}
-              nextDisabled={!typeValid}
-              nextLabel="Continue"
-            />
+            <div className="flex justify-center pt-1">
+              <Button size="lg" onClick={() => setStep("details")}>
+                Continue with Seller
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </div>
         )}
 
@@ -304,14 +326,32 @@ function GateEntry() {
                   />
                 </Field>
                 <Field label="Driver License">
-                  <Input
-                    value={driverLicense}
-                    onChange={(e) => setDriverLicense(e.target.value.toUpperCase())}
-                    placeholder="License number"
-                    className="font-mono"
-                  />
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={driverLicense}
+                      onChange={(e) => setDriverLicense(e.target.value.toUpperCase())}
+                      placeholder="License number"
+                      className="font-mono"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        "shrink-0",
+                        licensePhotoUploaded && "border-status-dispatched/40 text-status-dispatched",
+                      )}
+                      onClick={() => setLicensePhotoUploaded((v) => !v)}
+                    >
+                      {licensePhotoUploaded ? (
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                      ) : (
+                        <Upload className="mr-2 h-4 w-4" />
+                      )}
+                      {licensePhotoUploaded ? "Photo added" : "Upload photo"}
+                    </Button>
+                  </div>
                 </Field>
-                <Field label="Vehicle Condition">
+                <Field label="Vehicle Condition" required>
                   <Select value={vehicleCondition} onValueChange={setVehicleCondition}>
                     <SelectTrigger>
                       <SelectValue />
@@ -324,6 +364,11 @@ function GateEntry() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <p className="text-[11px] text-muted-foreground">
+                    {vehicleGood
+                      ? "Front & back photos are mandatory."
+                      : `${vehicleCondition} selected — all four sides must be photographed.`}
+                  </p>
                 </Field>
                 <Field label="Vehicle Type">
                   <Select value={vehicleType} onValueChange={setVehicleType}>
@@ -340,96 +385,35 @@ function GateEntry() {
                   </Select>
                 </Field>
               </div>
-            </DetailsSection>
 
-            <DetailsSection title="Activity Type">
-              <div className="grid grid-cols-3 gap-3">
-                {(Object.keys(ACTIVITY_META) as ActivityType[]).map((a) => (
-                  <button
-                    key={a}
-                    onClick={() => toggleActivity(a)}
+              <div className="space-y-3 border-t border-border pt-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                    Vehicle Photos
+                  </span>
+                  <span
                     className={cn(
-                      "rounded-md border-2 py-2.5 text-sm font-medium transition-colors",
-                      activities.includes(a)
-                        ? "border-primary bg-primary/5 text-primary"
-                        : "border-border bg-background text-foreground hover:border-primary/40",
+                      "rounded-[2px] px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.06em]",
+                      vehicleGood
+                        ? "bg-muted text-muted-foreground"
+                        : "bg-destructive/10 text-destructive",
                     )}
                   >
-                    {ACTIVITY_META[a].label}
-                  </button>
-                ))}
+                    {vehicleGood ? "Front & back mandatory" : "4-side mandatory"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                  {vehiclePhotoTiles.map((t) => (
+                    <PhotoTile
+                      key={t.key}
+                      label={t.label}
+                      captured={!!vehiclePhotos[t.key]}
+                      onClick={() => toggleVehiclePhoto(t.key)}
+                    />
+                  ))}
+                </div>
               </div>
             </DetailsSection>
-
-            {activities.includes("inward") && (
-              <Card className="space-y-4 border-primary/30 bg-primary/5 p-5">
-                <div className="text-xs font-semibold font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                  Seller &amp; Activity Details
-                </div>
-
-                {sellerDetailsSubmitted ? (
-                  <div className="flex items-center justify-between rounded-md border border-status-dispatched/30 bg-status-dispatched/10 px-4 py-3">
-                    <div>
-                      <div className="text-sm font-semibold">{selectedSeller?.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {dock} · Documents attached
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setSellerDetailsSubmitted(false)}
-                      className="text-xs font-medium text-primary hover:underline"
-                    >
-                      Edit
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <Field label="Scan ASN, STN, PO or other">
-                      <SellerCombobox value={sellerId} onSelect={setSellerId} />
-                    </Field>
-                    <Field label="Dock">
-                      <Select value={dock} onValueChange={setDock}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Dock" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {DOCKS.map((d) => (
-                            <SelectItem key={d} value={d}>
-                              {d}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                    <Field label="Documents" required>
-                      <div className="flex items-center gap-3">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setDocumentsUploaded((v) => !v)}
-                        >
-                          <Upload className="mr-2 h-4 w-4" />
-                          {documentsUploaded ? "Documents attached" : "Upload Documents"}
-                        </Button>
-                        {!documentsUploaded && (
-                          <span className="text-xs text-destructive">
-                            Invoice / Challan required
-                          </span>
-                        )}
-                      </div>
-                    </Field>
-                    <Button
-                      className="w-full bg-status-dispatched text-white hover:bg-status-dispatched/90"
-                      disabled={!sellerId || !dock || !documentsUploaded}
-                      onClick={() => setSellerDetailsSubmitted(true)}
-                    >
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Submit Seller Details
-                    </Button>
-                  </>
-                )}
-              </Card>
-            )}
 
             <NavRow
               onBack={() => setStep("type")}
@@ -442,12 +426,12 @@ function GateEntry() {
         )}
 
         {/* Step 3 — Preview */}
-        {step === "preview" && activities.length > 0 && (
+        {step === "preview" && (
           <div className="space-y-5">
             <div>
               <h2 className="text-base font-semibold">Review Gate Entry</h2>
               <p className="text-sm text-muted-foreground">
-                Verify all details below. A separate gate pass will be generated for each activity.
+                Verify all details below. A gate pass will be generated on submission.
               </p>
             </div>
 
@@ -464,36 +448,8 @@ function GateEntry() {
                 accent
                 icon={<Truck className="h-4 w-4" />}
               />
-              <SummaryTile
-                label="Gate Passes"
-                value={String(activities.length).padStart(2, "0")}
-                hint="Will be generated"
-              />
+              <SummaryTile label="Vehicle Type" value={vehicleType || "—"} />
               <SummaryTile label="Transporter" value={transporter || "—"} />
-            </div>
-
-            <div className="space-y-3">
-              <div className="text-sm font-semibold">Activities ({activities.length})</div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {activities.map((a) => (
-                  <Card key={a} className="flex items-start gap-3 p-4">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                      {ACTIVITY_ICON[a]}
-                    </span>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-semibold">{ACTIVITY_META[a].label}</span>
-                        <ActivityBadge activity={a} />
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {a === "inward"
-                          ? `${selectedSeller?.name ?? "—"} · ${dock || "—"}`
-                          : "Standard gate pass · " + vehicleNumber}
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
             </div>
 
             <Card className="flex flex-wrap items-center justify-between gap-4 p-4">
@@ -517,7 +473,6 @@ function GateEntry() {
                 <FooterFact label="Driver Mobile" value={driverMobile || "—"} mono />
                 <FooterFact label="Driver License" value={driverLicense || "—"} mono />
                 <FooterFact label="Vehicle Condition" value={vehicleCondition} />
-                <FooterFact label="Vehicle Type" value={vehicleType || "—"} />
               </div>
               <div className="flex items-center gap-2">
                 <Button variant="outline" onClick={() => setStep("details")}>
@@ -531,13 +486,13 @@ function GateEntry() {
               </div>
             </Card>
             <p className="text-center text-[11px] text-muted-foreground">
-              This entry will be logged with a timestamp on submission · All data verified per
-              warehouse protocols.
+              This entry will be logged with a timestamp on submission · Activity type is captured
+              at unloading.
             </p>
           </div>
         )}
 
-        {/* Step 4 — Complete / Gate passes */}
+        {/* Step 4 — Complete / Gate pass */}
         {step === "complete" && passes.length > 0 && (
           <div className="space-y-5">
             <Card className="flex flex-wrap items-center gap-3 p-5">
@@ -550,9 +505,8 @@ function GateEntry() {
                 </div>
                 <div className="text-base font-semibold">Registration successful</div>
                 <p className="max-w-xl text-sm text-muted-foreground">
-                  The vehicle has been registered at the gate. The following {passes.length} gate
-                  pass{passes.length === 1 ? "" : "es"} have been generated and are ready for
-                  printing.
+                  The vehicle has been registered at the gate. The gate pass below has been generated
+                  and is ready for printing. Activity type is assigned at unloading.
                 </p>
               </div>
             </Card>
@@ -649,14 +603,16 @@ function DetailsSection({ title, children }: { title: string; children: React.Re
   );
 }
 
-function ActivityCard({
+function TypeCard({
   active,
+  inScope,
   onClick,
   icon,
   title,
   desc,
 }: {
   active: boolean;
+  inScope: boolean;
   onClick: () => void;
   icon: React.ReactNode;
   title: string;
@@ -664,100 +620,73 @@ function ActivityCard({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
+      disabled={!inScope}
       className={cn(
-        "flex items-start gap-3 rounded-md border-2 p-4 text-left transition-colors",
+        "relative flex flex-col items-center gap-2 rounded-lg border-2 p-6 text-center transition-colors",
         active
           ? "border-primary bg-primary/5"
-          : "border-border bg-background hover:border-primary/40",
+          : inScope
+            ? "border-border bg-background hover:border-primary/40"
+            : "cursor-not-allowed border-border bg-muted/30 opacity-70",
       )}
     >
+      {!inScope && (
+        <span className="absolute left-3 top-3 rounded-[2px] bg-muted px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
+          Not in this demo
+        </span>
+      )}
+      {active && <CheckCircle2 className="absolute right-3 top-3 h-5 w-5 text-primary" />}
       <span
         className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-md",
+          "flex h-14 w-14 items-center justify-center rounded-full",
           active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
         )}
       >
         {icon}
       </span>
-      <div>
-        <div className="flex items-center gap-1.5 text-sm font-semibold">
-          {title}
-          {active && <CheckCircle2 className="h-4 w-4 text-primary" />}
-        </div>
-        <div className="text-xs text-muted-foreground">{desc}</div>
-      </div>
+      <span className="text-base font-semibold">{title}</span>
+      <span className="text-xs text-muted-foreground">{desc}</span>
     </button>
   );
 }
 
-/* ------------------------------------------------------- Seller combobox */
-
-function SellerCombobox({ value, onSelect }: { value: string; onSelect: (id: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const selected = SELLER_DIRECTORY.find((s) => s.id === value);
-  const q = query.trim().toLowerCase();
-  const results = q
-    ? SELLER_DIRECTORY.filter(
-        (s) =>
-          s.name.toLowerCase().includes(q) ||
-          s.id.toLowerCase().includes(q) ||
-          s.asn.toLowerCase().includes(q),
-      )
-    : SELLER_DIRECTORY;
-
+function PhotoTile({
+  label,
+  captured,
+  onClick,
+}: {
+  label: string;
+  captured: boolean;
+  onClick: () => void;
+}) {
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          className={cn(
-            "h-11 w-full justify-start font-normal",
-            !selected && "text-muted-foreground",
-          )}
-        >
-          <Search className="mr-2 h-4 w-4" />
-          {selected
-            ? `${selected.name} · ${selected.asn}`
-            : "Search seller / vendor / ASN / PO (or scan STN)"}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
-        <Command shouldFilter={false}>
-          <CommandInput
-            value={query}
-            onValueChange={setQuery}
-            placeholder="Search seller / vendor / ASN…"
-          />
-          <CommandList>
-            {results.length === 0 ? (
-              <CommandEmpty>No sellers found.</CommandEmpty>
-            ) : (
-              <CommandGroup>
-                {results.map((s) => (
-                  <CommandItem
-                    key={s.id}
-                    value={s.id}
-                    onSelect={() => {
-                      onSelect(s.id);
-                      setOpen(false);
-                      setQuery("");
-                    }}
-                  >
-                    <div className="flex min-w-0 flex-1 flex-col">
-                      <span className="truncate text-sm font-medium">{s.name}</span>
-                      <span className="font-mono text-[11px] text-muted-foreground">{s.asn}</span>
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex min-h-[104px] flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-center transition-colors",
+        captured
+          ? "border-status-dispatched/50 bg-status-dispatched/5"
+          : "border-border hover:border-primary/40",
+      )}
+    >
+      {captured ? (
+        <CheckCircle2 className="h-5 w-5 text-status-dispatched" />
+      ) : (
+        <Camera className="h-5 w-5 text-muted-foreground" />
+      )}
+      <span className="text-xs font-medium">{label}</span>
+      <span
+        className={cn(
+          "font-mono text-[10px] font-semibold uppercase tracking-[0.06em]",
+          captured ? "text-status-dispatched" : "text-destructive",
+        )}
+      >
+        {captured ? "Captured" : "Required"}
+      </span>
+    </button>
   );
 }
 
@@ -813,27 +742,6 @@ function NavRow({
 }
 
 /* ----------------------------------------------------------- Small parts */
-
-const ACTIVITY_TONE_CLASS: Record<string, string> = {
-  blue: "bg-status-picked/15 text-status-picked",
-  purple: "bg-status-manifested/15 text-status-manifested",
-  amber: "bg-status-packed/15 text-status-packed",
-};
-
-function ActivityBadge({ activity }: { activity: ActivityType }) {
-  const meta = ACTIVITY_META[activity];
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-[2px] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.06em]",
-        ACTIVITY_TONE_CLASS[meta.tone],
-      )}
-    >
-      <span className="h-1.5 w-1.5 rounded-full bg-current" />
-      {meta.label}
-    </span>
-  );
-}
 
 function SummaryTile({
   label,
@@ -896,7 +804,7 @@ function GatePassCard({ pass, onPrint }: { pass: GatePass; onPrint: () => void }
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 sm:grid-cols-3">
         <div>
           <div className="text-[10px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
             Vehicle
@@ -911,19 +819,9 @@ function GatePassCard({ pass, onPrint }: { pass: GatePass; onPrint: () => void }
         </div>
         <div>
           <div className="text-[10px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-            {pass.sellerName ? "Seller" : "Transporter"}
+            Transporter
           </div>
-          <div className="truncate text-sm font-semibold">
-            {pass.sellerName ?? pass.transporter}
-          </div>
-        </div>
-        <div>
-          <div className="text-[10px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-            Activity Type
-          </div>
-          <div className="mt-0.5">
-            <ActivityBadge activity={pass.activity} />
-          </div>
+          <div className="truncate text-sm font-semibold">{pass.transporter}</div>
         </div>
       </div>
 
@@ -948,7 +846,6 @@ function PassSticker({ pass }: { pass: GatePass }) {
         <span className="text-[10px] font-semibold font-mono uppercase tracking-[0.06em] text-muted-foreground">
           Inbound Gate Pass
         </span>
-        <ActivityBadge activity={pass.activity} />
       </div>
 
       <div className="flex flex-col items-center">
@@ -987,9 +884,6 @@ function PassSticker({ pass }: { pass: GatePass }) {
         <StickerRow label="Driver" value={pass.driverName} />
         {pass.driverMobile && <StickerRow label="Mobile" value={pass.driverMobile} mono />}
         {pass.driverLicense && <StickerRow label="Licence" value={pass.driverLicense} mono />}
-        {pass.sellerName && <StickerRow label="Seller" value={pass.sellerName} />}
-        {pass.dock && <StickerRow label="Dock" value={pass.dock} />}
-        <StickerRow label="Activity" value={ACTIVITY_META[pass.activity].label} />
       </dl>
     </div>
   );

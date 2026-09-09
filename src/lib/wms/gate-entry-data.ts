@@ -338,6 +338,34 @@ export interface GatePassConsignment {
   boxCount: number; // boxes the guard recorded at gate entry
 }
 
+// Driver + vehicle a gate pass was cut against. Not captured again at
+// unloading, so we resolve it deterministically for the POD printout.
+const POD_DRIVERS = [
+  "Ramesh Yadav",
+  "Suresh Kumar",
+  "Imran Khan",
+  "Vijay Singh",
+  "Manoj Patel",
+  "Arjun Rao",
+];
+
+export const driverVehicleFor = (
+  id: string,
+): { driver: string; vehicle: string } => {
+  const h = hash(id + "veh");
+  const driver = POD_DRIVERS[h % POD_DRIVERS.length];
+  const vehicle = `DL ${String(1 + (h % 9)).padStart(2, "0")} GC ${1000 + (h % 9000)}`;
+  return { driver, vehicle };
+};
+
+// Total units expected against a consignment's ASN — surfaced as the "stock
+// count" when an operator picks the PO/ASN at unloading. Deterministic so the
+// same gate pass always resolves to the same figure.
+export const stockCountForConsignment = (c: GatePassConsignment): number => {
+  const perBox = 8 + (hash(c.gatePass + "units") % 17); // 8–24 units per box
+  return c.boxCount * perBox;
+};
+
 export const consignmentForGatePass = (id: string): GatePassConsignment => {
   const key = id.trim().toUpperCase();
   const seller = SELLER_DIRECTORY[hash(key) % SELLER_DIRECTORY.length];
