@@ -55,6 +55,14 @@ export const COMMUNITY_META: Record<
   Meesho: { dockZone: "MS", tone: "pink" },
 };
 
+// The seller's system of record at the gate. WMS 2.0 / Maven sellers have
+// their POs already loaded in-system, so the operator picks one from a
+// dropdown. Unicommerce / EasyEcom sellers aren't integrated for PO lookup —
+// the operator just notes the PO as free text (optional) and the box count.
+export const SELLER_SYSTEMS = ["WMS 2.0", "Maven", "Unicommerce", "EasyEcom"] as const;
+export type SellerSystem = (typeof SELLER_SYSTEMS)[number];
+export const PO_DROPDOWN_SYSTEMS: SellerSystem[] = ["WMS 2.0", "Maven"];
+
 // Master seller directory the gate guard can search and add from.
 export interface SellerRecord {
   id: string;
@@ -63,6 +71,7 @@ export interface SellerRecord {
   skuCount: number;
   defaultActivity: ActivityType;
   asn: string;
+  system: SellerSystem;
   community?: Community;
 }
 
@@ -74,6 +83,7 @@ export const SELLER_DIRECTORY: SellerRecord[] = [
     skuCount: 142,
     defaultActivity: "inward",
     asn: "ASN-2024-00981",
+    system: "WMS 2.0",
     community: "Amazon",
   },
   {
@@ -83,6 +93,7 @@ export const SELLER_DIRECTORY: SellerRecord[] = [
     skuCount: 89,
     defaultActivity: "inward",
     asn: "ASN-2024-01142",
+    system: "Unicommerce",
     community: "Flipkart",
   },
   {
@@ -92,6 +103,7 @@ export const SELLER_DIRECTORY: SellerRecord[] = [
     skuCount: 315,
     defaultActivity: "pickup",
     asn: "ASN-2024-00220",
+    system: "EasyEcom",
   },
   {
     id: "VEND-2024-051",
@@ -100,6 +112,7 @@ export const SELLER_DIRECTORY: SellerRecord[] = [
     skuCount: 64,
     defaultActivity: "returns",
     asn: "ASN-2024-00610",
+    system: "Maven",
     community: "Flipkart",
   },
   {
@@ -109,6 +122,7 @@ export const SELLER_DIRECTORY: SellerRecord[] = [
     skuCount: 208,
     defaultActivity: "inward",
     asn: "ASN-2024-00188",
+    system: "WMS 2.0",
     community: "Meesho",
   },
   {
@@ -118,6 +132,7 @@ export const SELLER_DIRECTORY: SellerRecord[] = [
     skuCount: 47,
     defaultActivity: "returns",
     asn: "ASN-2024-00533",
+    system: "Unicommerce",
   },
   {
     id: "VEND-2024-019",
@@ -126,6 +141,7 @@ export const SELLER_DIRECTORY: SellerRecord[] = [
     skuCount: 121,
     defaultActivity: "inward",
     asn: "ASN-2024-00301",
+    system: "Maven",
     community: "Flipkart",
   },
   {
@@ -135,6 +151,7 @@ export const SELLER_DIRECTORY: SellerRecord[] = [
     skuCount: 18,
     defaultActivity: "pickup",
     asn: "ASN-2024-00042",
+    system: "EasyEcom",
   },
   {
     id: "VEND-2024-088",
@@ -143,6 +160,7 @@ export const SELLER_DIRECTORY: SellerRecord[] = [
     skuCount: 96,
     defaultActivity: "inward",
     asn: "ASN-2024-00777",
+    system: "WMS 2.0",
     community: "Amazon",
   },
   {
@@ -152,9 +170,22 @@ export const SELLER_DIRECTORY: SellerRecord[] = [
     skuCount: 73,
     defaultActivity: "inward",
     asn: "ASN-2024-00455",
+    system: "Unicommerce",
     community: "Meesho",
   },
 ];
+
+// PO numbers already loaded in-system for a WMS 2.0 / Maven seller — surfaced
+// as a dropdown at gate pass creation. Deterministic so the same seller always
+// offers the same 2–4 POs.
+export const poNumbersForSeller = (sellerId: string): string[] => {
+  const h = hash(sellerId + "po");
+  const count = 2 + (h % 3); // 2–4 POs
+  return Array.from({ length: count }, (_, i) => {
+    const hh = hash(sellerId + "po" + i);
+    return `PO-2024-${String(10000 + (hh % 89000)).padStart(5, "0")}`;
+  });
+};
 
 // Dock assignment — driven by the community program and the vehicle type
 // brought in (bigger vehicles get a deeper bay). Deterministic for the demo.
@@ -349,9 +380,7 @@ const POD_DRIVERS = [
   "Arjun Rao",
 ];
 
-export const driverVehicleFor = (
-  id: string,
-): { driver: string; vehicle: string } => {
+export const driverVehicleFor = (id: string): { driver: string; vehicle: string } => {
   const h = hash(id + "veh");
   const driver = POD_DRIVERS[h % POD_DRIVERS.length];
   const vehicle = `DL ${String(1 + (h % 9)).padStart(2, "0")} GC ${1000 + (h % 9000)}`;

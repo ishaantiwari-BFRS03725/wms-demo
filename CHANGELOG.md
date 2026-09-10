@@ -1,5 +1,15 @@
 # Changelog
 
+- 2026-09-09: Gate Pass Processing (`/gate-pass-processing`) — Stock Count (expected units from ASN) is now only shown for WMS 2.0 sellers when adding a PO/ASN; Maven/Unicommerce/EasyEcom sellers don't have an ASN-backed expectation, so that field is hidden for them and Box Count takes the full row instead.
+
+- 2026-09-09: Gate Pass Processing (`/gate-pass-processing`) — Inbound PO/ASN entry now starts with a searchable Seller dropdown (single-select) instead of a combined ASN/PO picker. What follows depends on the seller's system, added as a new `system` field on `SellerRecord` (`WMS 2.0`, `Maven`, `Unicommerce`, `EasyEcom`) in `gate-entry-data.ts`: WMS 2.0 / Maven sellers get a PO dropdown (2–4 deterministic POs via new `poNumbersForSeller`); Unicommerce / EasyEcom sellers get an optional free-text PO field instead, with box count still mandatory before an entry can be added. Removed the separate read-only Vendor block since the seller is now chosen directly.
+
+- 2026-09-09: Gate Pass Processing (`/gate-pass-processing`) — removed the "Marry to Dock" step entirely. Scanning the gate entry now goes straight to Activity Type. Dropped `dockId` state, the `DockTag` top-bar chip, the "Married to {dock}" copy on the Issued step, and the "Dock" row on the printed gate pass sticker.
+
+- 2026-09-09: Gate Pass Processing (`/gate-pass-processing`) — renamed the first step label from "Scan Gate Entry" to "Gate Entry Barcode".
+
+- 2026-09-09: Gate Pass Processing (`/gate-pass-processing`) — Return and Outbound activity types now just ask for a seller multi-select dropdown (searchable, from `SELLER_DIRECTORY`) instead of the PO/ASN add flow; Continue directly issues one gate pass per selected seller (box count via `boxCountForSeller`), skipping the separate Issue Gate Passes review step. Removed the old "released" (no-passes) outbound step — outbound now goes through the same Issued screen as the others, with outbound-specific copy noting no unloading is needed. Inbound is unchanged (PO/ASN add flow, then a review/select step before issuing).
+
 - 2026-09-09: Gate Pass Processing (`/gate-pass-processing`) — removed the separate Vendor selection dropdown from the Activity Type step. Each "Scan ASN, STN, PO or other" option now directly carries its own seller (one option per `SELLER_DIRECTORY` entry, keyed off its ASN); picking a PO/ASN shows that seller read-only as Vendor. Fewer taps to add a PO/ASN — no need to pick vendor first.
 
 - 2026-09-09: Gate Pass Processing (`/gate-pass-processing`) — reworked the Activity Type step for Inbound/Return: Vendor is now a selector (from `SELLER_DIRECTORY`) picked per PO/ASN rather than fixed to the entry's consignment, since a vehicle's PO/ASNs can span different sellers, unrelated to any manifest. Removed the multi-seller vehicle manifest (`sellersForGatePass`) entirely from this flow — the Issue Gate Passes step now only lists (and pre-selects) the exact PO/ASN entries added on the previous screen, one gate pass per entry.

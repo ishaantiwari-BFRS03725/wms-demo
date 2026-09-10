@@ -2,16 +2,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
-  Anchor,
   ArrowDownToLine,
   ArrowRight,
   ArrowUpFromLine,
+  Check,
   CheckCircle2,
+  ChevronDown,
   ClipboardCheck,
   Plus,
   Printer,
   RotateCcw,
   ScanBarcode,
+  Search,
   Ticket,
   Truck,
   X,
@@ -24,6 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -36,9 +39,12 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
+  boxCountForSeller,
   consignmentForGatePass,
   gateBarcodePattern,
   genGatePassId,
+  PO_DROPDOWN_SYSTEMS,
+  poNumbersForSeller,
   SELLER_DIRECTORY,
   stockCountForConsignment,
   type GatePassConsignment,
@@ -53,7 +59,7 @@ export const Route = createFileRoute("/_wms/gate-pass-processing")({
   component: GatePassProcessing,
 });
 
-type Step = "scan-entry" | "dock" | "activity-type" | "issue-passes" | "issued" | "released";
+type Step = "scan-entry" | "activity-type" | "issue-passes" | "issued";
 
 type ActivityType = "inward" | "outward" | "return";
 
@@ -81,45 +87,35 @@ function GatePassProcessing() {
   const [entryId, setEntryId] = useState<string | null>(null);
   const [scanKey, setScanKey] = useState(0);
 
-  const [consignment, setConsignment] = useState<GatePassConsignment | null>(
-    null,
-  );
-  const [dockId, setDockId] = useState("");
+  const [consignment, setConsignment] = useState<GatePassConsignment | null>(null);
   const [activityType, setActivityType] = useState<ActivityType | null>(null);
+  const [poAsnSellerId, setPoAsnSellerId] = useState("");
   const [poAsn, setPoAsn] = useState("");
   const [boxCount, setBoxCount] = useState(0);
   const [poAsnEntries, setPoAsnEntries] = useState<PoAsnEntry[]>([]);
-  const [issueSelected, setIssueSelected] = useState<Record<string, boolean>>(
-    {},
-  );
+  const [issueSelected, setIssueSelected] = useState<Record<string, boolean>>({});
+  const [selectedSellerIds, setSelectedSellerIds] = useState<string[]>([]);
   const [issued, setIssued] = useState<IssuedPass[]>([]);
   const [printOpen, setPrintOpen] = useState(false);
 
   const issueDate = useMemo(() => new Date(), []);
 
-  const activityUnloads = activityType === "inward" || activityType === "return";
-  const activityCloses = activityType === "outward";
+  const isInbound = activityType === "inward";
+  const isSellerSelect = activityType === "return" || activityType === "outward";
   const selectedEntries = poAsnEntries.filter((e) => issueSelected[e.id]);
 
   const sellerById = (id: string): SellerRecord =>
     SELLER_DIRECTORY.find((s) => s.id === id) ?? consignment!.seller;
 
-  // PO / ASN references the operator can pick against — each one carries its
-  // own seller/vendor, since a vehicle's PO/ASNs can span multiple sellers.
-  const poAsnOptions = useMemo(
-    () =>
-      SELLER_DIRECTORY.map((s) => ({
-        value: s.asn,
-        label: `${s.asn} · ${s.name}`,
-        sellerId: s.id,
-      })),
-    [],
+  // Seller is picked first (searchable dropdown); the PO input that follows
+  // depends on that seller's system — WMS 2.0 / Maven sellers have their POs
+  // loaded in-system (dropdown), Unicommerce / EasyEcom don't (optional text).
+  const currentSeller = poAsnSellerId ? sellerById(poAsnSellerId) : undefined;
+  const poUsesDropdown = !!currentSeller && PO_DROPDOWN_SYSTEMS.includes(currentSeller.system);
+  const poOptions = useMemo(
+    () => (currentSeller && poUsesDropdown ? poNumbersForSeller(currentSeller.id) : []),
+    [currentSeller, poUsesDropdown],
   );
-
-  const currentOption = poAsnOptions.find((o) => o.value === poAsn);
-  const currentSeller = currentOption
-    ? sellerById(currentOption.sellerId)
-    : undefined;
 
   const stockCount =
     entryId && currentSeller
@@ -138,26 +134,23 @@ function GatePassProcessing() {
     const c = consignmentForGatePass(id);
     setConsignment(c);
     setBoxCount(c.boxCount);
-    setStep("dock");
+    setStep("activity-type");
     setScanKey((k) => k + 1);
   };
 
-  const confirmDock = () => {
-    if (!dockId.trim()) return;
-    setStep("activity-type");
-  };
-
   const addPoAsnEntry = () => {
-    if (!currentOption || boxCount < 1) return;
+    if (!currentSeller || boxCount < 1) return;
+    if (poUsesDropdown && !poAsn) return;
     setPoAsnEntries((prev) => [
       ...prev,
       {
-        id: `${currentOption.sellerId}-${poAsn}-${prev.length}-${Date.now()}`,
-        sellerId: currentOption.sellerId,
-        poAsn,
+        id: `${currentSeller.id}-${poAsn || "NA"}-${prev.length}-${Date.now()}`,
+        sellerId: currentSeller.id,
+        poAsn: poAsn.trim() || "—",
         boxCount,
       },
     ]);
+    setPoAsnSellerId("");
     setPoAsn("");
     setBoxCount(consignment?.boxCount ?? 0);
   };
@@ -167,13 +160,13 @@ function GatePassProcessing() {
   };
 
   const confirmActivity = () => {
-    if (activityUnloads) {
+    if (isInbound) {
       if (poAsnEntries.length === 0) return;
       // Pre-select every PO/ASN added on the previous screen; the operator can deselect.
       setIssueSelected(Object.fromEntries(poAsnEntries.map((e) => [e.id, true])));
       setStep("issue-passes");
-    } else if (activityCloses) {
-      setStep("released");
+    } else if (isSellerSelect) {
+      issueSellerPasses();
     }
   };
 
@@ -188,16 +181,31 @@ function GatePassProcessing() {
     setPrintOpen(true);
   };
 
+  const issueSellerPasses = () => {
+    if (selectedSellerIds.length === 0) return;
+    const passes = selectedSellerIds.map((id) => {
+      const seller = sellerById(id);
+      return {
+        gatePass: genGatePassId(activityType === "return"),
+        seller: { seller, asn: seller.asn, boxCount: boxCountForSeller(seller.id) },
+      };
+    });
+    setIssued(passes);
+    setStep("issued");
+    setPrintOpen(true);
+  };
+
   const reset = () => {
     setStep("scan-entry");
     setEntryId(null);
     setConsignment(null);
-    setDockId("");
     setActivityType(null);
+    setPoAsnSellerId("");
     setPoAsn("");
     setBoxCount(0);
     setPoAsnEntries([]);
     setIssueSelected({});
+    setSelectedSellerIds([]);
     setIssued([]);
     setPrintOpen(false);
     setScanKey((k) => k + 1);
@@ -215,13 +223,9 @@ function GatePassProcessing() {
           <div className="flex flex-col items-end gap-1">
             {entryId && (
               <div className="text-right text-xs text-muted-foreground">
-                Entry{" "}
-                <span className="font-mono font-semibold text-foreground">
-                  {entryId}
-                </span>
+                Entry <span className="font-mono font-semibold text-foreground">{entryId}</span>
               </div>
             )}
-            {dockId.trim() && step !== "dock" && <DockTag dockId={dockId} />}
           </div>
         </div>
 
@@ -231,11 +235,10 @@ function GatePassProcessing() {
             <Card className="space-y-3 p-4">
               <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
                 <ScanBarcode className="h-3.5 w-3.5" />
-                Scan Gate Entry
+                Gate Entry Barcode
               </div>
               <p className="text-xs text-muted-foreground">
-                Scan the vehicle's gate entry, marry it to a dock, and issue a
-                gate pass per PO/ASN.
+                Scan the vehicle's gate entry and issue a gate pass per PO/ASN.
               </p>
               <ScanRow
                 key={`entry-${scanKey}`}
@@ -244,37 +247,6 @@ function GatePassProcessing() {
                 autoFocus
               />
             </Card>
-          )}
-
-          {/* Step — Marry to dock */}
-          {step === "dock" && consignment && (
-            <>
-              <Card className="space-y-3 p-4">
-                <div className="flex items-center gap-2 text-xs font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                  <Anchor className="h-3.5 w-3.5" />
-                  Marry to Dock
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Scan or enter the dock the vehicle has been assigned to.
-                </p>
-                <ScanRow
-                  key={`dock-${scanKey}`}
-                  placeholder="e.g. DOCK-FK-03"
-                  onScan={(v) => setDockId(v.trim().toUpperCase())}
-                  value={dockId}
-                  onChange={(v) => setDockId(v.toUpperCase())}
-                  autoFocus
-                />
-              </Card>
-              <Button
-                className="h-11 w-full"
-                disabled={!dockId.trim()}
-                onClick={confirmDock}
-              >
-                <Anchor className="mr-2 h-4 w-4" />
-                Marry vehicle to dock
-              </Button>
-            </>
           )}
 
           {/* Step — Activity type */}
@@ -305,7 +277,7 @@ function GatePassProcessing() {
                   />
                   <ActivityOption
                     label="Outbound"
-                    hint="Dispatch — no unloading"
+                    hint="Dispatch — issues passes"
                     icon={<ArrowUpFromLine className="h-4 w-4" />}
                     selected={activityType === "outward"}
                     onClick={() => {
@@ -315,29 +287,65 @@ function GatePassProcessing() {
                   />
                 </div>
 
-                {activityUnloads && consignment && (
+                {isInbound && consignment && (
                   <div className="space-y-3">
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                        Scan ASN, STN, PO or other
+                        Seller
                       </label>
-                      <Select value={poAsn} onValueChange={setPoAsn}>
-                        <SelectTrigger className="h-11">
-                          <SelectValue placeholder="Select ASN / STN / PO / other…" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {poAsnOptions.map((o) => (
-                            <SelectItem key={o.value} value={o.value}>
-                              {o.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <SellerSelect
+                        options={SELLER_DIRECTORY}
+                        value={poAsnSellerId}
+                        onChange={(id) => {
+                          setPoAsnSellerId(id);
+                          setPoAsn("");
+                        }}
+                      />
                     </div>
 
-                    {poAsn && (
+                    {currentSeller && (
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                          {poUsesDropdown ? "PO Number" : "PO Number (optional)"}
+                        </label>
+                        {poUsesDropdown ? (
+                          <Select value={poAsn} onValueChange={setPoAsn}>
+                            <SelectTrigger className="h-11">
+                              <SelectValue placeholder="Select PO…" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {poOptions.map((po) => (
+                                <SelectItem key={po} value={po}>
+                                  {po}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Input
+                            value={poAsn}
+                            onChange={(e) => setPoAsn(e.target.value)}
+                            placeholder="e.g. PO-2024-00981 (optional)"
+                            className="h-11"
+                          />
+                        )}
+                        <p className="text-[10px] text-muted-foreground">
+                          {currentSeller.system} seller —{" "}
+                          {poUsesDropdown
+                            ? "PO is loaded in-system, pick one."
+                            : "not integrated for PO lookup; enter it manually if known."}
+                        </p>
+                      </div>
+                    )}
+
+                    {currentSeller && (!poUsesDropdown || poAsn) && (
                       <>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div
+                          className={cn(
+                            "grid gap-2",
+                            currentSeller.system === "WMS 2.0" ? "grid-cols-2" : "grid-cols-1",
+                          )}
+                        >
                           <div className="space-y-1.5">
                             <label className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
                               Box Count
@@ -347,19 +355,14 @@ function GatePassProcessing() {
                                 variant="outline"
                                 size="icon"
                                 className="h-11 w-11 shrink-0 text-lg"
-                                onClick={() =>
-                                  setBoxCount((n) => Math.max(1, n - 1))
-                                }
+                                onClick={() => setBoxCount((n) => Math.max(1, n - 1))}
                               >
                                 –
                               </Button>
                               <Input
                                 value={String(boxCount)}
                                 onChange={(e) => {
-                                  const n =
-                                    Number(
-                                      e.target.value.replace(/[^0-9]/g, ""),
-                                    ) || 0;
+                                  const n = Number(e.target.value.replace(/[^0-9]/g, "")) || 0;
                                   setBoxCount(Math.max(0, n));
                                 }}
                                 inputMode="numeric"
@@ -375,38 +378,27 @@ function GatePassProcessing() {
                               </Button>
                             </div>
                           </div>
-                          <div className="space-y-1.5">
-                            <label className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                              Stock Count
-                            </label>
-                            <div className="flex h-11 items-center justify-between rounded-md border border-border bg-muted/30 px-3">
-                              <span className="font-mono text-lg font-bold tabular-nums">
-                                {stockCount}
-                              </span>
-                              <span className="text-[10px] text-muted-foreground">
-                                units · ASN
-                              </span>
+                          {currentSeller.system === "WMS 2.0" && (
+                            <div className="space-y-1.5">
+                              <label className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                                Stock Count
+                              </label>
+                              <div className="flex h-11 items-center justify-between rounded-md border border-border bg-muted/30 px-3">
+                                <span className="font-mono text-lg font-bold tabular-nums">
+                                  {stockCount}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground">
+                                  units · ASN
+                                </span>
+                              </div>
                             </div>
-                          </div>
+                          )}
                         </div>
-
-                        {currentSeller && (
-                          <div className="space-y-1.5">
-                            <label className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
-                              Vendor
-                            </label>
-                            <div className="flex h-11 items-center rounded-md border border-border bg-muted/30 px-3 text-sm font-medium">
-                              {currentSeller.name}
-                              <span className="ml-2 font-mono text-[11px] text-muted-foreground">
-                                {currentSeller.id}
-                              </span>
-                            </div>
-                          </div>
-                        )}
 
                         <Button
                           variant="outline"
                           className="h-11 w-full"
+                          disabled={boxCount < 1}
                           onClick={addPoAsnEntry}
                         >
                           <Plus className="mr-2 h-4 w-4" />
@@ -430,9 +422,7 @@ function GatePassProcessing() {
                                 <div className="truncate font-semibold">
                                   {sellerById(e.sellerId).name}
                                 </div>
-                                <div className="font-mono text-muted-foreground">
-                                  {e.poAsn}
-                                </div>
+                                <div className="font-mono text-muted-foreground">{e.poAsn}</div>
                               </div>
                               <div className="flex shrink-0 items-center gap-2">
                                 <span className="rounded-[3px] bg-muted px-2 py-0.5 font-medium text-muted-foreground">
@@ -455,34 +445,39 @@ function GatePassProcessing() {
                   </div>
                 )}
 
-                {activityCloses && (
-                  <div className="flex items-start gap-2 rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                    <span>
-                      No unloading for outbound. The gate pass closes and the
-                      vehicle is released once confirmed.
-                    </span>
+                {isSellerSelect && (
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-medium font-mono uppercase tracking-[0.06em] text-muted-foreground">
+                      Sellers
+                    </label>
+                    <SellerMultiSelect
+                      options={SELLER_DIRECTORY}
+                      selected={selectedSellerIds}
+                      onToggle={(id) =>
+                        setSelectedSellerIds((prev) =>
+                          prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
+                        )
+                      }
+                      onClear={() => setSelectedSellerIds([])}
+                    />
                   </div>
                 )}
               </Card>
               <Button
                 className="h-11 w-full"
-                disabled={
-                  activityUnloads
-                    ? poAsnEntries.length === 0
-                    : !activityCloses
-                }
+                disabled={isInbound ? poAsnEntries.length === 0 : selectedSellerIds.length === 0}
                 onClick={confirmActivity}
               >
-                {activityCloses ? (
-                  <>
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Close gate pass &amp; release vehicle
-                  </>
-                ) : (
+                {isInbound ? (
                   <>
                     <ArrowRight className="mr-2 h-4 w-4" />
                     Continue to gate pass issue
+                  </>
+                ) : (
+                  <>
+                    <Ticket className="mr-2 h-4 w-4" />
+                    Issue {selectedSellerIds.length} gate pass
+                    {selectedSellerIds.length === 1 ? "" : "es"}
                   </>
                 )}
               </Button>
@@ -498,9 +493,8 @@ function GatePassProcessing() {
                   Issue Gate Passes
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Only the PO/ASNs added on the previous screen are eligible.
-                  One pass is cut per PO/ASN — box printing &amp; scanning
-                  happens later in Unloading.
+                  Only the PO/ASNs added on the previous screen are eligible. One pass is cut per
+                  PO/ASN — box printing &amp; scanning happens later in Unloading.
                 </p>
                 <div className="space-y-2">
                   {poAsnEntries.map((e) => (
@@ -545,9 +539,7 @@ function GatePassProcessing() {
                   <div className="text-base font-semibold">
                     {issued.length} gate pass{issued.length === 1 ? "" : "es"} issued
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    Married to {dockId} · {dateLabel(issueDate)}
-                  </div>
+                  <div className="text-xs text-muted-foreground">{dateLabel(issueDate)}</div>
                 </div>
               </Card>
 
@@ -561,9 +553,7 @@ function GatePassProcessing() {
                     className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/20 px-2.5 py-2"
                   >
                     <div className="min-w-0">
-                      <div className="truncate text-xs font-semibold">
-                        {p.seller.seller.name}
-                      </div>
+                      <div className="truncate text-xs font-semibold">{p.seller.seller.name}</div>
                       <div className="font-mono text-[11px] text-muted-foreground">
                         {p.gatePass}
                       </div>
@@ -576,40 +566,29 @@ function GatePassProcessing() {
               </Card>
 
               <div className="flex items-start gap-2 rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>
-                  Take these gate passes to the <b>Unloading</b> menu to print box
-                  IDs, scan boxes and capture POD.
-                </span>
+                {activityType === "outward" ? (
+                  <>
+                    <Truck className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>
+                      No unloading for outbound. The vehicle is released once these gate passes are
+                      printed.
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>
+                      Take these gate passes to the <b>Unloading</b> menu to print box IDs, scan
+                      boxes and capture POD.
+                    </span>
+                  </>
+                )}
               </div>
 
               <Button className="h-11 w-full" onClick={() => setPrintOpen(true)}>
                 <Printer className="mr-2 h-4 w-4" />
                 Print gate passes ({issued.length})
               </Button>
-              <Button variant="outline" className="h-11 w-full" onClick={reset}>
-                Process another vehicle
-              </Button>
-            </>
-          )}
-
-          {/* Step — Outbound released (no unloading) */}
-          {step === "released" && (
-            <>
-              <Card className="space-y-2 p-4 text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-status-dispatched/15 text-status-dispatched">
-                  <Truck className="h-6 w-6" />
-                </div>
-                <div>
-                  <div className="text-base font-semibold">
-                    Gate pass processed
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Outbound — no unloading required. Vehicle released
-                    {dockId.trim() ? ` from ${dockId}` : ""}.
-                  </div>
-                </div>
-              </Card>
               <Button variant="outline" className="h-11 w-full" onClick={reset}>
                 Process another vehicle
               </Button>
@@ -629,12 +608,7 @@ function GatePassProcessing() {
           </DialogHeader>
           <div className="max-h-[60vh] space-y-3 overflow-y-auto">
             {issued.map((p) => (
-              <GatePassSticker
-                key={p.gatePass}
-                pass={p}
-                dockId={dockId}
-                date={dateLabel(issueDate)}
-              />
+              <GatePassSticker key={p.gatePass} pass={p} date={dateLabel(issueDate)} />
             ))}
           </div>
           <DialogFooter>
@@ -651,19 +625,6 @@ function GatePassProcessing() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
-
-function DockTag({ dockId }: { dockId: string }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className="text-[10px] font-mono uppercase tracking-[0.08em] text-muted-foreground">
-        Dock
-      </span>
-      <span className="font-mono text-xs font-semibold text-foreground">
-        {dockId}
-      </span>
     </div>
   );
 }
@@ -702,6 +663,230 @@ function ActivityOption({
       </span>
       <span className="text-[11px] text-muted-foreground">{hint}</span>
     </button>
+  );
+}
+
+function SellerMultiSelect({
+  options,
+  selected,
+  onToggle,
+  onClear,
+}: {
+  options: SellerRecord[];
+  selected: string[];
+  onToggle: (id: string) => void;
+  onClear: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const filtered = options.filter(
+    (o) =>
+      o.name.toLowerCase().includes(search.toLowerCase()) ||
+      o.id.toLowerCase().includes(search.toLowerCase()),
+  );
+  const selectedSellers = options.filter((o) => selected.includes(o.id));
+
+  return (
+    <div className="space-y-2">
+      <Popover
+        open={open}
+        onOpenChange={(o) => {
+          setOpen(o);
+          if (!o) setSearch("");
+        }}
+      >
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className="flex h-11 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-sm transition-colors hover:bg-muted/40 focus:outline-none"
+          >
+            <span className={selected.length === 0 ? "text-muted-foreground" : ""}>
+              {selected.length === 0
+                ? "Select sellers…"
+                : selected.length === 1
+                  ? selectedSellers[0].name
+                  : `${selected.length} sellers selected`}
+            </span>
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          </button>
+        </PopoverTrigger>
+
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+          <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+            <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <input
+              autoFocus
+              placeholder="Search sellers…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            />
+          </div>
+
+          <div className="max-h-52 overflow-y-auto py-1">
+            {filtered.length === 0 ? (
+              <p className="px-3 py-4 text-center text-xs text-muted-foreground">
+                No sellers found
+              </p>
+            ) : (
+              filtered.map((o) => {
+                const checked = selected.includes(o.id);
+                return (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={() => onToggle(o.id)}
+                    className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm hover:bg-muted/40"
+                  >
+                    <span
+                      className={cn(
+                        "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
+                        checked
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border",
+                      )}
+                    >
+                      {checked && <Check className="h-2.5 w-2.5" />}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className={cn("block truncate", checked && "font-medium")}>
+                        {o.name}
+                      </span>
+                      <span className="block truncate font-mono text-[10px] text-muted-foreground">
+                        {o.id}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })
+            )}
+          </div>
+
+          {selected.length > 0 && (
+            <div className="border-t border-border px-3 py-2">
+              <button
+                type="button"
+                onClick={onClear}
+                className="text-[11px] text-muted-foreground hover:text-foreground"
+              >
+                Clear selection ({selected.length})
+              </button>
+            </div>
+          )}
+        </PopoverContent>
+      </Popover>
+
+      {selectedSellers.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selectedSellers.map((s) => (
+            <span
+              key={s.id}
+              className="flex items-center gap-1 rounded-[4px] border border-primary/20 bg-primary/5 px-2 py-0.5 text-[11px] text-primary"
+            >
+              {s.name}
+              <button type="button" onClick={() => onToggle(s.id)}>
+                <X className="h-2.5 w-2.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SellerSelect({
+  options,
+  value,
+  onChange,
+}: {
+  options: SellerRecord[];
+  value: string;
+  onChange: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const filtered = options.filter(
+    (o) =>
+      o.name.toLowerCase().includes(search.toLowerCase()) ||
+      o.id.toLowerCase().includes(search.toLowerCase()),
+  );
+  const selected = options.find((o) => o.id === value);
+
+  return (
+    <Popover
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) setSearch("");
+      }}
+    >
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="flex h-11 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-sm transition-colors hover:bg-muted/40 focus:outline-none"
+        >
+          <span className={cn("truncate", !selected && "text-muted-foreground")}>
+            {selected ? selected.name : "Search sellers…"}
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </button>
+      </PopoverTrigger>
+
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+          <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          <input
+            autoFocus
+            placeholder="Search sellers…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          />
+        </div>
+
+        <div className="max-h-52 overflow-y-auto py-1">
+          {filtered.length === 0 ? (
+            <p className="px-3 py-4 text-center text-xs text-muted-foreground">No sellers found</p>
+          ) : (
+            filtered.map((o) => {
+              const checked = o.id === value;
+              return (
+                <button
+                  key={o.id}
+                  type="button"
+                  onClick={() => {
+                    onChange(o.id);
+                    setOpen(false);
+                    setSearch("");
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm hover:bg-muted/40"
+                >
+                  <span
+                    className={cn(
+                      "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors",
+                      checked
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border",
+                    )}
+                  >
+                    {checked && <Check className="h-2.5 w-2.5" />}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className={cn("block truncate", checked && "font-medium")}>{o.name}</span>
+                    <span className="block truncate font-mono text-[10px] text-muted-foreground">
+                      {o.id} · {o.system}
+                    </span>
+                  </span>
+                </button>
+              );
+            })
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -747,22 +932,12 @@ function SellerRow({
   );
 }
 
-function GatePassSticker({
-  pass,
-  dockId,
-  date,
-}: {
-  pass: IssuedPass;
-  dockId: string;
-  date: string;
-}) {
+function GatePassSticker({ pass, date }: { pass: IssuedPass; date: string }) {
   const bars = useMemo(() => gateBarcodePattern(pass.gatePass), [pass.gatePass]);
   return (
     <div className="rounded-md border-2 border-dashed border-border bg-background p-4">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="truncate text-[11px] font-semibold">
-          {pass.seller.seller.name}
-        </span>
+        <span className="truncate text-[11px] font-semibold">{pass.seller.seller.name}</span>
         <span className="shrink-0 rounded-[3px] bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
           {date}
         </span>
@@ -773,23 +948,17 @@ function GatePassSticker({
             <div
               key={i}
               style={{ width: `${w * 2}px` }}
-              className={cn(
-                "h-10",
-                i % 2 === 0 ? "bg-foreground" : "bg-transparent",
-              )}
+              className={cn("h-10", i % 2 === 0 ? "bg-foreground" : "bg-transparent")}
             />
           ))}
         </div>
-        <div className="mt-1 font-mono text-sm font-bold tracking-wider">
-          {pass.gatePass}
-        </div>
+        <div className="mt-1 font-mono text-sm font-bold tracking-wider">{pass.gatePass}</div>
       </div>
       <div className="my-3 border-t border-dashed border-border" />
       <dl className="space-y-1 text-xs">
         <StickerRow label="Seller" value={pass.seller.seller.name} />
         <StickerRow label="ASN" value={pass.seller.asn} />
         <StickerRow label="Boxes" value={String(pass.seller.boxCount)} />
-        <StickerRow label="Dock" value={dockId} />
       </dl>
     </div>
   );
