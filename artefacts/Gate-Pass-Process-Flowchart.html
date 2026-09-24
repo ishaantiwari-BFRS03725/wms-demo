@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Gate Entry → Gate Pass → Unloading → Handover → Gate Exit</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px 24px 48px;
+        background: #f4f5f7;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        color: #1a1a1a;
+      }
+      .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid #e2e4e8;
+        border-radius: 10px;
+        padding: 32px 32px 24px;
+      }
+      h1 {
+        font-size: 19px;
+        font-weight: 700;
+        margin: 0 0 4px;
+      }
+      .subtitle {
+        font-size: 13px;
+        color: #6b7280;
+        margin: 0 0 20px;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-bottom: 20px;
+        font-size: 12px;
+        color: #374151;
+      }
+      .legend span.dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        margin-right: 6px;
+        vertical-align: -1px;
+      }
+      .mermaid {
+        display: flex;
+        justify-content: center;
+      }
+      .footer-note {
+        margin-top: 18px;
+        font-size: 11.5px;
+        color: #9ca3af;
+        border-top: 1px solid #eef0f3;
+        padding-top: 12px;
+      }
+      @media print {
+        @page {
+          size: 1400px 3300px;
+          margin: 0;
+        }
+        body {
+          padding: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Gate Entry → Gate Pass → Unloading → Handover → Gate Exit</h1>
+      <p class="subtitle">End-to-end process, grouped by actor and location.</p>
+
+      <div class="legend">
+        <span><span class="dot" style="background:#dbeafe"></span>Gate Entry — Guard @ Main Gate</span>
+        <span><span class="dot" style="background:#ede9fe"></span>Gate Pass Generation — Inbound Supervisor @ Inward Dock</span>
+        <span><span class="dot" style="background:#dcfce7"></span>Unloading — Inbound Operator @ Inward Dock</span>
+        <span><span class="dot" style="background:#fef3c7"></span>Handover — Outbound Operator @ Outbound Dock</span>
+        <span><span class="dot" style="background:#fee2e2"></span>Gate Exit</span>
+      </div>
+
+      <pre class="mermaid">
+flowchart TD
+    subgraph GE["① Gate Entry — Guard @ Main Gate"]
+        A["Guard enters vehicle details<br/>(vehicle no., driver, etc.)"] --> B["Gate Entry record + barcode created"]
+    end
+
+    subgraph GPG["② Gate Pass Generation — Inbound Supervisor @ Inward Dock"]
+        C["Scan Gate Entry barcode"] --> D{"Select Activity Type"}
+        D -->|Inbound| E["Add PO/ASN line items<br/>(seller + box count each;<br/>ASN box count shown for reference)<br/>— multiple can be queued"]
+        E --> F["One gate pass generated<br/>per PO/ASN"]
+        D -->|"Return / Outbound"| G["Search &amp; select one or<br/>more sellers"]
+        G --> H["One gate pass generated<br/>per seller"]
+        F --> I["Gate passes listed together &amp;<br/>printed as barcode stickers"]
+        H --> I
+    end
+
+    subgraph UL["③ Unloading — Inbound Operator @ Inward Dock"]
+        J["Scan seller-specific<br/>gate pass"] --> L{"Pass type?"}
+        L -->|Return| M["Scan AWBs; sort into<br/>identified / unidentified<br/>by seller"]
+        M --> N["Stock accepted"]
+        L -->|"Fresh inbound"| O["Confirm box count<br/>(shortage exception path)"]
+        O --> P["Print box ID barcodes"]
+        P --> Q["Scan boxes to<br/>verify receipt"]
+        Q --> R["Capture POD:<br/>physical docs, or digital<br/>(signature / POC / driver photo)"]
+        R --> N2["Stock accepted"]
+        N --> SYS{"Seller system?"}
+        N2 --> SYS
+        SYS -->|"Unicommerce / EasyEcom"| ENDNW(["Process ends here in WMS —<br/>accepted stock handed off to<br/>seller's own platform (UC / EasyEcom)"])
+        SYS -->|"WMS 2.0 / Maven"| CONTWMS(["Continues in WMS —<br/>putaway, inventory, etc."])
+    end
+
+    subgraph HO["④ Handover — Outbound Operator @ Outbound Dock"]
+        K["Scan outbound gate pass"] --> S["Marry gate pass to<br/>outbound dock"]
+        S --> T["Scan manifest sticker barcode"]
+        T --> U["Scan each shipment —<br/>WMS validates seller match &amp;<br/>blocks cancelled shipments"]
+    end
+
+    subgraph EX["⑤ Gate Exit"]
+        V["All inbound + outbound gate<br/>passes scanned &amp; handed over"] --> W["Scan Gate Entry barcode<br/>to exit vehicle"]
+    end
+
+    B --> C
+    I -->|"Inbound / Return passes"| J
+    I -->|"Outbound passes"| K
+    ENDNW --> V
+    CONTWMS --> V
+    U --> V
+
+    classDef ge fill:#dbeafe,stroke:#93c5fd,color:#1e3a8a;
+    classDef gpg fill:#ede9fe,stroke:#c4b5fd,color:#4c1d95;
+    classDef ul fill:#dcfce7,stroke:#86efac,color:#14532d;
+    classDef ho fill:#fef3c7,stroke:#fcd34d,color:#78350f;
+    classDef ex fill:#fee2e2,stroke:#fca5a5,color:#7f1d1d;
+    classDef term stroke-dasharray: 4 3,font-weight:bold;
+
+    class A,B ge;
+    class C,D,E,F,G,H,I gpg;
+    class J,L,M,N,O,P,Q,R,N2,SYS ul;
+    class K,S,T,U ho;
+    class V,W ex;
+    class ENDNW,CONTWMS ul,term;
+      </pre>
+
+      <p class="footer-note">
+        Demo WMS process flow — Gate Pass Processing (inbound / return / outbound) and Unloading.
+        For Unicommerce / EasyEcom sellers, Unloading is the last step in this WMS for inbound and
+        returns — once stock is accepted, the rest of the process (putaway, inventory, etc.) is
+        handled in the seller's own platform. For WMS 2.0 / Maven sellers, the next step continues
+        within this WMS itself.
+      </p>
+    </div>
+
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "neutral",
+        flowchart: { curve: "basis", htmlLabels: true },
+        securityLevel: "loose",
+      });
+    </script>
+  </body>
+</html>

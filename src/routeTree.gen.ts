@@ -49,6 +49,7 @@ import { Route as WmsMovementTaskCreateRouteImport } from './routes/_wms.movemen
 import { Route as WmsMasterDataRouteImport } from './routes/_wms.master-data'
 import { Route as WmsManifestRouteImport } from './routes/_wms.manifest'
 import { Route as WmsLaneCongestionRouteImport } from './routes/_wms.lane-congestion'
+import { Route as WmsKnowledgeBaseRouteImport } from './routes/_wms.knowledge-base'
 import { Route as WmsKittingRouteImport } from './routes/_wms.kitting'
 import { Route as WmsKitOrderRouteImport } from './routes/_wms.kit-order'
 import { Route as WmsKitMappingRouteImport } from './routes/_wms.kit-mapping'
@@ -63,6 +64,7 @@ import { Route as WmsGatepassLogRouteImport } from './routes/_wms.gatepass-log'
 import { Route as WmsGatePassProcessingRouteImport } from './routes/_wms.gate-pass-processing'
 import { Route as WmsGateEntryRouteImport } from './routes/_wms.gate-entry'
 import { Route as WmsFloorHandheldsRouteImport } from './routes/_wms.floor-handhelds'
+import { Route as WmsExceptionsRedesignRouteImport } from './routes/_wms.exceptions-redesign'
 import { Route as WmsExceptionsRouteImport } from './routes/_wms.exceptions'
 import { Route as WmsDriftFeedbackRouteImport } from './routes/_wms.drift-feedback'
 import { Route as WmsDockManagementRouteImport } from './routes/_wms.dock-management'
@@ -301,6 +303,11 @@ const WmsLaneCongestionRoute = WmsLaneCongestionRouteImport.update({
   path: '/lane-congestion',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsKnowledgeBaseRoute = WmsKnowledgeBaseRouteImport.update({
+  id: '/knowledge-base',
+  path: '/knowledge-base',
+  getParentRoute: () => WmsRoute,
+} as any)
 const WmsKittingRoute = WmsKittingRouteImport.update({
   id: '/kitting',
   path: '/kitting',
@@ -369,6 +376,11 @@ const WmsGateEntryRoute = WmsGateEntryRouteImport.update({
 const WmsFloorHandheldsRoute = WmsFloorHandheldsRouteImport.update({
   id: '/floor-handhelds',
   path: '/floor-handhelds',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsExceptionsRedesignRoute = WmsExceptionsRedesignRouteImport.update({
+  id: '/exceptions-redesign',
+  path: '/exceptions-redesign',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsExceptionsRoute = WmsExceptionsRouteImport.update({
@@ -584,6 +596,7 @@ export interface FileRoutesByFullPath {
   '/dock-management': typeof WmsDockManagementRoute
   '/drift-feedback': typeof WmsDriftFeedbackRoute
   '/exceptions': typeof WmsExceptionsRoute
+  '/exceptions-redesign': typeof WmsExceptionsRedesignRoute
   '/floor-handhelds': typeof WmsFloorHandheldsRoute
   '/gate-entry': typeof WmsGateEntryRoute
   '/gate-pass-processing': typeof WmsGatePassProcessingRoute
@@ -598,6 +611,7 @@ export interface FileRoutesByFullPath {
   '/kit-mapping': typeof WmsKitMappingRoute
   '/kit-order': typeof WmsKitOrderRoute
   '/kitting': typeof WmsKittingRoute
+  '/knowledge-base': typeof WmsKnowledgeBaseRoute
   '/lane-congestion': typeof WmsLaneCongestionRoute
   '/manifest': typeof WmsManifestRoute
   '/master-data': typeof WmsMasterDataRoute
@@ -677,6 +691,7 @@ export interface FileRoutesByTo {
   '/dock-management': typeof WmsDockManagementRoute
   '/drift-feedback': typeof WmsDriftFeedbackRoute
   '/exceptions': typeof WmsExceptionsRoute
+  '/exceptions-redesign': typeof WmsExceptionsRedesignRoute
   '/floor-handhelds': typeof WmsFloorHandheldsRoute
   '/gate-entry': typeof WmsGateEntryRoute
   '/gate-pass-processing': typeof WmsGatePassProcessingRoute
@@ -691,6 +706,7 @@ export interface FileRoutesByTo {
   '/kit-mapping': typeof WmsKitMappingRoute
   '/kit-order': typeof WmsKitOrderRoute
   '/kitting': typeof WmsKittingRoute
+  '/knowledge-base': typeof WmsKnowledgeBaseRoute
   '/lane-congestion': typeof WmsLaneCongestionRoute
   '/manifest': typeof WmsManifestRoute
   '/master-data': typeof WmsMasterDataRoute
@@ -772,6 +788,7 @@ export interface FileRoutesById {
   '/_wms/dock-management': typeof WmsDockManagementRoute
   '/_wms/drift-feedback': typeof WmsDriftFeedbackRoute
   '/_wms/exceptions': typeof WmsExceptionsRoute
+  '/_wms/exceptions-redesign': typeof WmsExceptionsRedesignRoute
   '/_wms/floor-handhelds': typeof WmsFloorHandheldsRoute
   '/_wms/gate-entry': typeof WmsGateEntryRoute
   '/_wms/gate-pass-processing': typeof WmsGatePassProcessingRoute
@@ -786,6 +803,7 @@ export interface FileRoutesById {
   '/_wms/kit-mapping': typeof WmsKitMappingRoute
   '/_wms/kit-order': typeof WmsKitOrderRoute
   '/_wms/kitting': typeof WmsKittingRoute
+  '/_wms/knowledge-base': typeof WmsKnowledgeBaseRoute
   '/_wms/lane-congestion': typeof WmsLaneCongestionRoute
   '/_wms/manifest': typeof WmsManifestRoute
   '/_wms/master-data': typeof WmsMasterDataRoute
@@ -867,6 +885,7 @@ export interface FileRouteTypes {
     | '/dock-management'
     | '/drift-feedback'
     | '/exceptions'
+    | '/exceptions-redesign'
     | '/floor-handhelds'
     | '/gate-entry'
     | '/gate-pass-processing'
@@ -881,6 +900,7 @@ export interface FileRouteTypes {
     | '/kit-mapping'
     | '/kit-order'
     | '/kitting'
+    | '/knowledge-base'
     | '/lane-congestion'
     | '/manifest'
     | '/master-data'
@@ -960,6 +980,7 @@ export interface FileRouteTypes {
     | '/dock-management'
     | '/drift-feedback'
     | '/exceptions'
+    | '/exceptions-redesign'
     | '/floor-handhelds'
     | '/gate-entry'
     | '/gate-pass-processing'
@@ -974,6 +995,7 @@ export interface FileRouteTypes {
     | '/kit-mapping'
     | '/kit-order'
     | '/kitting'
+    | '/knowledge-base'
     | '/lane-congestion'
     | '/manifest'
     | '/master-data'
@@ -1054,6 +1076,7 @@ export interface FileRouteTypes {
     | '/_wms/dock-management'
     | '/_wms/drift-feedback'
     | '/_wms/exceptions'
+    | '/_wms/exceptions-redesign'
     | '/_wms/floor-handhelds'
     | '/_wms/gate-entry'
     | '/_wms/gate-pass-processing'
@@ -1068,6 +1091,7 @@ export interface FileRouteTypes {
     | '/_wms/kit-mapping'
     | '/_wms/kit-order'
     | '/_wms/kitting'
+    | '/_wms/knowledge-base'
     | '/_wms/lane-congestion'
     | '/_wms/manifest'
     | '/_wms/master-data'
@@ -1416,6 +1440,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsLaneCongestionRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/knowledge-base': {
+      id: '/_wms/knowledge-base'
+      path: '/knowledge-base'
+      fullPath: '/knowledge-base'
+      preLoaderRoute: typeof WmsKnowledgeBaseRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/kitting': {
       id: '/_wms/kitting'
       path: '/kitting'
@@ -1512,6 +1543,13 @@ declare module '@tanstack/react-router' {
       path: '/floor-handhelds'
       fullPath: '/floor-handhelds'
       preLoaderRoute: typeof WmsFloorHandheldsRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/exceptions-redesign': {
+      id: '/_wms/exceptions-redesign'
+      path: '/exceptions-redesign'
+      fullPath: '/exceptions-redesign'
+      preLoaderRoute: typeof WmsExceptionsRedesignRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/exceptions': {
@@ -1801,6 +1839,7 @@ interface WmsRouteChildren {
   WmsDockManagementRoute: typeof WmsDockManagementRoute
   WmsDriftFeedbackRoute: typeof WmsDriftFeedbackRoute
   WmsExceptionsRoute: typeof WmsExceptionsRoute
+  WmsExceptionsRedesignRoute: typeof WmsExceptionsRedesignRoute
   WmsFloorHandheldsRoute: typeof WmsFloorHandheldsRoute
   WmsGateEntryRoute: typeof WmsGateEntryRoute
   WmsGatePassProcessingRoute: typeof WmsGatePassProcessingRoute
@@ -1815,6 +1854,7 @@ interface WmsRouteChildren {
   WmsKitMappingRoute: typeof WmsKitMappingRoute
   WmsKitOrderRoute: typeof WmsKitOrderRoute
   WmsKittingRoute: typeof WmsKittingRoute
+  WmsKnowledgeBaseRoute: typeof WmsKnowledgeBaseRoute
   WmsLaneCongestionRoute: typeof WmsLaneCongestionRoute
   WmsManifestRoute: typeof WmsManifestRoute
   WmsMasterDataRoute: typeof WmsMasterDataRoute
@@ -1894,6 +1934,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsDockManagementRoute: WmsDockManagementRoute,
   WmsDriftFeedbackRoute: WmsDriftFeedbackRoute,
   WmsExceptionsRoute: WmsExceptionsRoute,
+  WmsExceptionsRedesignRoute: WmsExceptionsRedesignRoute,
   WmsFloorHandheldsRoute: WmsFloorHandheldsRoute,
   WmsGateEntryRoute: WmsGateEntryRoute,
   WmsGatePassProcessingRoute: WmsGatePassProcessingRoute,
@@ -1908,6 +1949,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsKitMappingRoute: WmsKitMappingRoute,
   WmsKitOrderRoute: WmsKitOrderRoute,
   WmsKittingRoute: WmsKittingRoute,
+  WmsKnowledgeBaseRoute: WmsKnowledgeBaseRoute,
   WmsLaneCongestionRoute: WmsLaneCongestionRoute,
   WmsManifestRoute: WmsManifestRoute,
   WmsMasterDataRoute: WmsMasterDataRoute,

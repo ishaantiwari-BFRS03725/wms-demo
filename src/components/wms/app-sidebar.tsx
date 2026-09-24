@@ -9,6 +9,7 @@ import {
   BadgeCheck,
   Ban,
   Bell,
+  BookOpen,
   Bot,
   Boxes,
   ChevronRight,
@@ -106,6 +107,10 @@ const sections: NavSection[] = [
   {
     label: "Guided Demos",
     items: [{ title: "Run Demo", url: "/run-demo", icon: PlayCircle }],
+  },
+  {
+    label: "Resources",
+    items: [{ title: "Knowledge Base", url: "/knowledge-base", icon: BookOpen }],
   },
   {
     label: "Command Center",
