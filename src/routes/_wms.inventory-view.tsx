@@ -7,8 +7,15 @@ import {
   Boxes,
   Download,
   Filter,
+  Info,
   Search,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/_wms/inventory-view")({
   head: () => ({
@@ -27,6 +34,7 @@ const COLUMNS = [
   "Total Quantity",
   "Available Quantity",
   "Blocked Quantity",
+  "Days of Inventory",
 ];
 
 // Columns rendered right-aligned (numeric).
@@ -34,7 +42,13 @@ const NUMERIC_COLS = new Set([
   "Total Quantity",
   "Available Quantity",
   "Blocked Quantity",
+  "Days of Inventory",
 ]);
+
+// Header tooltips, keyed by column name.
+const COLUMN_HELP: Record<string, string> = {
+  "Days of Inventory": "Based on current stock movement speed. Shown for Good inventory only.",
+};
 
 // Filterable dimension columns.
 const FILTER_COLS = [
@@ -44,19 +58,20 @@ const FILTER_COLS = [
   "Inventory Type",
 ];
 
+// Days of Inventory is only meaningful for Good stock — non-Good rows show "—".
 const ROWS: string[][] = [
-  ["boAt_Dasna", "600179", "boAt Airdopes 141 TWS Earbuds", "Electronics", "Sellable", "Good", "1250", "1250", "0"],
-  ["boAt_Dasna", "600822", "boAt Rockerz 450 Bluetooth Headphones", "Electronics", "Sellable", "Good", "120", "110", "10"],
-  ["boAt_Dasna", "600868", "boAt Bassheads 100 Wired Earphones", "Electronics", "Quarantine", "Bad", "1250", "0", "1250"],
-  ["boAt_Dasna", "600900", "boAt Stone 350 Bluetooth Speaker", "Electronics", "Quarantine", "Bad", "6", "0", "6"],
-  ["boAt_Dasna", "600868", "boAt Bassheads 100 Wired Earphones", "Electronics", "Virtual", "Missing", "4", "0", "4"],
-  ["boAt_Dasna", "601005", "boAt Aavante Bar 1160 Soundbar", "Electronics", "Virtual", "Cancel", "6", "0", "6"],
-  ["boAt_Bhiwandi", "601000", "boAt Wave Call Smartwatch", "Electronics", "Sellable", "Good", "48", "40", "8"],
-  ["boAt_Bhiwandi", "601002", "boAt Type-C 500 Charging Cable", "Accessories", "Sellable", "Good", "300", "298", "2"],
-  ["boAt_Bhiwandi", "601010", "boAt Nirvana Ion ANC Earbuds", "Electronics", "Sellable", "Good", "80", "75", "5"],
-  ["boAt_Bhiwandi", "601005", "boAt Aavante Bar 1160 Soundbar", "Electronics", "Virtual", "Missing", "4", "0", "4"],
-  ["boAt_Bhiwandi", "600179", "boAt Airdopes 141 TWS Earbuds", "Electronics", "Virtual", "Cancel", "10", "0", "10"],
-  ["boAt_Bhiwandi", "601015", "boAt Lunar Connect Smartwatch Strap", "Accessories", "Quarantine", "Bad", "60", "0", "60"],
+  ["boAt_Dasna", "600179", "boAt Airdopes 141 TWS Earbuds", "Electronics", "Sellable", "Good", "1250", "1250", "0", "18"],
+  ["boAt_Dasna", "600822", "boAt Rockerz 450 Bluetooth Headphones", "Electronics", "Sellable", "Good", "120", "110", "10", "32"],
+  ["boAt_Dasna", "600868", "boAt Bassheads 100 Wired Earphones", "Electronics", "Quarantine", "Bad", "1250", "0", "1250", "—"],
+  ["boAt_Dasna", "600900", "boAt Stone 350 Bluetooth Speaker", "Electronics", "Quarantine", "Bad", "6", "0", "6", "—"],
+  ["boAt_Dasna", "600868", "boAt Bassheads 100 Wired Earphones", "Electronics", "Virtual", "Missing", "4", "0", "4", "—"],
+  ["boAt_Dasna", "601005", "boAt Aavante Bar 1160 Soundbar", "Electronics", "Virtual", "Cancel", "6", "0", "6", "—"],
+  ["boAt_Bhiwandi", "601000", "boAt Wave Call Smartwatch", "Electronics", "Sellable", "Good", "48", "40", "8", "9"],
+  ["boAt_Bhiwandi", "601002", "boAt Type-C 500 Charging Cable", "Accessories", "Sellable", "Good", "300", "298", "2", "21"],
+  ["boAt_Bhiwandi", "601010", "boAt Nirvana Ion ANC Earbuds", "Electronics", "Sellable", "Good", "80", "75", "5", "27"],
+  ["boAt_Bhiwandi", "601005", "boAt Aavante Bar 1160 Soundbar", "Electronics", "Virtual", "Missing", "4", "0", "4", "—"],
+  ["boAt_Bhiwandi", "600179", "boAt Airdopes 141 TWS Earbuds", "Electronics", "Virtual", "Cancel", "10", "0", "10", "—"],
+  ["boAt_Bhiwandi", "601015", "boAt Lunar Connect Smartwatch Strap", "Accessories", "Quarantine", "Bad", "60", "0", "60", "—"],
 ];
 
 function InventoryView() {
@@ -101,7 +116,12 @@ function InventoryView() {
   const sortedRows = sort
     ? [...filteredRows].sort((a, b) => {
         const idx = COLUMNS.indexOf(sort.col);
-        const diff = Number(a[idx]) - Number(b[idx]);
+        const av = a[idx] === "—" ? null : Number(a[idx]);
+        const bv = b[idx] === "—" ? null : Number(b[idx]);
+        if (av === null && bv === null) return 0;
+        if (av === null) return 1;
+        if (bv === null) return -1;
+        const diff = av - bv;
         return sort.dir === "asc" ? diff : -diff;
       })
     : filteredRows;
@@ -214,6 +234,7 @@ function InventoryView() {
         </div>
 
         {/* Table */}
+        <TooltipProvider delayDuration={150}>
         <div className="iv-table-wrap">
           <table>
             <thead>
@@ -221,6 +242,7 @@ function InventoryView() {
                 {COLUMNS.map((c) => {
                   const numeric = NUMERIC_COLS.has(c);
                   const active = sort?.col === c;
+                  const help = COLUMN_HELP[c];
                   return (
                     <th
                       key={c}
@@ -235,6 +257,23 @@ function InventoryView() {
                       {numeric ? (
                         <span className="iv-th-sort">
                           {c}
+                          {help && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info
+                                  className="iv-help-ico"
+                                  aria-hidden="true"
+                                />
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="top"
+                                align="center"
+                                className="max-w-[220px] text-left"
+                              >
+                                {help}
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
                           {active && sort ? (
                             sort.dir === "asc" ? (
                               <ArrowUp className="iv-sort-ico" aria-hidden="true" />
@@ -286,6 +325,7 @@ function InventoryView() {
             </tbody>
           </table>
         </div>
+        </TooltipProvider>
 
         <div className="iv-foot">
           Showing {filteredRows.length} of {ROWS.length} records
@@ -326,6 +366,7 @@ const css = `
 .iv-screen th.iv-sortable{cursor:pointer;user-select:none}
 .iv-th-sort{display:inline-flex;align-items:center;gap:4px;justify-content:flex-end}
 .iv-sort-ico{width:12px;height:12px;flex:none}
+.iv-help-ico{width:12px;height:12px;flex:none;color:var(--c-t3);cursor:help}
 .iv-sort-idle{opacity:0.35}
 .iv-screen tr:last-child td{border-bottom:none}
 .iv-screen .iv-bad{color:#b91c1c;font-weight:600}

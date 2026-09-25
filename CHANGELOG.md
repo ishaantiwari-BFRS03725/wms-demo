@@ -1,5 +1,19 @@
 # Changelog
 
+- 2026-09-25: Removed the Grade filter from "Inventory Dashboard" — Seller, Warehouse, and Category filters remain. The underlying grade data on each mock row was left in place, just no longer exposed as a filter.
+
+- 2026-09-25: On "Inventory Dashboard": added Category and Grade filter dropdowns alongside Seller and Warehouse (mock rows now carry a product category — Audio/Speakers/Wearables/Accessories — and an ABC movement grade), and added an Inventory Value (INR) line to each of the four KPI cards (Available/Good/Bad/On Hold), computed from quantity × mock unit price and recalculated with the active filters.
+
+- 2026-09-25: On "Inventory Dashboard": renamed the mock warehouses from "boAt_Dasna"/"boAt_Bhiwandi" to "Dasna"/"Bhiwandi" (boAt is a seller, not a warehouse), and fixed the Seller/Warehouse filter dropdowns to keep showing the "Seller:"/"Warehouse:" label prefix even after a value is selected, instead of collapsing to just the raw value.
+
+- 2026-09-25: Added a "Days of Inventory" column to `/inventory-view`, populated only for rows where Inventory Type is Good (other rows show "—"); the column header shows an info icon with a hover tooltip reading "Based on current stock movement speed. Shown for Good inventory only." Column is sortable and right-aligned like the other quantity columns, with "—" rows always sorting to the bottom.
+
+- 2026-09-25: Removed the alternate compact-analytics layout from "Inventory Dashboard" (single layout now) and added Seller and Warehouse filter dropdowns above the KPI cards — all six metrics (Available/Good/Bad/On Hold, Days of Inventory, Ageing) now recompute from the filtered mock rows. Added a `seller` field to each mock inventory row to support the new filter.
+
+- 2026-09-25: Added a second, visually distinct layout to the "Inventory Dashboard" page, stacked below the first — a dark compact analytics view with a single horizontal KPI strip (all four counts inline with trend arrows), two composition bars (Available vs On Hold, Good vs Bad), a radial gauge for Days of Inventory, and Inventory Ageing shown as horizontal bars with percentage labels instead of a chart.
+
+- 2026-09-25: Added a new "Inventory Dashboard" page (sidebar: Inventory > Inventory Dashboard, above Inventory View) with six KPI views on mock stock data — Available Inventory, Good Inventory, Bad Inventory, On Hold Inventory (KPI cards with trend chips), Days of Inventory (stock-cover stat), and Inventory Ageing (0–30/31–60/61–90/90+ day buckets as a bar chart).
+
 - 2026-09-23: Added an "AI Intelligence" card to the top of all three `/exceptions-redesign` (temp, URL-only) panel options — severity badge (Low/Medium/High, mapped from ok/warn/destructive badge colors), a short plain-language description of the open issues on that putaway task, and a suggested course of action citing an SOP reference (e.g. "INB-PUT-07"). Backed by a new `aiSummary` field on the mock `PutawayException` data; rendered via a shared `AiIntelligenceCard` component reused across the grouped drawer, flat checklist drawer, and split-pane modal.
 
 - 2026-09-23: Dropped the "tabbed modal" (D) option from `/exceptions-redesign` (temp, URL-only) per feedback — back down to three switchable patterns: (B) grouped drawer, (E) flat checklist drawer, (C) split-pane modal.

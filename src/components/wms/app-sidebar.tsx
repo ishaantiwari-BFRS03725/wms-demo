@@ -267,6 +267,11 @@ const sections: NavSection[] = [
   {
     label: "Inventory",
     items: [
+      {
+        title: "Inventory Dashboard",
+        url: "/inventory-dashboard",
+        icon: LayoutDashboard,
+      },
       { title: "Inventory View", url: "/inventory-view", icon: Sheet },
       {
         title: "Detailed Inventory View",
