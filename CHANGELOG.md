@@ -1,5 +1,13 @@
 # Changelog
 
+- 2026-10-01: Added a third "Stock Status" option on `/inventory-view`: "At safety level" — flags rows where Available Quantity has dropped to/below a mock per-WH-SKU safety threshold (while still > 0). Backed by a small `SAFETY_LEVELS` lookup (boAt_Dasna/600822 and boAt_Bhiwandi/601000 are set up to demo it); a row can match "In stock" and "At safety level" at the same time.
+
+- 2026-10-01: Narrowed the "Stock Status" filter on `/inventory-view` to just two options — "In stock" (Available Quantity > 0) and "Fully reserved" (Total Quantity > 0 but Available Quantity = 0); dropped Out of stock / Available / Blocked.
+
+- 2026-10-01: Added a new "Safety Stock" screen (sidebar: Inventory > Safety Stock, below Replenishment) at `/safety-stock` — upload Excel/CSV of SKU + Warehouse + Safety Stock Qty (with a downloadable template supporting Create/Update/Delete via a trailing column, mirroring the Replenishment Setup upload pattern), a searchable/warehouse-filterable "Current Safety Stock" table (mock rows across Dasna/Bhiwandi) with CSV export, and a mock upload summary (total/successful/failed/duplicate/updated/new) with an error-report download when there are failures.
+
+- 2026-10-01: Added two multi-select filters to `/inventory-view`: "Stock Status" (In stock, Out of stock, Available, Fully reserved, Blocked — derived from Total/Available/Blocked quantities, a row can match more than one) and "Days of Inventory" (<7 days, 7–15, 16–30, 31–60, 60+, No dispatch rate — bucketed from the Days of Inventory column, with "—" rows falling into "No dispatch rate"). Built as dropdown checklists (via the existing DropdownMenu component) alongside the existing single-select filters; "Clear" now also resets these.
+
 - 2026-09-25: Removed the Grade filter from "Inventory Dashboard" — Seller, Warehouse, and Category filters remain. The underlying grade data on each mock row was left in place, just no longer exposed as a filter.
 
 - 2026-09-25: On "Inventory Dashboard": added Category and Grade filter dropdowns alongside Seller and Warehouse (mock rows now carry a product category — Audio/Speakers/Wearables/Accessories — and an ABC movement grade), and added an Inventory Value (INR) line to each of the four KPI cards (Available/Good/Bad/On Hold), computed from quantity × mock unit price and recalculated with the active filters.

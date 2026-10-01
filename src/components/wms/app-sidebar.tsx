@@ -61,6 +61,7 @@ import {
   LogIn,
   ScanBarcode,
   Sheet,
+  ShieldCheck,
   Smartphone,
   PlayCircle,
 } from "lucide-react";
@@ -300,6 +301,7 @@ const sections: NavSection[] = [
         ],
       },
       { title: "Replenishment", url: "/replenishment", icon: PackagePlus },
+      { title: "Safety Stock", url: "/safety-stock", icon: ShieldCheck },
       {
         title: "Slotting",
         icon: Settings2,

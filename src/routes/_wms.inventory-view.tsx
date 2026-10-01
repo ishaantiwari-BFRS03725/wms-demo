@@ -5,6 +5,7 @@ import {
   ArrowUp,
   ArrowUpDown,
   Boxes,
+  ChevronDown,
   Download,
   Filter,
   Info,
@@ -16,6 +17,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/_wms/inventory-view")({
   head: () => ({
@@ -74,9 +83,109 @@ const ROWS: string[][] = [
   ["boAt_Bhiwandi", "601015", "boAt Lunar Connect Smartwatch Strap", "Accessories", "Quarantine", "Bad", "60", "0", "60", "—"],
 ];
 
+const WH_IDX = COLUMNS.indexOf("WH Name");
+const SKU_IDX = COLUMNS.indexOf("SKU");
+const TOTAL_QTY_IDX = COLUMNS.indexOf("Total Quantity");
+const AVAIL_QTY_IDX = COLUMNS.indexOf("Available Quantity");
+const DOI_IDX = COLUMNS.indexOf("Days of Inventory");
+
+// Mock safety stock threshold per WH + SKU (mirrors the per-WH levels set on
+// the Safety Stock screen). Used only to flag "At safety level" below.
+const SAFETY_LEVELS: Record<string, number> = {
+  "boAt_Dasna|600822": 110,
+  "boAt_Bhiwandi|601000": 40,
+};
+
+// Stock Status is derived (not a stored column) — a row can carry more than
+// one label: "In stock" means some quantity is available to use, "Fully
+// reserved" means there is stock on hand but none of it is available, and
+// "At safety level" flags stock that has dropped to/below its configured
+// safety threshold while some is still available.
+const STOCK_STATUS_OPTIONS = ["In stock", "Fully reserved", "At safety level"];
+
+function getStockStatuses(row: string[]): string[] {
+  const total = Number(row[TOTAL_QTY_IDX]);
+  const avail = Number(row[AVAIL_QTY_IDX]);
+  const safetyLevel = SAFETY_LEVELS[`${row[WH_IDX]}|${row[SKU_IDX]}`];
+  const statuses: string[] = [];
+  if (avail > 0) statuses.push("In stock");
+  if (total > 0 && avail === 0) statuses.push("Fully reserved");
+  if (avail > 0 && safetyLevel !== undefined && avail <= safetyLevel) {
+    statuses.push("At safety level");
+  }
+  return statuses;
+}
+
+// Days of Inventory range buckets — "No dispatch rate" covers rows where the
+// column shows "—" (non-Good inventory, no movement speed to compute from).
+const DOI_BUCKET_OPTIONS = [
+  "<7 days",
+  "7–15",
+  "16–30",
+  "31–60",
+  "60+",
+  "No dispatch rate",
+];
+
+function getDoiBucket(row: string[]): string {
+  const raw = row[DOI_IDX];
+  if (raw === "—") return "No dispatch rate";
+  const n = Number(raw);
+  if (n < 7) return "<7 days";
+  if (n <= 15) return "7–15";
+  if (n <= 30) return "16–30";
+  if (n <= 60) return "31–60";
+  return "60+";
+}
+
+function toggleInList(list: string[], val: string) {
+  return list.includes(val) ? list.filter((v) => v !== val) : [...list, val];
+}
+
+function MultiSelectFilter({
+  label,
+  options,
+  selected,
+  onToggle,
+}: {
+  label: string;
+  options: string[];
+  selected: string[];
+  onToggle: (val: string) => void;
+}) {
+  const active = selected.length > 0;
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button type="button" className={`iv-filter-btn${active ? " iv-on" : ""}`}>
+          {label}
+          {active ? `: ${selected.length}` : ": All"}
+          <ChevronDown className="iv-filter-chev" aria-hidden="true" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        <DropdownMenuLabel>{label}</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {options.map((o) => (
+          <DropdownMenuCheckboxItem
+            key={o}
+            checked={selected.includes(o)}
+            onSelect={(e) => e.preventDefault()}
+            onCheckedChange={() => onToggle(o)}
+          >
+            {o}
+          </DropdownMenuCheckboxItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function InventoryView() {
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<Record<string, string>>({});
+  const [stockStatusFilter, setStockStatusFilter] = useState<string[]>([]);
+  const [doiBucketFilter, setDoiBucketFilter] = useState<string[]>([]);
   const [sort, setSort] = useState<{ col: string; dir: "asc" | "desc" } | null>(
     null,
   );
@@ -99,7 +208,12 @@ function InventoryView() {
       const idx = COLUMNS.indexOf(col);
       return idx >= 0 && row[idx] === val;
     });
-    return matchesSearch && matchesFilters;
+    const matchesStockStatus =
+      stockStatusFilter.length === 0 ||
+      getStockStatuses(row).some((s) => stockStatusFilter.includes(s));
+    const matchesDoiBucket =
+      doiBucketFilter.length === 0 || doiBucketFilter.includes(getDoiBucket(row));
+    return matchesSearch && matchesFilters && matchesStockStatus && matchesDoiBucket;
   });
 
   const totalQtyIdx = COLUMNS.indexOf("Total Quantity");
@@ -158,7 +272,15 @@ function InventoryView() {
   const clearAll = () => {
     setSearch("");
     setFilters({});
+    setStockStatusFilter([]);
+    setDoiBucketFilter([]);
   };
+
+  const hasActiveFilters =
+    search !== "" ||
+    activeFilters.length > 0 ||
+    stockStatusFilter.length > 0 ||
+    doiBucketFilter.length > 0;
 
   return (
     <div className="bg-muted/40 p-4">
@@ -184,7 +306,7 @@ function InventoryView() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            {(search !== "" || activeFilters.length > 0) && (
+            {hasActiveFilters && (
               <button className="iv-btn" onClick={clearAll}>
                 Clear
               </button>
@@ -231,6 +353,18 @@ function InventoryView() {
               </select>
             </div>
           ))}
+          <MultiSelectFilter
+            label="Stock Status"
+            options={STOCK_STATUS_OPTIONS}
+            selected={stockStatusFilter}
+            onToggle={(val) => setStockStatusFilter((prev) => toggleInList(prev, val))}
+          />
+          <MultiSelectFilter
+            label="Days of Inventory"
+            options={DOI_BUCKET_OPTIONS}
+            selected={doiBucketFilter}
+            onToggle={(val) => setDoiBucketFilter((prev) => toggleInList(prev, val))}
+          />
         </div>
 
         {/* Table */}
@@ -355,6 +489,9 @@ const css = `
 .iv-filter{position:relative;display:inline-flex;align-items:center}
 .iv-screen .iv-filter select{appearance:none;font-size:12px;padding:7px 26px 7px 11px;border:0.5px solid var(--c-border2);border-radius:8px;background:var(--c-bg);color:var(--c-t2);cursor:pointer;line-height:1;max-width:200px}
 .iv-screen .iv-filter select.iv-on{border-color:var(--c-info-b);color:var(--c-info-t);background:var(--c-info-bg);font-weight:600}
+.iv-screen .iv-filter-btn{display:inline-flex;align-items:center;gap:6px;appearance:none;font-size:12px;padding:7px 11px;border:0.5px solid var(--c-border2);border-radius:8px;background:var(--c-bg);color:var(--c-t2);cursor:pointer;line-height:1;font-family:inherit}
+.iv-screen .iv-filter-btn.iv-on{border-color:var(--c-info-b);color:var(--c-info-t);background:var(--c-info-bg);font-weight:600}
+.iv-filter-chev{width:12px;height:12px;flex:none;opacity:0.6}
 .iv-summary{display:flex;align-items:center;gap:8px;padding:11px 18px;font-size:12px;color:var(--c-t2);border-bottom:0.5px solid var(--c-border)}
 .iv-summary strong{color:var(--c-t1);font-weight:700;font-variant-numeric:tabular-nums}
 .iv-summary-sep{color:var(--c-t3)}

@@ -25,6 +25,7 @@ import { Route as WmsSlottingConfigRouteImport } from './routes/_wms.slotting-co
 import { Route as WmsSlottingRouteImport } from './routes/_wms.slotting'
 import { Route as WmsSitePerformanceRouteImport } from './routes/_wms.site-performance'
 import { Route as WmsSalesReturnGrnRouteImport } from './routes/_wms.sales-return-grn'
+import { Route as WmsSafetyStockRouteImport } from './routes/_wms.safety-stock'
 import { Route as WmsRunDemoRouteImport } from './routes/_wms.run-demo'
 import { Route as WmsReturnsRtvRouteImport } from './routes/_wms.returns-rtv'
 import { Route as WmsReturnsRtoRouteImport } from './routes/_wms.returns-rto'
@@ -182,6 +183,11 @@ const WmsSitePerformanceRoute = WmsSitePerformanceRouteImport.update({
 const WmsSalesReturnGrnRoute = WmsSalesReturnGrnRouteImport.update({
   id: '/sales-return-grn',
   path: '/sales-return-grn',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsSafetyStockRoute = WmsSafetyStockRouteImport.update({
+  id: '/safety-stock',
+  path: '/safety-stock',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsRunDemoRoute = WmsRunDemoRouteImport.update({
@@ -643,6 +649,7 @@ export interface FileRoutesByFullPath {
   '/returns-rto': typeof WmsReturnsRtoRoute
   '/returns-rtv': typeof WmsReturnsRtvRoute
   '/run-demo': typeof WmsRunDemoRoute
+  '/safety-stock': typeof WmsSafetyStockRoute
   '/sales-return-grn': typeof WmsSalesReturnGrnRoute
   '/site-performance': typeof WmsSitePerformanceRoute
   '/slotting': typeof WmsSlottingRoute
@@ -739,6 +746,7 @@ export interface FileRoutesByTo {
   '/returns-rto': typeof WmsReturnsRtoRoute
   '/returns-rtv': typeof WmsReturnsRtvRoute
   '/run-demo': typeof WmsRunDemoRoute
+  '/safety-stock': typeof WmsSafetyStockRoute
   '/sales-return-grn': typeof WmsSalesReturnGrnRoute
   '/site-performance': typeof WmsSitePerformanceRoute
   '/slotting': typeof WmsSlottingRoute
@@ -837,6 +845,7 @@ export interface FileRoutesById {
   '/_wms/returns-rto': typeof WmsReturnsRtoRoute
   '/_wms/returns-rtv': typeof WmsReturnsRtvRoute
   '/_wms/run-demo': typeof WmsRunDemoRoute
+  '/_wms/safety-stock': typeof WmsSafetyStockRoute
   '/_wms/sales-return-grn': typeof WmsSalesReturnGrnRoute
   '/_wms/site-performance': typeof WmsSitePerformanceRoute
   '/_wms/slotting': typeof WmsSlottingRoute
@@ -935,6 +944,7 @@ export interface FileRouteTypes {
     | '/returns-rto'
     | '/returns-rtv'
     | '/run-demo'
+    | '/safety-stock'
     | '/sales-return-grn'
     | '/site-performance'
     | '/slotting'
@@ -1031,6 +1041,7 @@ export interface FileRouteTypes {
     | '/returns-rto'
     | '/returns-rtv'
     | '/run-demo'
+    | '/safety-stock'
     | '/sales-return-grn'
     | '/site-performance'
     | '/slotting'
@@ -1128,6 +1139,7 @@ export interface FileRouteTypes {
     | '/_wms/returns-rto'
     | '/_wms/returns-rtv'
     | '/_wms/run-demo'
+    | '/_wms/safety-stock'
     | '/_wms/sales-return-grn'
     | '/_wms/site-performance'
     | '/_wms/slotting'
@@ -1282,6 +1294,13 @@ declare module '@tanstack/react-router' {
       path: '/sales-return-grn'
       fullPath: '/sales-return-grn'
       preLoaderRoute: typeof WmsSalesReturnGrnRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/safety-stock': {
+      id: '/_wms/safety-stock'
+      path: '/safety-stock'
+      fullPath: '/safety-stock'
+      preLoaderRoute: typeof WmsSafetyStockRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/run-demo': {
@@ -1899,6 +1918,7 @@ interface WmsRouteChildren {
   WmsReturnsRtoRoute: typeof WmsReturnsRtoRoute
   WmsReturnsRtvRoute: typeof WmsReturnsRtvRoute
   WmsRunDemoRoute: typeof WmsRunDemoRoute
+  WmsSafetyStockRoute: typeof WmsSafetyStockRoute
   WmsSalesReturnGrnRoute: typeof WmsSalesReturnGrnRoute
   WmsSitePerformanceRoute: typeof WmsSitePerformanceRoute
   WmsSlottingRoute: typeof WmsSlottingRoute
@@ -1995,6 +2015,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsReturnsRtoRoute: WmsReturnsRtoRoute,
   WmsReturnsRtvRoute: WmsReturnsRtvRoute,
   WmsRunDemoRoute: WmsRunDemoRoute,
+  WmsSafetyStockRoute: WmsSafetyStockRoute,
   WmsSalesReturnGrnRoute: WmsSalesReturnGrnRoute,
   WmsSitePerformanceRoute: WmsSitePerformanceRoute,
   WmsSlottingRoute: WmsSlottingRoute,
