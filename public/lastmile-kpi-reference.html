@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Last-Mile KPI Reference — Sheet to Formula</title>
+<style>
+  :root{
+    --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f1f5f9;
+    --accent:#0f172a; --blue:#2563eb;
+    --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+    --amber:#b45309; --amber-bg:#fff7ed; --amber-line:#fde4b8;
+    --green:#0d9488; --green-bg:#f0fdfa; --green-line:#99f6e4;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink)}
+  .board{width:1480px;margin:0 auto;padding:40px 44px 48px}
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:6px}
+  .title{font-size:30px;font-weight:800;letter-spacing:-.5px}
+  .sub{color:var(--muted);font-size:15px;margin-top:4px;max-width:1000px}
+  .tag{background:var(--accent);color:#fff;font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;letter-spacing:.3px;white-space:nowrap}
+
+  .callout{margin-top:22px;background:var(--green-bg);border:1px solid var(--green-line);border-radius:12px;padding:14px 18px;display:flex;gap:12px;align-items:flex-start}
+  .callout .lbl{font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--green);background:#fff;border:1px solid var(--green-line);border-radius:999px;padding:4px 10px;white-space:nowrap}
+  .callout .txt{font-size:13.5px;color:#0f3d39;line-height:1.6}
+
+  .section{margin-top:36px}
+  .secthead{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+  .seclabel{background:var(--blue);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:8px;letter-spacing:.3px}
+  .sectitle{font-size:21px;font-weight:800;letter-spacing:-.3px;margin-top:10px}
+  .secsub{color:var(--muted);font-size:13.5px;margin:2px 0 0 0;max-width:1100px;line-height:1.6}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 16px 14px;box-shadow:0 1px 2px rgba(15,23,42,.04);display:flex;flex-direction:column}
+  .cardhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .mname{font-family:var(--mono);font-size:13.5px;font-weight:700;color:var(--ink);word-break:break-word}
+  .kindpill{font-size:9px;font-weight:800;letter-spacing:.4px;padding:3px 7px;border-radius:999px;white-space:nowrap}
+  .kindpill.count{background:#eef2ff;color:#4338ca}
+  .kindpill.pct{background:#ecfeff;color:#0e7490}
+  .srcline{font-size:10.5px;color:var(--muted);margin-top:4px;margin-bottom:10px}
+
+  .snap{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:12px}
+  .snaphead{display:grid;grid-template-columns:repeat(3,1fr);background:#f8fafc;border-bottom:1px solid var(--line)}
+  .sc{font-size:9.5px;font-weight:700;color:#334155;padding:7px 8px 2px;text-align:center;line-height:1.3}
+  .sc span{display:block;font-size:8.5px;font-weight:500;color:var(--muted)}
+  .snaprow{display:grid;grid-template-columns:repeat(3,1fr)}
+  .sv{font-family:var(--mono);font-size:13.5px;font-weight:700;text-align:center;padding:9px 6px 10px;color:var(--ink);border-right:1px solid var(--line)}
+  .sv:last-child{border-right:none}
+
+  .formulabox{background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:9px 11px}
+  .flabel{font-size:9px;font-weight:800;letter-spacing:.5px;color:#64748b;margin-bottom:4px}
+  .ftext{font-size:12.5px;color:#0f172a;line-height:1.55}
+
+  .note{margin-top:10px;background:var(--amber-bg);border:1px solid var(--amber-line);border-radius:10px;padding:9px 11px;font-size:11.5px;color:#7c3e06;line-height:1.55}
+
+  .foot{margin-top:44px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:14px;display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+<div class="board" id="board">
+  <div class="head">
+    <div>
+      <div class="title">Last-Mile KPI Reference — Sheet to Formula</div>
+      <div class="sub">The most important metrics from the summary tabs of the real “Dark Store Control Tower” workbook, each with its live sheet value and the plain-English formula behind it — for engineering reference when rebuilding these KPIs in the WMS.</div>
+    </div>
+    <div class="tag">Shiprocket WMS &middot; Sheet Reference</div>
+  </div>
+
+  <div class="callout">
+    <div class="lbl">KEY PATTERN</div>
+    <div class="txt">Almost every percentage on these tabs follows the same shape: <b>(count of orders meeting a condition) &divide; (total orders) &times; 100</b>. Combined Dark Store + 3PL rows add the two channels&rsquo; raw counts first and divide once &mdash; they never average two already-computed percentages.</div>
+  </div>
+
+    <div class="section">
+      <div class="secthead">
+        <div class="seclabel">SECTION 1 — COMBINED NETWORK</div>
+      </div>
+      <div class="sectitle">Dark Store + 3PL Overall</div>
+      <div class="secsub">Sheet tab ‘✔ | DS+3PL_Overall’ — every row here is the Dark Store value plus the 3PL value, added once and divided once (never a weighted average of two percentages).</div>
+      <div class="grid">
+        
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Overall_Orders</div>
+          <div class="kindpill count">COUNT</div>
+        </div>
+        <div class="srcline">✔ | DS+3PL_Overall &middot; row 9</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">1,852</div>
+            <div class="sv">13,064</div>
+            <div class="sv">11,522</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Total Orders&nbsp;=&nbsp;Dark Store Orders&nbsp;+&nbsp;3PL Orders</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Overall_Open_Orders</div>
+          <div class="kindpill count">COUNT</div>
+        </div>
+        <div class="srcline">✔ | DS+3PL_Overall &middot; row 10</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">1,769</div>
+            <div class="sv">1,806</div>
+            <div class="sv">3,023</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Open Orders&nbsp;=&nbsp;Dark Store Open Orders&nbsp;+&nbsp;3PL Open Orders</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Overall RTO%</div>
+          <div class="kindpill pct">PERCENT</div>
+        </div>
+        <div class="srcline">✔ | DS+3PL_Overall &middot; row 11</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">0.1%</div>
+            <div class="sv">8.7%</div>
+            <div class="sv">5.3%</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">RTO %&nbsp;=&nbsp;(Dark Store RTO Orders&nbsp;+&nbsp;3PL RTO Orders)&nbsp;÷&nbsp;(Dark Store Orders&nbsp;+&nbsp;3PL Orders)&nbsp;×&nbsp;100</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Overall_SLA%</div>
+          <div class="kindpill pct">PERCENT</div>
+        </div>
+        <div class="srcline">✔ | DS+3PL_Overall &middot; row 12</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">4.0%</div>
+            <div class="sv">58.5%</div>
+            <div class="sv">57.8%</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">SLA %&nbsp;=&nbsp;(Dark Store Orders Within SLA&nbsp;+&nbsp;3PL Orders Within SLA)&nbsp;÷&nbsp;(Dark Store Orders&nbsp;+&nbsp;3PL Orders)&nbsp;×&nbsp;100</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Overall_Delivery%</div>
+          <div class="kindpill pct">PERCENT</div>
+        </div>
+        <div class="srcline">✔ | DS+3PL_Overall &middot; row 13</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">4.1%</div>
+            <div class="sv">77.3%</div>
+            <div class="sv">68.3%</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Delivery %&nbsp;=&nbsp;(Dark Store Delivered Orders&nbsp;+&nbsp;3PL Delivered Orders)&nbsp;÷&nbsp;(Dark Store Orders&nbsp;+&nbsp;3PL Orders)&nbsp;×&nbsp;100</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Del within SLA</div>
+          <div class="kindpill pct">PERCENT</div>
+        </div>
+        <div class="srcline">✔ | DS+3PL_Overall &middot; row 14</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">4.0%</div>
+            <div class="sv">53.9%</div>
+            <div class="sv">52.3%</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Delivered Within SLA %&nbsp;=&nbsp;(Dark Store Orders Delivered Within SLA&nbsp;+&nbsp;3PL Orders Delivered Within SLA)&nbsp;÷&nbsp;(Dark Store Orders&nbsp;+&nbsp;3PL Orders)&nbsp;×&nbsp;100</div>
+        </div>
+        <div class="note">Pulls from a different raw flag than ‘SLA %’ above — SLA % tracks the assignment/dispatch promise, this tracks the end-customer delivery promise. The two numbers are allowed to disagree.</div>
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">FASR</div>
+          <div class="kindpill pct">PERCENT</div>
+        </div>
+        <div class="srcline">✔ | DS+3PL_Overall &middot; row 15</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">4.1%</div>
+            <div class="sv">72.5%</div>
+            <div class="sv">64.7%</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">First Attempt Success Rate %&nbsp;=&nbsp;(Dark Store First-Attempt Deliveries&nbsp;+&nbsp;3PL First-Attempt Deliveries)&nbsp;÷&nbsp;(Dark Store Orders&nbsp;+&nbsp;3PL Orders)&nbsp;×&nbsp;100</div>
+        </div>
+        <div class="note">Combined KPIs are never built by averaging the two channels’ percentages — the sheet always adds raw counts first and divides once. Worth mirroring this when the mock data is rebuilt.</div>
+      </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="secthead">
+        <div class="seclabel">SECTION 2 — DARK STORE CHANNEL</div>
+      </div>
+      <div class="sectitle">Dark Store Overall</div>
+      <div class="secsub">Sheet tab ‘❖ | DS_Overall’ — Dark-Store-only order count is the denominator for every ratio below.</div>
+      <div class="grid">
+        
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Overall_Orders</div>
+          <div class="kindpill count">COUNT</div>
+        </div>
+        <div class="srcline">❖ | DS_Overall &middot; row 9</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">1,388</div>
+            <div class="sv">10,502</div>
+            <div class="sv">9,425</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Dark Store Orders&nbsp;=&nbsp;Count of Orders Dispatched From Dark Stores Today</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Assigned within Cutoff</div>
+          <div class="kindpill count">COUNT</div>
+        </div>
+        <div class="srcline">❖ | DS_Overall &middot; row 10</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">1,388</div>
+            <div class="sv">10,443</div>
+            <div class="sv">9,425</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Assigned Within Cutoff (count)&nbsp;=&nbsp;Orders Where Assignment Time&nbsp;≤&nbsp;Assignment Cutoff Time</div>
+        </div>
+        <div class="note">Assigned-Within-Cutoff % (first principles) = Assigned Within Cutoff ÷ Dark Store Orders × 100 — not pre-built as a % in the sheet, but it follows the same divide-by-orders pattern as every row below.</div>
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Picked within EDD</div>
+          <div class="kindpill count">COUNT</div>
+        </div>
+        <div class="srcline">❖ | DS_Overall &middot; row 11</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">988</div>
+            <div class="sv">10,136</div>
+            <div class="sv">9,268</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Picked Within EDD (count)&nbsp;=&nbsp;Orders Where Picked Time&nbsp;≤&nbsp;EDD (Estimated Dispatch Date)</div>
+        </div>
+        <div class="note">Picked-Within-EDD % = Picked Within EDD ÷ Dark Store Orders × 100.</div>
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Misroute_Orders</div>
+          <div class="kindpill count">COUNT</div>
+        </div>
+        <div class="srcline">❖ | DS_Overall &middot; row 12</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">0</div>
+            <div class="sv">0</div>
+            <div class="sv">0</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Misroute Orders (count)&nbsp;=&nbsp;Orders Flagged as Sent to the Wrong Store Today</div>
+        </div>
+        <div class="note">Misroute % = Misroute Orders ÷ Dark Store Orders × 100. Every value in this snapshot is 0 — worth confirming the flag is actually being populated upstream and not silently stuck at zero.</div>
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Overall_SLA%</div>
+          <div class="kindpill pct">PERCENT</div>
+        </div>
+        <div class="srcline">❖ | DS_Overall &middot; row 13</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">4.9%</div>
+            <div class="sv">51.4%</div>
+            <div class="sv">54.9%</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">SLA %&nbsp;=&nbsp;Orders Delivered Within SLA&nbsp;÷&nbsp;Dark Store Orders&nbsp;×&nbsp;100</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Overall_Delivery%</div>
+          <div class="kindpill pct">PERCENT</div>
+        </div>
+        <div class="srcline">❖ | DS_Overall &middot; row 14</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">5.0%</div>
+            <div class="sv">74.5%</div>
+            <div class="sv">67.9%</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Delivery %&nbsp;=&nbsp;Delivered Orders&nbsp;÷&nbsp;Dark Store Orders&nbsp;×&nbsp;100</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Del within SLA</div>
+          <div class="kindpill pct">PERCENT</div>
+        </div>
+        <div class="srcline">❖ | DS_Overall &middot; row 15</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">4.9%</div>
+            <div class="sv">46.9%</div>
+            <div class="sv">49.1%</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Delivered Within SLA %&nbsp;=&nbsp;Orders Delivered Within SLA Window&nbsp;÷&nbsp;Dark Store Orders&nbsp;×&nbsp;100</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">FASR</div>
+          <div class="kindpill pct">PERCENT</div>
+        </div>
+        <div class="srcline">❖ | DS_Overall &middot; row 16</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">5.0%</div>
+            <div class="sv">70.0%</div>
+            <div class="sv">64.3%</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">First Attempt Success Rate %&nbsp;=&nbsp;First-Attempt Deliveries&nbsp;÷&nbsp;Dark Store Orders&nbsp;×&nbsp;100</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">RASR</div>
+          <div class="kindpill pct">PERCENT</div>
+        </div>
+        <div class="srcline">❖ | DS_Overall &middot; row 17</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">–</div>
+            <div class="sv">13.4%</div>
+            <div class="sv">9.3%</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Repeat Attempt Success Rate %&nbsp;=&nbsp;Orders Delivered Successfully on a Repeat Attempt&nbsp;÷&nbsp;Orders That Needed a Repeat Attempt&nbsp;×&nbsp;100</div>
+        </div>
+        <div class="note">⚠ Data-quality flag found in the live sheet: today’s daily formula for this cell is broken (#REF! error, shows ‘–’). Only the weekly/monthly roll-ups actually compute — don’t copy the broken daily reference if this KPI gets rebuilt.</div>
+      </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="secthead">
+        <div class="seclabel">SECTION 3 — 3PL CHANNEL</div>
+      </div>
+      <div class="sectitle">3PL Overall</div>
+      <div class="secsub">Sheet tab ‘⍢ | 3PL_Overall’ — 3PL-only order count is the denominator for every ratio below.</div>
+      <div class="grid">
+        
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Overall_Orders</div>
+          <div class="kindpill count">COUNT</div>
+        </div>
+        <div class="srcline">⍢ | 3PL_Overall &middot; row 9</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">464</div>
+            <div class="sv">2,562</div>
+            <div class="sv">2,097</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">3PL Orders&nbsp;=&nbsp;Count of Orders Routed to 3PL Couriers Today</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Assigned Orders</div>
+          <div class="kindpill count">COUNT</div>
+        </div>
+        <div class="srcline">⍢ | 3PL_Overall &middot; row 10</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">464</div>
+            <div class="sv">2,558</div>
+            <div class="sv">2,097</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Assigned Orders (count)&nbsp;=&nbsp;Orders Where Courier Assignment Time&nbsp;≤&nbsp;Assignment Cutoff Time</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Picked Orders_Within SLA</div>
+          <div class="kindpill count">COUNT</div>
+        </div>
+        <div class="srcline">⍢ | 3PL_Overall &middot; row 11</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">44</div>
+            <div class="sv">2,434</div>
+            <div class="sv">2,072</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Picked Within SLA (count)&nbsp;=&nbsp;Orders Where Courier Pickup Time&nbsp;≤&nbsp;Pickup SLA Time</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Picked Orders_Overall</div>
+          <div class="kindpill count">COUNT</div>
+        </div>
+        <div class="srcline">⍢ | 3PL_Overall &middot; row 12</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">44</div>
+            <div class="sv">2,533</div>
+            <div class="sv">2,072</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Picked Orders (count)&nbsp;=&nbsp;Orders Where a Pickup Time Exists, Regardless of Whether It Beat the SLA</div>
+        </div>
+        <div class="note">Picked-On-Time % = Picked Within SLA ÷ Picked Orders (Overall) × 100 — the sheet keeps these as two raw counts rather than one ratio, so the on-time pickup rate has to be derived.</div>
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Open Orders</div>
+          <div class="kindpill count">COUNT</div>
+        </div>
+        <div class="srcline">⍢ | 3PL_Overall &middot; row 13</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">457</div>
+            <div class="sv">169</div>
+            <div class="sv">559</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Open Orders&nbsp;=&nbsp;3PL Orders&nbsp;−&nbsp;3PL Orders That Reached a Final Status (Delivered, RTO or Lost)</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">RTO</div>
+          <div class="kindpill pct">PERCENT</div>
+        </div>
+        <div class="srcline">⍢ | 3PL_Overall &middot; row 14</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">0.0%</div>
+            <div class="sv">4.5%</div>
+            <div class="sv">3.1%</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">RTO %&nbsp;=&nbsp;RTO Orders&nbsp;÷&nbsp;3PL Orders&nbsp;×&nbsp;100</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Missed Orders</div>
+          <div class="kindpill count">COUNT</div>
+        </div>
+        <div class="srcline">⍢ | 3PL_Overall &middot; row 15</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">0</div>
+            <div class="sv">424</div>
+            <div class="sv">503</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Missed Orders (count)&nbsp;=&nbsp;Total Dark-Store-Eligible SKU Lines&nbsp;−&nbsp;SKU Lines Actually Fulfilled From a Dark Store</div>
+        </div>
+        <div class="note">Really a channel-leakage metric, not a 3PL failure metric — it counts orders that could have shipped from a Dark Store (faster, cheaper) but leaked to 3PL instead. Same idea as the ‘Missed Opportunity’ KPI in the business artefact, just measured from the 3PL side.</div>
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Overall_SLA%</div>
+          <div class="kindpill pct">PERCENT</div>
+        </div>
+        <div class="srcline">⍢ | 3PL_Overall &middot; row 16</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">1.5%</div>
+            <div class="sv">87.3%</div>
+            <div class="sv">70.9%</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">SLA %&nbsp;=&nbsp;Orders Delivered Within SLA&nbsp;÷&nbsp;3PL Orders&nbsp;×&nbsp;100</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Courier_SLA%</div>
+          <div class="kindpill pct">PERCENT</div>
+        </div>
+        <div class="srcline">⍢ | 3PL_Overall &middot; row 17</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">1.5%</div>
+            <div class="sv">88.8%</div>
+            <div class="sv">72.1%</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Courier SLA %&nbsp;=&nbsp;Orders Delivered Within the Courier Partner’s Own Committed TAT&nbsp;÷&nbsp;3PL Orders&nbsp;×&nbsp;100</div>
+        </div>
+        <div class="note">Pulled from a different raw column than ‘SLA %’ above — the sheet separates ‘our promise to the customer’ from ‘the courier’s promise to us’, so the two percentages can and do disagree.</div>
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Overall_Delivery%</div>
+          <div class="kindpill pct">PERCENT</div>
+        </div>
+        <div class="srcline">⍢ | 3PL_Overall &middot; row 18</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">1.5%</div>
+            <div class="sv">88.8%</div>
+            <div class="sv">70.1%</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Delivery %&nbsp;=&nbsp;Delivered Orders&nbsp;÷&nbsp;3PL Orders&nbsp;×&nbsp;100</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">Del within SLA</div>
+          <div class="kindpill pct">PERCENT</div>
+        </div>
+        <div class="srcline">⍢ | 3PL_Overall &middot; row 19</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">1.5%</div>
+            <div class="sv">82.7%</div>
+            <div class="sv">66.8%</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">Delivered Within SLA %&nbsp;=&nbsp;Orders Delivered Within SLA Window&nbsp;÷&nbsp;3PL Orders&nbsp;×&nbsp;100</div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <div class="mname">FASR</div>
+          <div class="kindpill pct">PERCENT</div>
+        </div>
+        <div class="srcline">⍢ | 3PL_Overall &middot; row 20</div>
+        <div class="snap">
+          <div class="snaphead">
+            <div class="sc">Today <span>(Thu, maturing)</span></div>
+            <div class="sc">Last Full Week <span>(Wk 40)</span></div>
+            <div class="sc">Month-to-Date <span>(Oct &rsquo;26)</span></div>
+          </div>
+          <div class="snaprow">
+            <div class="sv">1.5%</div>
+            <div class="sv">82.8%</div>
+            <div class="sv">66.5%</div>
+          </div>
+        </div>
+        <div class="formulabox">
+          <div class="flabel">FORMULA</div>
+          <div class="ftext">First Attempt Success Rate %&nbsp;=&nbsp;First-Attempt Deliveries&nbsp;÷&nbsp;3PL Orders&nbsp;×&nbsp;100</div>
+        </div>
+        
+      </div>
+      </div>
+    </div>
+
+  <div class="foot">
+    <div>Source: “Dark Store Control Tower” Google Sheet, Overall tabs (snapshot: 08-Oct-2026, 01:54 PM) &middot; values and formulas pulled directly from the live workbook</div>
+    <div>Generated for engineering reference</div>
+  </div>
+</div>
+</body>
+</html>

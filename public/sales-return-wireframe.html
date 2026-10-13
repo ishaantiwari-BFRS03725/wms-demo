@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Sales Return — Mobile / HHT Wireframe</title>
+<style>
+  :root{
+    --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f1f5f9;
+    --accent:#0f172a; --blue:#2563eb;
+    --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+
+    /* dark "Shiprocket WMS" app theme, matched to the reference screenshot */
+    --app-deep:#050b10; --app-glow1:#0e2e33; --app-glow2:#062026;
+    --app-panel:#0d1a20; --app-panel2:#0a151a; --app-line:rgba(148,187,191,.14);
+    --app-ink:#eaf1f2; --app-muted:#7f919a; --app-muted2:#56666e;
+    --teal:#2dd4bf; --teal-dim:rgba(45,212,191,.14); --teal-line:rgba(45,212,191,.38);
+    --amber:#f2b73c; --amber-dim:rgba(242,183,60,.14); --amber-line:rgba(242,183,60,.42);
+    --red:#ef5b5b; --red-dim:rgba(239,91,91,.16);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink)}
+  .board{width:1480px;margin:0 auto;padding:40px 44px 48px}
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:6px}
+  .title{font-size:30px;font-weight:800;letter-spacing:-.5px}
+  .sub{color:var(--muted);font-size:15px;margin-top:4px;max-width:900px}
+  .tag{background:var(--accent);color:#fff;font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;letter-spacing:.3px}
+
+  .section{margin-top:34px}
+  .secthead{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+  .seclabel{background:var(--blue);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:8px;letter-spacing:.3px}
+  .seclabel.amber{background:#b45309}
+  .sectitle{font-size:21px;font-weight:800;letter-spacing:-.3px}
+  .secsub{color:var(--muted);font-size:14px;margin:2px 0 0 0;max-width:980px}
+
+  /* ---- reference (current) card ---- */
+  .refrow{display:flex;gap:30px;margin-top:22px;align-items:flex-start}
+  .refdevice{width:440px;flex:none;background:var(--app-deep);background-image:radial-gradient(circle at 15% -10%, var(--app-glow1), transparent 55%),radial-gradient(circle at 100% 0%, var(--app-glow2), transparent 45%);border-radius:16px;padding:16px;box-shadow:0 10px 28px rgba(2,10,14,.35)}
+  .refhead{font-size:9px;letter-spacing:.6px;color:var(--teal);font-weight:700;margin-bottom:2px}
+  .reftitle{font-size:17px;font-weight:800;color:var(--app-ink);margin-bottom:2px}
+  .refsub{font-size:9.5px;color:var(--app-muted);margin-bottom:12px;line-height:1.4}
+  .refscan{background:var(--app-panel);border:1px solid var(--app-line);border-radius:10px;padding:9px 11px;margin-bottom:10px}
+  .refscan .lbl{font-size:8.5px;letter-spacing:.5px;color:var(--teal);font-weight:700;display:flex;align-items:center;gap:5px}
+  .refscan .ctx{font-size:9px;color:var(--app-muted);text-align:right;margin-top:-14px}
+  .refscan .ctx b{color:var(--app-ink);font-weight:700}
+  .refscan .box{margin-top:8px;border:1px solid var(--app-line);border-radius:7px;padding:8px 9px;font-family:var(--mono);font-size:10px;color:var(--app-muted2);background:var(--app-panel2)}
+  .refstats{display:flex;gap:8px;margin-bottom:10px}
+  .refstat{flex:1;border:1px solid var(--teal-line);border-radius:9px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;background:var(--teal-dim)}
+  .refstat.un{border-color:var(--amber-line);background:var(--amber-dim)}
+  .refstat .l{font-size:8.5px;letter-spacing:.5px;color:var(--teal);font-weight:800}
+  .refstat.un .l{color:var(--amber)}
+  .refstat .v{font-size:15px;font-weight:800;color:var(--app-ink)}
+  .refpile{border:1px solid var(--app-line);border-radius:9px;margin-bottom:9px;overflow:hidden}
+  .refpile .ph{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;font-size:9px;font-weight:800;letter-spacing:.4px;color:var(--teal)}
+  .refpile.un .ph{color:var(--amber)}
+  .refpile .closebtn{font-size:8px;color:var(--teal);border:1px solid var(--teal-line);border-radius:5px;padding:2px 6px}
+  .refrow2{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-top:1px solid var(--app-line);font-family:var(--mono);font-size:9.5px;color:var(--app-ink)}
+  .mdbtn{background:var(--red);color:#fff;font-size:8px;font-weight:700;padding:3px 7px;border-radius:5px;font-family:-apple-system,sans-serif;white-space:nowrap}
+  .selltag{font-size:8.5px;color:var(--teal);font-weight:600;white-space:nowrap}
+  .refcomplete{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:800;font-size:11px;color:#06221f;background:linear-gradient(135deg,#5eead4,#2dd4bf);border-radius:9px;padding:9px}
+
+  .refcaption{flex:1;padding-top:6px}
+  .refcaption .badge{font-size:10px;font-weight:800;letter-spacing:.5px;color:#b45309;background:#fff7ed;border:1px solid #fde4b8;display:inline-block;padding:4px 10px;border-radius:999px;margin-bottom:10px}
+  .refcaption ul{margin:0;padding-left:18px;color:#334155;font-size:13.5px;line-height:1.7}
+  .refcaption li b{color:var(--ink)}
+
+  /* ---- redesigned HHT screens ---- */
+  .redrow{display:flex;gap:30px;align-items:flex-start}
+  .redrow + .redrow{margin-top:30px}
+  .reddevice{width:300px;flex:none}
+
+  .hhtframe{background:#14181c;border-radius:28px;padding:12px 9px 16px;box-shadow:0 10px 20px rgba(15,23,42,.12)}
+  .hhtnotch{width:46px;height:5px;border-radius:4px;background:#2a3036;margin:0 auto 9px}
+  .screen{background:var(--app-deep);background-image:radial-gradient(circle at 20% -10%, var(--app-glow1), transparent 60%);border-radius:18px;min-height:566px;padding:13px 11px 14px;display:flex;flex-direction:column;position:relative;overflow:hidden}
+
+  .shead{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+  .sback{color:var(--app-muted);font-size:11px}
+  .stitle{font-size:13.5px;font-weight:800;color:var(--app-ink)}
+  .swh{font-size:8px;color:var(--app-muted2);background:var(--app-panel);border:1px solid var(--app-line);border-radius:6px;padding:3px 6px;font-family:var(--mono)}
+
+  .ctxstrip{display:flex;align-items:center;gap:6px;background:var(--app-panel);border:1px solid var(--app-line);border-radius:8px;padding:6px 9px;font-size:9px;color:var(--app-muted);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ctxstrip b{color:var(--teal);font-weight:700;font-family:var(--mono)}
+
+  .scanlbl{font-size:8.5px;letter-spacing:.5px;color:var(--teal);font-weight:800;display:flex;align-items:center;gap:5px;margin-bottom:6px}
+  .scanlbl svg{flex:none}
+  .scanbox{border:1.5px solid var(--teal-line);background:var(--app-panel);border-radius:11px;padding:11px 12px;font-family:var(--mono);font-size:12.5px;color:var(--app-muted2);margin-bottom:5px}
+  .scanhelp{font-size:8px;color:var(--app-muted2);line-height:1.4;margin-bottom:12px}
+
+  .pilehead{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+  .pilehead:not(:first-of-type){margin-top:13px}
+  .pilehead .t{display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.4px;color:var(--teal)}
+  .pilehead .t .cnt{background:var(--teal-dim);border:1px solid var(--teal-line);border-radius:5px;padding:1px 5px;font-size:8.5px}
+  .pilehead.un .t{color:var(--amber)}
+  .pilehead.un .t .cnt{background:var(--amber-dim);border-color:var(--amber-line)}
+  .pilehead .chev{color:var(--app-muted2)}
+
+  .rowcard{border:1px solid var(--app-line);border-radius:12px;padding:10px 11px;margin-bottom:0;background:var(--app-panel)}
+  .rowcard .top{display:flex;justify-content:space-between;align-items:flex-start}
+  .rowcard .awb{font-family:var(--mono);font-size:12.5px;font-weight:800;color:var(--app-ink);letter-spacing:-.2px}
+  .rowcard .tag{font-size:8.5px;color:var(--teal);font-weight:700;background:var(--teal-dim);border:1px solid var(--teal-line);border-radius:6px;padding:2px 6px;white-space:nowrap}
+  .rowcard.un .tag{color:var(--amber);background:var(--amber-dim);border-color:var(--amber-line)}
+  .rowcard .meta{font-size:8.5px;color:var(--app-muted2);margin-top:3px}
+  .rowcard .mdbtn{display:block;text-align:center;margin-top:8px;padding:7px 0;font-size:9.5px;border-radius:7px;letter-spacing:.2px}
+
+  .spacer{flex:1}
+  .completebtn{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:700;font-size:12.5px;color:#06221f;background:var(--teal);border-radius:10px;padding:12px}
+
+  .toast{display:flex;align-items:center;gap:7px;background:var(--teal-dim);border:1px solid var(--teal-line);border-radius:10px;padding:9px 11px;font-size:9.5px;font-weight:700;color:var(--teal);margin-bottom:11px}
+  .toastdot{width:15px;height:15px;border-radius:999px;background:var(--teal);color:#06221f;display:inline-flex;align-items:center;justify-content:center;flex:none}
+
+  .redcaption{flex:1;padding-top:4px}
+  .redcaption .pill{font-size:10px;font-weight:800;letter-spacing:.5px;color:#0d9488;background:#f0fdfa;border:1px solid #99f6e4;display:inline-block;padding:4px 10px;border-radius:999px;margin-bottom:10px}
+  .redcaption ul{margin:0;padding-left:18px;color:#334155;font-size:13.5px;line-height:1.7}
+  .redcaption li b{color:var(--ink)}
+  .foot{margin-top:40px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:14px;display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+<div class="board" id="board">
+  <div class="head">
+    <div>
+      <div class="title">Sales Return — Redesigned for Mobile / HHT</div>
+      <div class="sub">Same flow, same data, same dark Shiprocket WMS look — the scan box, both piles and Complete stay exactly where operators already expect them. Only the spacing, type scale and row layout are tightened for a narrow handheld screen.</div>
+    </div>
+    <div class="tag">Shiprocket WMS · Wireframe</div>
+  </div>
+
+  <!-- ============ REFERENCE ============ -->
+  <div class="section">
+    <div class="secthead">
+      <span class="seclabel amber">REFERENCE</span>
+      <span class="sectitle">Current Design (Desktop / Tablet Layout)</span>
+    </div>
+    <div class="secsub">What's live today — built for a wide screen. Both piles render fully at once, stat tiles duplicate the pile counts, and Complete sits below the fold once a few AWBs are scanned.</div>
+
+    <div class="refrow">
+      <div class="refdevice">
+        <div class="refhead">INBOUND · RETURNS</div>
+        <div class="reftitle">Sales Return</div>
+        <div class="refsub">Scan a return gate pass, then scan each return AWB — the system auto-sorts it into the Identified or Unidentified pile and generates return acknowledgements on completion.</div>
+        <div class="refscan">
+          <div class="lbl"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 3v10M5 3v10M8 3v4M8 11v2M11 3v10M14 3v10"/></svg> SCAN RETURN AWB</div>
+          <div class="ctx">GP-20261007-002 · Test-seller-2<br><b>Courier: Aramex International</b></div>
+          <div class="box">Scan return AWB…</div>
+        </div>
+        <div class="refstats">
+          <div class="refstat"><span class="l">IDENTIFIED</span><span class="v">1</span></div>
+          <div class="refstat un"><span class="l">UNIDENTIFIED</span><span class="v">1</span></div>
+        </div>
+        <div class="refpile">
+          <div class="ph"><span>IDENTIFIED PILE (1)</span><span class="closebtn">Close</span></div>
+          <div class="refrow2"><span>BOATAWB1784914707</span><span class="mdbtn">Mark Damaged</span><span class="selltag">Test-seller-2</span></div>
+        </div>
+        <div class="refpile un">
+          <div class="ph"><span>UNIDENTIFIED PILE (1)</span><span class="closebtn">Close</span></div>
+          <div class="refrow2"><span>lkjsa</span><span class="mdbtn">Mark Damaged</span><span class="selltag">Test-seller-2</span></div>
+        </div>
+        <div class="refcomplete"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg> Complete</div>
+      </div>
+
+      <div class="refcaption">
+        <div class="badge">Pain points on a 3–4″ HHT screen</div>
+        <ul>
+          <li><b>Redundant counts.</b> The IDENTIFIED / UNIDENTIFIED stat tiles repeat numbers already shown in each pile's header, eating a full row of screen height for no new information.</li>
+          <li><b>Complete can drop off-screen.</b> It's the most-tapped action at the end of a gate pass, but with two piles and a stat row ahead of it, it's pushed further from the thumb as more AWBs are scanned.</li>
+          <li><b>Mark Damaged competes with the AWB.</b> A small red pill sits inline with the scan code on every row, narrowing the tap target and crowding the primary "what did I just scan" information.</li>
+          <li><b>Gate pass context wraps.</b> Seller + courier + gate pass number sit to the right of the scan label and wrap awkwardly once the screen narrows below tablet width.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ REDESIGN ============ -->
+  <div class="section">
+    <div class="secthead">
+      <span class="seclabel">REDESIGN</span>
+      <span class="sectitle">Mobile / HHT Flow — Same Theme, Tighter Layout</span>
+    </div>
+    <div class="secsub">Same process as today, on the same screen: scan the gate pass context, scan each AWB, watch it land in Identified or Unidentified below, mark damage where needed, then Complete. Nothing is hidden behind tabs or gestures — only the density, type scale and row layout change to fit a 3–4″ HHT display.</div>
+
+    <div class="redrow">
+      <div class="reddevice">
+        <div class="hhtframe">
+          <div class="hhtnotch"></div>
+          <div class="screen">
+            <div class="shead">
+              <div><div class="sback">← Inbound</div><div class="stitle">Sales Return</div></div>
+              <div class="swh">MV-WH-PROD</div>
+            </div>
+            <div class="ctxstrip"><b>GP-20261007-002</b> · Test-seller-2 · Aramex Intl</div>
+            <div class="scanlbl">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 3v10M5 3v10M8 3v4M8 11v2M11 3v10M14 3v10"/></svg>
+              SCAN RETURN AWB
+            </div>
+            <div class="scanbox">Scan return AWB…</div>
+            <div class="scanhelp">Auto-sorts into Identified if a return request exists, otherwise Unidentified.</div>
+
+            <div class="pilehead">
+              <span class="t">IDENTIFIED <span class="cnt">1</span></span>
+              <svg class="chev" width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
+            </div>
+            <div class="rowcard">
+              <div class="top"><span class="awb">BOATAWB1784914707</span><span class="tag">Test-seller-2</span></div>
+              <div class="meta">Return request matched · ready to QC</div>
+              <span class="mdbtn">Mark Damaged</span>
+            </div>
+
+            <div class="pilehead un">
+              <span class="t">UNIDENTIFIED <span class="cnt">1</span></span>
+              <svg class="chev" width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
+            </div>
+            <div class="rowcard un">
+              <div class="top"><span class="awb">lkjsa</span><span class="tag">Test-seller-2</span></div>
+              <div class="meta">No matching return request — will raise a new one</div>
+              <span class="mdbtn">Mark Damaged</span>
+            </div>
+
+            <div class="spacer"></div>
+            <div class="toast">
+              <span class="toastdot"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg></span>
+              Gate pass fully sorted
+            </div>
+            <div class="completebtn">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg>
+              Complete
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="redcaption">
+        <div class="pill">What changed for a 3–4″ HHT screen</div>
+        <ul>
+          <li><b>Both piles still stack below the scan box</b> — same order, same labels, same data as today. Nothing moved behind a tab or a swipe.</li>
+          <li><b>Counts moved into the pile headers</b> (<span style="color:#0d9488;font-weight:700">IDENTIFIED 1</span>) instead of a separate stat row, so the same information takes one line, not two.</li>
+          <li><b>Gate pass, seller and courier collapse into one strip</b> under the title, so they stop wrapping once the screen narrows below tablet width.</li>
+          <li><b>Mark Damaged is a full-width button under each row</b> instead of a small pill squeezed next to the AWB — easier to hit reliably on a handheld without mis-tapping the code.</li>
+          <li><b>Complete stays visible at the bottom</b> of the same screen the piles are on — no separate step, just tighter spacing above it so it doesn't get pushed past the fold as AWBs stack up.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Sales Return · Mobile/HHT redesign — same screen, same piles, same data, tightened for a handheld</span>
+    <span>Generated for demo presentation</span>
+  </div>
+</div>
+</body>
+</html>
