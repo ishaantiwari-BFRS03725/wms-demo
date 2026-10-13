@@ -21,6 +21,7 @@ import {
   FileBarChart,
   Footprints,
   FilePlus2,
+  Fingerprint,
   Hand,
   Layers,
   LayoutDashboard,
@@ -64,6 +65,7 @@ import {
   ShieldCheck,
   Smartphone,
   PlayCircle,
+  Route as RouteIcon,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -117,6 +119,7 @@ const sections: NavSection[] = [
     label: "Command Center",
     items: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "Last-Mile Dashboard", url: "/last-mile-dashboard", icon: RouteIcon },
       { title: "Control Tower", url: "/control-tower", icon: Network },
       { title: "Stuck Orders", url: "/stuck-orders", icon: AlertTriangle },
       { title: "Site Performance", url: "/site-performance", icon: Activity },
@@ -246,6 +249,7 @@ const sections: NavSection[] = [
         icon: ClipboardCheck,
         children: [
           { title: "GRN", url: "/grn", icon: ClipboardCheck },
+          { title: "GRN — USN Tracking", url: "/grn-usn", icon: Fingerprint },
           { title: "View GRNs", url: "/view-grn", icon: ClipboardList },
           { title: "GRN Compact", url: "/grn-compact", icon: Monitor },
         ],

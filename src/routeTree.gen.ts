@@ -49,6 +49,7 @@ import { Route as WmsOutboundExceptionsRouteImport } from './routes/_wms.outboun
 import { Route as WmsMovementTaskCreateRouteImport } from './routes/_wms.movement-task-create'
 import { Route as WmsMasterDataRouteImport } from './routes/_wms.master-data'
 import { Route as WmsManifestRouteImport } from './routes/_wms.manifest'
+import { Route as WmsLastMileDashboardRouteImport } from './routes/_wms.last-mile-dashboard'
 import { Route as WmsLaneCongestionRouteImport } from './routes/_wms.lane-congestion'
 import { Route as WmsKnowledgeBaseRouteImport } from './routes/_wms.knowledge-base'
 import { Route as WmsKittingRouteImport } from './routes/_wms.kitting'
@@ -60,6 +61,7 @@ import { Route as WmsInventoryViewRouteImport } from './routes/_wms.inventory-vi
 import { Route as WmsInventoryDashboardRouteImport } from './routes/_wms.inventory-dashboard'
 import { Route as WmsIncidentsRouteImport } from './routes/_wms.incidents'
 import { Route as WmsInboundExceptionsRouteImport } from './routes/_wms.inbound-exceptions'
+import { Route as WmsGrnUsnRouteImport } from './routes/_wms.grn-usn'
 import { Route as WmsGrnCompactRouteImport } from './routes/_wms.grn-compact'
 import { Route as WmsGrnRouteImport } from './routes/_wms.grn'
 import { Route as WmsGatepassLogRouteImport } from './routes/_wms.gatepass-log'
@@ -305,6 +307,11 @@ const WmsManifestRoute = WmsManifestRouteImport.update({
   path: '/manifest',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsLastMileDashboardRoute = WmsLastMileDashboardRouteImport.update({
+  id: '/last-mile-dashboard',
+  path: '/last-mile-dashboard',
+  getParentRoute: () => WmsRoute,
+} as any)
 const WmsLaneCongestionRoute = WmsLaneCongestionRouteImport.update({
   id: '/lane-congestion',
   path: '/lane-congestion',
@@ -358,6 +365,11 @@ const WmsIncidentsRoute = WmsIncidentsRouteImport.update({
 const WmsInboundExceptionsRoute = WmsInboundExceptionsRouteImport.update({
   id: '/inbound-exceptions',
   path: '/inbound-exceptions',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsGrnUsnRoute = WmsGrnUsnRouteImport.update({
+  id: '/grn-usn',
+  path: '/grn-usn',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsGrnCompactRoute = WmsGrnCompactRouteImport.update({
@@ -615,6 +627,7 @@ export interface FileRoutesByFullPath {
   '/gatepass-log': typeof WmsGatepassLogRoute
   '/grn': typeof WmsGrnRoute
   '/grn-compact': typeof WmsGrnCompactRoute
+  '/grn-usn': typeof WmsGrnUsnRoute
   '/inbound-exceptions': typeof WmsInboundExceptionsRoute
   '/incidents': typeof WmsIncidentsRoute
   '/inventory-dashboard': typeof WmsInventoryDashboardRoute
@@ -626,6 +639,7 @@ export interface FileRoutesByFullPath {
   '/kitting': typeof WmsKittingRoute
   '/knowledge-base': typeof WmsKnowledgeBaseRoute
   '/lane-congestion': typeof WmsLaneCongestionRoute
+  '/last-mile-dashboard': typeof WmsLastMileDashboardRoute
   '/manifest': typeof WmsManifestRoute
   '/master-data': typeof WmsMasterDataRoute
   '/movement-task-create': typeof WmsMovementTaskCreateRoute
@@ -712,6 +726,7 @@ export interface FileRoutesByTo {
   '/gatepass-log': typeof WmsGatepassLogRoute
   '/grn': typeof WmsGrnRoute
   '/grn-compact': typeof WmsGrnCompactRoute
+  '/grn-usn': typeof WmsGrnUsnRoute
   '/inbound-exceptions': typeof WmsInboundExceptionsRoute
   '/incidents': typeof WmsIncidentsRoute
   '/inventory-dashboard': typeof WmsInventoryDashboardRoute
@@ -723,6 +738,7 @@ export interface FileRoutesByTo {
   '/kitting': typeof WmsKittingRoute
   '/knowledge-base': typeof WmsKnowledgeBaseRoute
   '/lane-congestion': typeof WmsLaneCongestionRoute
+  '/last-mile-dashboard': typeof WmsLastMileDashboardRoute
   '/manifest': typeof WmsManifestRoute
   '/master-data': typeof WmsMasterDataRoute
   '/movement-task-create': typeof WmsMovementTaskCreateRoute
@@ -811,6 +827,7 @@ export interface FileRoutesById {
   '/_wms/gatepass-log': typeof WmsGatepassLogRoute
   '/_wms/grn': typeof WmsGrnRoute
   '/_wms/grn-compact': typeof WmsGrnCompactRoute
+  '/_wms/grn-usn': typeof WmsGrnUsnRoute
   '/_wms/inbound-exceptions': typeof WmsInboundExceptionsRoute
   '/_wms/incidents': typeof WmsIncidentsRoute
   '/_wms/inventory-dashboard': typeof WmsInventoryDashboardRoute
@@ -822,6 +839,7 @@ export interface FileRoutesById {
   '/_wms/kitting': typeof WmsKittingRoute
   '/_wms/knowledge-base': typeof WmsKnowledgeBaseRoute
   '/_wms/lane-congestion': typeof WmsLaneCongestionRoute
+  '/_wms/last-mile-dashboard': typeof WmsLastMileDashboardRoute
   '/_wms/manifest': typeof WmsManifestRoute
   '/_wms/master-data': typeof WmsMasterDataRoute
   '/_wms/movement-task-create': typeof WmsMovementTaskCreateRoute
@@ -910,6 +928,7 @@ export interface FileRouteTypes {
     | '/gatepass-log'
     | '/grn'
     | '/grn-compact'
+    | '/grn-usn'
     | '/inbound-exceptions'
     | '/incidents'
     | '/inventory-dashboard'
@@ -921,6 +940,7 @@ export interface FileRouteTypes {
     | '/kitting'
     | '/knowledge-base'
     | '/lane-congestion'
+    | '/last-mile-dashboard'
     | '/manifest'
     | '/master-data'
     | '/movement-task-create'
@@ -1007,6 +1027,7 @@ export interface FileRouteTypes {
     | '/gatepass-log'
     | '/grn'
     | '/grn-compact'
+    | '/grn-usn'
     | '/inbound-exceptions'
     | '/incidents'
     | '/inventory-dashboard'
@@ -1018,6 +1039,7 @@ export interface FileRouteTypes {
     | '/kitting'
     | '/knowledge-base'
     | '/lane-congestion'
+    | '/last-mile-dashboard'
     | '/manifest'
     | '/master-data'
     | '/movement-task-create'
@@ -1105,6 +1127,7 @@ export interface FileRouteTypes {
     | '/_wms/gatepass-log'
     | '/_wms/grn'
     | '/_wms/grn-compact'
+    | '/_wms/grn-usn'
     | '/_wms/inbound-exceptions'
     | '/_wms/incidents'
     | '/_wms/inventory-dashboard'
@@ -1116,6 +1139,7 @@ export interface FileRouteTypes {
     | '/_wms/kitting'
     | '/_wms/knowledge-base'
     | '/_wms/lane-congestion'
+    | '/_wms/last-mile-dashboard'
     | '/_wms/manifest'
     | '/_wms/master-data'
     | '/_wms/movement-task-create'
@@ -1464,6 +1488,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsManifestRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/last-mile-dashboard': {
+      id: '/_wms/last-mile-dashboard'
+      path: '/last-mile-dashboard'
+      fullPath: '/last-mile-dashboard'
+      preLoaderRoute: typeof WmsLastMileDashboardRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/lane-congestion': {
       id: '/_wms/lane-congestion'
       path: '/lane-congestion'
@@ -1539,6 +1570,13 @@ declare module '@tanstack/react-router' {
       path: '/inbound-exceptions'
       fullPath: '/inbound-exceptions'
       preLoaderRoute: typeof WmsInboundExceptionsRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/grn-usn': {
+      id: '/_wms/grn-usn'
+      path: '/grn-usn'
+      fullPath: '/grn-usn'
+      preLoaderRoute: typeof WmsGrnUsnRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/grn-compact': {
@@ -1884,6 +1922,7 @@ interface WmsRouteChildren {
   WmsGatepassLogRoute: typeof WmsGatepassLogRoute
   WmsGrnRoute: typeof WmsGrnRoute
   WmsGrnCompactRoute: typeof WmsGrnCompactRoute
+  WmsGrnUsnRoute: typeof WmsGrnUsnRoute
   WmsInboundExceptionsRoute: typeof WmsInboundExceptionsRoute
   WmsIncidentsRoute: typeof WmsIncidentsRoute
   WmsInventoryDashboardRoute: typeof WmsInventoryDashboardRoute
@@ -1895,6 +1934,7 @@ interface WmsRouteChildren {
   WmsKittingRoute: typeof WmsKittingRoute
   WmsKnowledgeBaseRoute: typeof WmsKnowledgeBaseRoute
   WmsLaneCongestionRoute: typeof WmsLaneCongestionRoute
+  WmsLastMileDashboardRoute: typeof WmsLastMileDashboardRoute
   WmsManifestRoute: typeof WmsManifestRoute
   WmsMasterDataRoute: typeof WmsMasterDataRoute
   WmsMovementTaskCreateRoute: typeof WmsMovementTaskCreateRoute
@@ -1981,6 +2021,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsGatepassLogRoute: WmsGatepassLogRoute,
   WmsGrnRoute: WmsGrnRoute,
   WmsGrnCompactRoute: WmsGrnCompactRoute,
+  WmsGrnUsnRoute: WmsGrnUsnRoute,
   WmsInboundExceptionsRoute: WmsInboundExceptionsRoute,
   WmsIncidentsRoute: WmsIncidentsRoute,
   WmsInventoryDashboardRoute: WmsInventoryDashboardRoute,
@@ -1992,6 +2033,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsKittingRoute: WmsKittingRoute,
   WmsKnowledgeBaseRoute: WmsKnowledgeBaseRoute,
   WmsLaneCongestionRoute: WmsLaneCongestionRoute,
+  WmsLastMileDashboardRoute: WmsLastMileDashboardRoute,
   WmsManifestRoute: WmsManifestRoute,
   WmsMasterDataRoute: WmsMasterDataRoute,
   WmsMovementTaskCreateRoute: WmsMovementTaskCreateRoute,
