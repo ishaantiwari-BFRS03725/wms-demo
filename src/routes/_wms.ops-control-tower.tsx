@@ -383,76 +383,78 @@ function OpsControlTower() {
             <PipelineCard title="Outbound pipeline" sub="Orders in the warehouse today, by stage" pill={`Orders ${outboundTotal.toLocaleString()}`} total={outboundTotal} stages={outboundStages} />
           </div>
 
-          <SectionCard title="Inventory snapshot" sub="Stock health and hold exposure across filtered warehouses">
-            <div className="ct-inv-head">
-              <div className="ct-inv-headline">
-                <div className="ct-inv-label">Available</div>
-                <div className="ct-inv-value">
-                  {available.qty.toLocaleString()} <span className="ct-inv-unit">units</span>
+          <div className="ct-split-row">
+            <SectionCard title="Inventory snapshot" sub="Stock health and hold exposure across filtered warehouses">
+              <div className="ct-inv-head">
+                <div className="ct-inv-headline">
+                  <div className="ct-inv-label">Available</div>
+                  <div className="ct-inv-value">
+                    {available.qty.toLocaleString()} <span className="ct-inv-unit">units</span>
+                  </div>
+                </div>
+                <div className="ct-inv-money">{formatInr(available.money)}</div>
+              </div>
+              <div className="ct-inv-bar">
+                <div className="ct-inv-bar-good" style={{ width: `${goodSharePct}%` }} />
+                <div className="ct-inv-bar-bad" style={{ width: `${100 - goodSharePct}%` }} />
+              </div>
+              <div className="ct-kpi-grid ct-kpi-grid-3">
+                <div className="ct-inv-card">
+                  <div className="ct-inv-card-head">
+                    <span className="ct-dot" style={{ background: "#16a34a" }} />
+                    Good
+                  </div>
+                  <div className="ct-kpi-value">{good.qty.toLocaleString()}</div>
+                  <div className="ct-kpi-money">{formatInr(good.money)}</div>
+                </div>
+                <div className="ct-inv-card">
+                  <div className="ct-inv-card-head">
+                    <span className="ct-dot" style={{ background: "#d97706" }} />
+                    Bad
+                  </div>
+                  <div className="ct-kpi-value">{bad.qty.toLocaleString()}</div>
+                  <div className="ct-kpi-money">{formatInr(bad.money)}</div>
+                </div>
+                <div className="ct-inv-card">
+                  <div className="ct-inv-card-head">
+                    <PauseCircle className="ct-ico-xs" aria-hidden="true" />
+                    On hold
+                  </div>
+                  <div className="ct-kpi-value">{hold.qty.toLocaleString()}</div>
+                  <div className="ct-kpi-money">{formatInr(hold.money)}</div>
                 </div>
               </div>
-              <div className="ct-inv-money">{formatInr(available.money)}</div>
-            </div>
-            <div className="ct-inv-bar">
-              <div className="ct-inv-bar-good" style={{ width: `${goodSharePct}%` }} />
-              <div className="ct-inv-bar-bad" style={{ width: `${100 - goodSharePct}%` }} />
-            </div>
-            <div className="ct-kpi-grid ct-kpi-grid-3">
-              <div className="ct-inv-card">
-                <div className="ct-inv-card-head">
-                  <span className="ct-dot" style={{ background: "#16a34a" }} />
-                  Good
-                </div>
-                <div className="ct-kpi-value">{good.qty.toLocaleString()}</div>
-                <div className="ct-kpi-money">{formatInr(good.money)}</div>
-              </div>
-              <div className="ct-inv-card">
-                <div className="ct-inv-card-head">
-                  <span className="ct-dot" style={{ background: "#d97706" }} />
-                  Bad
-                </div>
-                <div className="ct-kpi-value">{bad.qty.toLocaleString()}</div>
-                <div className="ct-kpi-money">{formatInr(bad.money)}</div>
-              </div>
-              <div className="ct-inv-card">
-                <div className="ct-inv-card-head">
-                  <PauseCircle className="ct-ico-xs" aria-hidden="true" />
-                  On hold
-                </div>
-                <div className="ct-kpi-value">{hold.qty.toLocaleString()}</div>
-                <div className="ct-kpi-money">{formatInr(hold.money)}</div>
-              </div>
-            </div>
-          </SectionCard>
+            </SectionCard>
 
-          <SectionCard title="Delivery performance" sub="Network-wide last mile — dark store and 3PL combined">
-            <div className="ct-ring-grid">
-              {outcomeRings.map((r) => (
-                <DonutRing key={r.label} label={r.label} value={r.value} />
-              ))}
-            </div>
-            <div className="ct-ring-legend">
-              <span>
-                <span className="ct-dot" style={{ background: "#d97706" }} /> Below 60%
-              </span>
-              <span>
-                <span className="ct-dot" style={{ background: "#2563eb" }} /> 60% and above
-              </span>
-              <span className="ct-ring-legend-target">Targets: [SET TARGETS]</span>
-            </div>
+            <SectionCard title="Delivery performance" sub="Network-wide last mile — dark store and 3PL combined">
+              <div className="ct-ring-grid">
+                {outcomeRings.map((r) => (
+                  <DonutRing key={r.label} label={r.label} value={r.value} />
+                ))}
+              </div>
+              <div className="ct-ring-legend">
+                <span>
+                  <span className="ct-dot" style={{ background: "#d97706" }} /> Below 60%
+                </span>
+                <span>
+                  <span className="ct-dot" style={{ background: "#2563eb" }} /> 60% and above
+                </span>
+                <span className="ct-ring-legend-target">Targets: [SET TARGETS]</span>
+              </div>
 
-            <div className="ct-kpi-grid ct-kpi-grid-3 ct-kpi-grid-spaced">
-              {riskMetrics.map((m) => (
-                <div className="ct-kpi-card" key={m.label}>
-                  <span className="ct-kpi-ico" style={{ background: `${m.accent}1a`, color: m.accent }}>
-                    <m.icon className="ct-ico-sm" aria-hidden="true" />
-                  </span>
-                  <div className="ct-kpi-value">{m.value}</div>
-                  <div className="ct-kpi-label">{m.label}</div>
-                </div>
-              ))}
-            </div>
-          </SectionCard>
+              <div className="ct-kpi-grid ct-kpi-grid-3 ct-kpi-grid-spaced">
+                {riskMetrics.map((m) => (
+                  <div className="ct-kpi-card" key={m.label}>
+                    <span className="ct-kpi-ico" style={{ background: `${m.accent}1a`, color: m.accent }}>
+                      <m.icon className="ct-ico-sm" aria-hidden="true" />
+                    </span>
+                    <div className="ct-kpi-value">{m.value}</div>
+                    <div className="ct-kpi-label">{m.label}</div>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+          </div>
         </div>
       </div>
     </div>
@@ -599,6 +601,9 @@ const css = `
 .ct-card-sub{font-size:11.5px;color:var(--c-t3);margin-top:2px}
 
 .ct-pipeline-row{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.ct-split-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:12px;align-items:stretch}
+.ct-split-row .ct-card{display:flex;flex-direction:column;height:100%}
+.ct-split-row .ct-card:first-child .ct-kpi-grid-3{margin-top:auto}
 .ct-pipeline-head{display:flex;align-items:flex-start;justify-content:space-between}
 .ct-pipeline-total{font-size:11px;font-weight:700;color:var(--c-t2);background:var(--c-bg2);border:0.5px solid var(--c-border);border-radius:999px;padding:5px 11px;white-space:nowrap}
 

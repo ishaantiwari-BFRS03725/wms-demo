@@ -2,14 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
-  CheckCircle2,
   ClipboardCheck,
   Cloud,
-  Filter,
+  Download,
   Gauge,
   ListOrdered,
   PackageCheck,
   PackageX,
+  RefreshCw,
   Repeat,
   Route as RouteIcon,
   ShieldAlert,
@@ -338,20 +338,27 @@ function LastMileDashboard() {
 
   const visibleLanes = city === "All" ? LANES : LANES.filter((l) => l.lane.startsWith(`${city} →`));
 
-  const coreCards: { label: string; value: string; icon: typeof Truck; accent: string }[] = [
+  // The four headline outcome rates, as donut rings — mirrors the Ops Control
+  // Tower's Delivery Performance section.
+  const ringCards = [
+    { label: "SLA %", value: core.slaPct },
+    { label: "Delivery %", value: core.deliveryPct },
+    { label: "Delivered within SLA", value: core.deliveredWithinSlaPct },
+    { label: "FASR", value: core.fasrPct },
+  ];
+
+  // Volume, secondary rates, and risk metrics — kept as plain stat cards since
+  // several are channel-specific and can be "—" (a donut ring can't show that).
+  const statCards: { label: string; value: string; icon: typeof Truck; accent: string }[] = [
     { label: "Orders", value: core.orders.toLocaleString(), icon: Truck, accent: "#2563eb" },
-    { label: "Open Orders", value: core.openOrders.toLocaleString(), icon: Timer, accent: "#d97706" },
-    { label: "Delivery %", value: pct(core.deliveryPct), icon: CheckCircle2, accent: "#16a34a" },
-    { label: "SLA %", value: pct(core.slaPct), icon: Gauge, accent: "#0891b2" },
+    { label: "Open Orders", value: core.openOrders.toLocaleString(), icon: Timer, accent: "#64748b" },
     { label: "Courier SLA %", value: core.courierSlaPct !== undefined ? pct(core.courierSlaPct) : "—", icon: Gauge, accent: "#0891b2" },
-    { label: "Delivered within SLA", value: pct(core.deliveredWithinSlaPct), icon: CheckCircle2, accent: "#16a34a" },
     { label: "Assigned within Cutoff", value: core.assignedWithinCutoffPct !== undefined ? pct(core.assignedWithinCutoffPct) : "—", icon: ClipboardCheck, accent: "#0ea5e9" },
     { label: "Picked within EDD", value: core.pickedWithinEddPct !== undefined ? pct(core.pickedWithinEddPct) : "—", icon: PackageCheck, accent: "#0ea5e9" },
+    { label: "RASR (Repeat Attempt Success Rate)", value: core.rasrPct !== undefined ? pct(core.rasrPct) : "—", icon: Repeat, accent: "#7c3aed" },
     { label: "RTO %", value: pct(core.rtoPct), icon: Undo2, accent: "#dc2626" },
     { label: "Misroute %", value: core.misroutePct !== undefined ? pct(core.misroutePct) : "—", icon: AlertTriangle, accent: "#dc2626" },
     { label: "Missed Orders", value: core.missedOrders !== undefined ? core.missedOrders.toLocaleString() : "—", icon: PackageX, accent: "#d97706" },
-    { label: "FASR (First Attempt Success Rate)", value: pct(core.fasrPct), icon: Target, accent: "#7c3aed" },
-    { label: "RASR (Repeat Attempt Success Rate)", value: core.rasrPct !== undefined ? pct(core.rasrPct) : "—", icon: Repeat, accent: "#7c3aed" },
   ];
 
   const maxOpenPipeline = Math.max(...OPEN_PIPELINE.map((o) => o.value));
@@ -365,6 +372,10 @@ function LastMileDashboard() {
         {/* Top bar */}
         <div className="lmd-topbar">
           <div>
+            <div className="lmd-live">
+              <span className="lmd-live-dot" aria-hidden="true" />
+              Live · Network Operations
+            </div>
             <div className="lmd-topbar-title">
               <RouteIcon className="lmd-ico" aria-hidden="true" />
               Last-Mile Dashboard
@@ -373,100 +384,110 @@ function LastMileDashboard() {
               Order outcomes, SLA performance &amp; reverse logistics — Dark Store + 3PL
             </div>
           </div>
-          <span className="lmd-asof">As of 08-Oct-2026, 1:54 PM</span>
+          <div className="lmd-topbar-actions">
+            <span className="lmd-asof">Updated 08 Oct 2026 · 13:54</span>
+            <button className="lmd-btn-outline">
+              <RefreshCw className="lmd-ico-sm" aria-hidden="true" />
+              Refresh
+            </button>
+            <button className="lmd-btn-dark">
+              <Download className="lmd-ico-sm" aria-hidden="true" />
+              Export
+            </button>
+          </div>
         </div>
 
         {/* Filters */}
         <div className="lmd-filters">
-          <span className="lmd-filters-label">
-            <Filter className="lmd-ico-sm" aria-hidden="true" />
-            Filters
-          </span>
-          <div className="lmd-filter">
-            <select value={payment} onChange={(e) => setPayment(e.target.value as Payment)} className={payment !== "Overall" ? "lmd-on" : ""}>
-              <option value="Overall">Payment: Overall</option>
-              <option value="Prepaid">Payment: Prepaid</option>
-              <option value="COD">Payment: COD</option>
+          <LabeledField label="Payment">
+            <select value={payment} onChange={(e) => setPayment(e.target.value as Payment)}>
+              <option value="Overall">Overall</option>
+              <option value="Prepaid">Prepaid</option>
+              <option value="COD">COD</option>
             </select>
-          </div>
-          <div className="lmd-filter">
-            <select value={city} onChange={(e) => setCity(e.target.value)} className={city !== "All" ? "lmd-on" : ""}>
-              <option value="All">City: All</option>
+          </LabeledField>
+          <LabeledField label="City">
+            <select value={city} onChange={(e) => setCity(e.target.value)}>
+              <option value="All">All cities</option>
               {CITIES.map((c) => (
                 <option key={c} value={c}>
-                  City: {c}
+                  {c}
                 </option>
               ))}
             </select>
-          </div>
-          <div className="lmd-filter">
-            <select value={warehouse} onChange={(e) => setWarehouse(e.target.value)} className={warehouse !== "All" ? "lmd-on" : ""}>
-              <option value="All">Warehouse: All</option>
+          </LabeledField>
+          <LabeledField label="Warehouse">
+            <select value={warehouse} onChange={(e) => setWarehouse(e.target.value)}>
+              <option value="All">All warehouses</option>
               {WAREHOUSES.map((w) => (
                 <option key={w} value={w}>
-                  Warehouse: {w}
+                  {w}
                 </option>
               ))}
             </select>
-          </div>
-          <div className="lmd-filter">
-            <select value={seller} onChange={(e) => setSeller(e.target.value)} className={seller !== "All" ? "lmd-on" : ""}>
-              <option value="All">Seller: All</option>
+          </LabeledField>
+          <LabeledField label="Seller">
+            <select value={seller} onChange={(e) => setSeller(e.target.value)}>
+              <option value="All">All sellers</option>
               {SELLERS.map((s) => (
                 <option key={s} value={s}>
-                  Seller: {s}
+                  {s}
                 </option>
               ))}
             </select>
-          </div>
-          <div className="lmd-filter">
-            <select value={courier} onChange={(e) => setCourier(e.target.value)} className={courier !== "All" ? "lmd-on" : ""}>
-              <option value="All">Courier: All</option>
+          </LabeledField>
+          <LabeledField label="Courier">
+            <select value={courier} onChange={(e) => setCourier(e.target.value)}>
+              <option value="All">All couriers</option>
               <optgroup label="Dark Store">
                 {DS_COURIERS.map((c) => (
                   <option key={`ds-${c}`} value={c}>
-                    Courier: {c}
+                    {c}
                   </option>
                 ))}
               </optgroup>
               <optgroup label="3PL">
                 {TPL_COURIERS.map((c) => (
                   <option key={`tpl-${c}`} value={c}>
-                    Courier: {c}
+                    {c}
                   </option>
                 ))}
               </optgroup>
             </select>
-          </div>
-          <div className={`lmd-filter lmd-daterange ${dateFrom !== DEFAULT_DATE_FROM || dateTo !== DEFAULT_DATE_TO ? "lmd-on" : ""}`}>
-            <input
-              type="date"
-              value={dateFrom}
-              max={dateTo}
-              onChange={(e) => setDateFrom(e.target.value)}
-              aria-label="Date range start"
-            />
-            <span className="lmd-daterange-sep">–</span>
-            <input
-              type="date"
-              value={dateTo}
-              min={dateFrom}
-              onChange={(e) => setDateTo(e.target.value)}
-              aria-label="Date range end"
-            />
-          </div>
+          </LabeledField>
+          <LabeledField label="From">
+            <input type="date" value={dateFrom} max={dateTo} onChange={(e) => setDateFrom(e.target.value)} aria-label="Date range start" />
+          </LabeledField>
+          <LabeledField label="To">
+            <input type="date" value={dateTo} min={dateFrom} onChange={(e) => setDateTo(e.target.value)} aria-label="Date range end" />
+          </LabeledField>
           {filtersActive && (
             <button className="lmd-clear" onClick={clearFilters}>
               Clear
             </button>
           )}
-          <span className="lmd-filters-note">Applies to core order-outcome metrics below</span>
         </div>
 
         <div className="lmd-body">
           {/* Section A — core metrics */}
+          <SectionCard title="Outcome Rates" sub="Core order-outcome percentages — Dark Store + 3PL combined, filtered">
+            <div className="lmd-ring-grid">
+              {ringCards.map((r) => (
+                <DonutRing key={r.label} label={r.label} value={r.value} />
+              ))}
+            </div>
+            <div className="lmd-ring-legend">
+              <span>
+                <span className="lmd-dot" style={{ background: "#d97706" }} /> Below 60%
+              </span>
+              <span>
+                <span className="lmd-dot" style={{ background: "#2563eb" }} /> 60% and above
+              </span>
+            </div>
+          </SectionCard>
+
           <div className="lmd-kpi-grid">
-            {coreCards.map((c) => (
+            {statCards.map((c) => (
               <div className="lmd-kpi-card" key={c.label}>
                 <div className="lmd-kpi-top">
                   <span className="lmd-kpi-ico" style={{ background: `${c.accent}1a`, color: c.accent }}>
@@ -655,6 +676,45 @@ function LastMileDashboard() {
 
 // ─── Small building blocks ───────────────────────────────────────────────────
 
+function LabeledField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="lmd-field">
+      <span className="lmd-field-label">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function DonutRing({ label, value }: { label: string; value: number }) {
+  const size = 92;
+  const stroke = 9;
+  const r = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * r;
+  const filled = (clampPct(value) / 100) * circumference;
+  const color = value >= 60 ? "#2563eb" : "#d97706";
+
+  return (
+    <div className="lmd-ring-card">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="lmd-ring-svg">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e2dfd5" strokeWidth={stroke} />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={`${filled} ${circumference - filled}`}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        />
+      </svg>
+      <div className="lmd-ring-value">{pct(value)}</div>
+      <div className="lmd-ring-label">{label}</div>
+    </div>
+  );
+}
+
 function SectionCard({ title, sub, children }: { title: string; sub: string; children: React.ReactNode }) {
   return (
     <div className="lmd-card">
@@ -696,25 +756,32 @@ const css = `
   background:var(--c-bg);border:0.5px solid var(--c-border);border-radius:12px;overflow:hidden;font-family:inherit;width:100%;max-width:100%;box-sizing:border-box}
 .lmd-screen .lmd-ico{width:16px;height:16px;vertical-align:-3px;margin-right:7px;display:inline-block}
 .lmd-screen .lmd-ico-sm{width:14px;height:14px;flex:none}
-.lmd-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;border-bottom:0.5px solid var(--c-border)}
-.lmd-topbar-title{font-size:15px;font-weight:700;color:var(--c-t1);display:flex;align-items:center}
+.lmd-topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:0.5px solid var(--c-border)}
+.lmd-live{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--c-t2);text-transform:uppercase;letter-spacing:0.06em}
+.lmd-live-dot{width:7px;height:7px;border-radius:999px;background:#16a34a;flex:none}
+.lmd-topbar-title{font-size:15px;font-weight:700;color:var(--c-t1);display:flex;align-items:center;margin-top:4px}
 .lmd-topbar-sub{font-size:12px;color:var(--c-t3);margin-top:2px}
-.lmd-asof{font-size:11px;font-weight:600;color:var(--c-t2);background:var(--c-bg2);border:0.5px solid var(--c-border);border-radius:999px;padding:5px 11px;white-space:nowrap}
-.lmd-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:11px 18px;border-bottom:0.5px solid var(--c-border);background:var(--c-bg2)}
-.lmd-filters-label{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--c-t3);text-transform:uppercase;letter-spacing:0.06em}
-.lmd-filter{position:relative;display:inline-flex;align-items:center}
-.lmd-screen .lmd-filter select{appearance:none;font-size:12px;padding:7px 26px 7px 11px;border:0.5px solid var(--c-border2);border-radius:8px;background:var(--c-bg);color:var(--c-t2);cursor:pointer;line-height:1;max-width:220px}
-.lmd-screen .lmd-filter select.lmd-on{border-color:var(--c-info-b);color:var(--c-info-t);background:var(--c-info-bg);font-weight:600}
-.lmd-screen .lmd-daterange{gap:5px;padding:4px 9px;border:0.5px solid var(--c-border2);border-radius:8px;background:var(--c-bg)}
-.lmd-screen .lmd-daterange.lmd-on{border-color:var(--c-info-b);background:var(--c-info-bg)}
-.lmd-screen .lmd-daterange input[type="date"]{border:none;background:transparent;font-size:12px;color:var(--c-t2);padding:3px 0;line-height:1;width:108px}
-.lmd-screen .lmd-daterange.lmd-on input[type="date"]{color:var(--c-info-t);font-weight:600}
-.lmd-daterange-sep{font-size:11px;color:var(--c-t3)}
-.lmd-screen .lmd-clear{font-size:12px;padding:7px 13px;border:0.5px solid var(--c-border2);border-radius:8px;background:var(--c-bg);color:var(--c-t2);cursor:pointer;line-height:1}
-.lmd-filters-note{font-size:11px;color:var(--c-t3);margin-left:auto}
+.lmd-topbar-actions{display:flex;align-items:center;gap:8px}
+.lmd-asof{font-size:11.5px;font-weight:600;color:var(--c-t2);background:var(--c-bg2);border:0.5px solid var(--c-border);border-radius:8px;padding:9px 13px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.lmd-screen .lmd-btn-outline{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:9px 14px;border-radius:8px;border:0.5px solid var(--c-border2);background:var(--c-bg);color:var(--c-t1);cursor:pointer;line-height:1}
+.lmd-screen .lmd-btn-dark{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:9px 14px;border-radius:8px;border:none;background:#14130f;color:#fff;cursor:pointer;line-height:1}
+.lmd-filters{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;padding:14px 18px;border-bottom:0.5px solid var(--c-border);background:var(--c-bg2)}
+.lmd-field{display:flex;flex-direction:column;gap:5px}
+.lmd-field-label{font-size:11px;font-weight:600;color:var(--c-t3)}
+.lmd-screen .lmd-field select,.lmd-screen .lmd-field input[type="date"]{appearance:none;font-size:12.5px;padding:8px 11px;border:0.5px solid var(--c-border2);border-radius:8px;background:var(--c-bg);color:var(--c-t1);cursor:pointer;line-height:1;min-width:140px}
+.lmd-screen .lmd-field input[type="date"]{cursor:text;min-width:120px}
+.lmd-screen .lmd-clear{align-self:flex-end;font-size:12px;padding:8px 13px;border:0.5px solid var(--c-border2);border-radius:8px;background:var(--c-bg);color:var(--c-t2);cursor:pointer;line-height:1}
 .lmd-body{padding:18px;display:flex;flex-direction:column;gap:16px}
+.lmd-dot{width:8px;height:8px;border-radius:999px;display:inline-block;flex:none}
+.lmd-ring-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.lmd-ring-card{display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 0}
+.lmd-ring-svg{display:block}
+.lmd-ring-value{font-size:16px;font-weight:700;color:var(--c-t1);font-variant-numeric:tabular-nums}
+.lmd-ring-label{font-size:11.5px;color:var(--c-t3)}
+.lmd-ring-legend{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:10px;font-size:11.5px;color:var(--c-t3)}
+.lmd-ring-legend span{display:inline-flex;align-items:center;gap:6px}
 
-.lmd-kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.lmd-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .lmd-kpi-card{border:0.5px solid var(--c-border);border-radius:10px;padding:13px 14px;background:var(--c-bg)}
 .lmd-kpi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;min-height:24px}
 .lmd-kpi-ico{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center}
