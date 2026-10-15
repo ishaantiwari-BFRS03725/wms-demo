@@ -121,6 +121,7 @@ const sections: NavSection[] = [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
       { title: "Last-Mile Dashboard", url: "/last-mile-dashboard", icon: RouteIcon },
       { title: "Control Tower", url: "/control-tower", icon: Network },
+      { title: "Ops Control Tower", url: "/ops-control-tower", icon: Boxes },
       { title: "Stuck Orders", url: "/stuck-orders", icon: AlertTriangle },
       { title: "Site Performance", url: "/site-performance", icon: Activity },
       { title: "Trends", url: "/trends", icon: TrendingUp },

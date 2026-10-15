@@ -46,6 +46,7 @@ import { Route as WmsPackB2bV2RouteImport } from './routes/_wms.pack-b2b-v2'
 import { Route as WmsPackB2bRouteImport } from './routes/_wms.pack-b2b'
 import { Route as WmsPackRouteImport } from './routes/_wms.pack'
 import { Route as WmsOutboundExceptionsRouteImport } from './routes/_wms.outbound-exceptions'
+import { Route as WmsOpsControlTowerRouteImport } from './routes/_wms.ops-control-tower'
 import { Route as WmsMovementTaskCreateRouteImport } from './routes/_wms.movement-task-create'
 import { Route as WmsMasterDataRouteImport } from './routes/_wms.master-data'
 import { Route as WmsManifestRouteImport } from './routes/_wms.manifest'
@@ -290,6 +291,11 @@ const WmsPackRoute = WmsPackRouteImport.update({
 const WmsOutboundExceptionsRoute = WmsOutboundExceptionsRouteImport.update({
   id: '/outbound-exceptions',
   path: '/outbound-exceptions',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsOpsControlTowerRoute = WmsOpsControlTowerRouteImport.update({
+  id: '/ops-control-tower',
+  path: '/ops-control-tower',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsMovementTaskCreateRoute = WmsMovementTaskCreateRouteImport.update({
@@ -643,6 +649,7 @@ export interface FileRoutesByFullPath {
   '/manifest': typeof WmsManifestRoute
   '/master-data': typeof WmsMasterDataRoute
   '/movement-task-create': typeof WmsMovementTaskCreateRoute
+  '/ops-control-tower': typeof WmsOpsControlTowerRoute
   '/outbound-exceptions': typeof WmsOutboundExceptionsRoute
   '/pack': typeof WmsPackRoute
   '/pack-b2b': typeof WmsPackB2bRoute
@@ -742,6 +749,7 @@ export interface FileRoutesByTo {
   '/manifest': typeof WmsManifestRoute
   '/master-data': typeof WmsMasterDataRoute
   '/movement-task-create': typeof WmsMovementTaskCreateRoute
+  '/ops-control-tower': typeof WmsOpsControlTowerRoute
   '/outbound-exceptions': typeof WmsOutboundExceptionsRoute
   '/pack': typeof WmsPackRoute
   '/pack-b2b': typeof WmsPackB2bRoute
@@ -843,6 +851,7 @@ export interface FileRoutesById {
   '/_wms/manifest': typeof WmsManifestRoute
   '/_wms/master-data': typeof WmsMasterDataRoute
   '/_wms/movement-task-create': typeof WmsMovementTaskCreateRoute
+  '/_wms/ops-control-tower': typeof WmsOpsControlTowerRoute
   '/_wms/outbound-exceptions': typeof WmsOutboundExceptionsRoute
   '/_wms/pack': typeof WmsPackRoute
   '/_wms/pack-b2b': typeof WmsPackB2bRoute
@@ -944,6 +953,7 @@ export interface FileRouteTypes {
     | '/manifest'
     | '/master-data'
     | '/movement-task-create'
+    | '/ops-control-tower'
     | '/outbound-exceptions'
     | '/pack'
     | '/pack-b2b'
@@ -1043,6 +1053,7 @@ export interface FileRouteTypes {
     | '/manifest'
     | '/master-data'
     | '/movement-task-create'
+    | '/ops-control-tower'
     | '/outbound-exceptions'
     | '/pack'
     | '/pack-b2b'
@@ -1143,6 +1154,7 @@ export interface FileRouteTypes {
     | '/_wms/manifest'
     | '/_wms/master-data'
     | '/_wms/movement-task-create'
+    | '/_wms/ops-control-tower'
     | '/_wms/outbound-exceptions'
     | '/_wms/pack'
     | '/_wms/pack-b2b'
@@ -1465,6 +1477,13 @@ declare module '@tanstack/react-router' {
       path: '/outbound-exceptions'
       fullPath: '/outbound-exceptions'
       preLoaderRoute: typeof WmsOutboundExceptionsRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/ops-control-tower': {
+      id: '/_wms/ops-control-tower'
+      path: '/ops-control-tower'
+      fullPath: '/ops-control-tower'
+      preLoaderRoute: typeof WmsOpsControlTowerRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/movement-task-create': {
@@ -1938,6 +1957,7 @@ interface WmsRouteChildren {
   WmsManifestRoute: typeof WmsManifestRoute
   WmsMasterDataRoute: typeof WmsMasterDataRoute
   WmsMovementTaskCreateRoute: typeof WmsMovementTaskCreateRoute
+  WmsOpsControlTowerRoute: typeof WmsOpsControlTowerRoute
   WmsOutboundExceptionsRoute: typeof WmsOutboundExceptionsRoute
   WmsPackRoute: typeof WmsPackRoute
   WmsPackB2bRoute: typeof WmsPackB2bRoute
@@ -2037,6 +2057,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsManifestRoute: WmsManifestRoute,
   WmsMasterDataRoute: WmsMasterDataRoute,
   WmsMovementTaskCreateRoute: WmsMovementTaskCreateRoute,
+  WmsOpsControlTowerRoute: WmsOpsControlTowerRoute,
   WmsOutboundExceptionsRoute: WmsOutboundExceptionsRoute,
   WmsPackRoute: WmsPackRoute,
   WmsPackB2bRoute: WmsPackB2bRoute,
