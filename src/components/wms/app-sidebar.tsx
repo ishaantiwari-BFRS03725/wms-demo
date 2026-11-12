@@ -64,6 +64,7 @@ import {
   Sheet,
   ShieldCheck,
   Smartphone,
+  Sparkles,
   PlayCircle,
   Route as RouteIcon,
 } from "lucide-react";
@@ -131,6 +132,11 @@ const sections: NavSection[] = [
   {
     label: "AI Agents",
     items: [
+      {
+        title: "WH Manager Agentic Dashboard",
+        url: "/wh-manager-agentic-dashboard",
+        icon: Sparkles,
+      },
       { title: "Agent Health", url: "/agent-health", icon: Bot },
       { title: "Agent Directory", url: "/agent-directory", icon: Users },
       { title: "Drift & Feedback", url: "/drift-feedback", icon: Waypoints },
@@ -245,6 +251,14 @@ const sections: NavSection[] = [
         icon: Ticket,
       },
       { title: "Unloading", url: "/unloading", icon: PackageOpen },
+      {
+        title: "Pre-GRN",
+        icon: ClipboardList,
+        children: [
+          { title: "Pre-GRN", url: "/pre-grn", icon: ClipboardList },
+          { title: "Box ID Register", url: "/box-id-register", icon: Boxes },
+        ],
+      },
       {
         title: "GRN",
         icon: ClipboardCheck,
