@@ -19,6 +19,7 @@ import { Route as WmsViewDispatchRouteImport } from './routes/_wms.view-dispatch
 import { Route as WmsVendorScorecardsRouteImport } from './routes/_wms.vendor-scorecards'
 import { Route as WmsUsersRolesRouteImport } from './routes/_wms.users-roles'
 import { Route as WmsUnloadingRouteImport } from './routes/_wms.unloading'
+import { Route as WmsUniversalSearchRouteImport } from './routes/_wms.universal-search'
 import { Route as WmsTrendsRouteImport } from './routes/_wms.trends'
 import { Route as WmsTableIdMasterRouteImport } from './routes/_wms.table-id-master'
 import { Route as WmsStuckOrdersRouteImport } from './routes/_wms.stuck-orders'
@@ -162,6 +163,11 @@ const WmsUsersRolesRoute = WmsUsersRolesRouteImport.update({
 const WmsUnloadingRoute = WmsUnloadingRouteImport.update({
   id: '/unloading',
   path: '/unloading',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsUniversalSearchRoute = WmsUniversalSearchRouteImport.update({
+  id: '/universal-search',
+  path: '/universal-search',
   getParentRoute: () => WmsRoute,
 } as any)
 const WmsTrendsRoute = WmsTrendsRouteImport.update({
@@ -710,6 +716,7 @@ export interface FileRoutesByFullPath {
   '/stuck-orders': typeof WmsStuckOrdersRoute
   '/table-id-master': typeof WmsTableIdMasterRoute
   '/trends': typeof WmsTrendsRoute
+  '/universal-search': typeof WmsUniversalSearchRoute
   '/unloading': typeof WmsUnloadingRoute
   '/users-roles': typeof WmsUsersRolesRoute
   '/vendor-scorecards': typeof WmsVendorScorecardsRoute
@@ -815,6 +822,7 @@ export interface FileRoutesByTo {
   '/stuck-orders': typeof WmsStuckOrdersRoute
   '/table-id-master': typeof WmsTableIdMasterRoute
   '/trends': typeof WmsTrendsRoute
+  '/universal-search': typeof WmsUniversalSearchRoute
   '/unloading': typeof WmsUnloadingRoute
   '/users-roles': typeof WmsUsersRolesRoute
   '/vendor-scorecards': typeof WmsVendorScorecardsRoute
@@ -922,6 +930,7 @@ export interface FileRoutesById {
   '/_wms/stuck-orders': typeof WmsStuckOrdersRoute
   '/_wms/table-id-master': typeof WmsTableIdMasterRoute
   '/_wms/trends': typeof WmsTrendsRoute
+  '/_wms/universal-search': typeof WmsUniversalSearchRoute
   '/_wms/unloading': typeof WmsUnloadingRoute
   '/_wms/users-roles': typeof WmsUsersRolesRoute
   '/_wms/vendor-scorecards': typeof WmsVendorScorecardsRoute
@@ -1029,6 +1038,7 @@ export interface FileRouteTypes {
     | '/stuck-orders'
     | '/table-id-master'
     | '/trends'
+    | '/universal-search'
     | '/unloading'
     | '/users-roles'
     | '/vendor-scorecards'
@@ -1134,6 +1144,7 @@ export interface FileRouteTypes {
     | '/stuck-orders'
     | '/table-id-master'
     | '/trends'
+    | '/universal-search'
     | '/unloading'
     | '/users-roles'
     | '/vendor-scorecards'
@@ -1240,6 +1251,7 @@ export interface FileRouteTypes {
     | '/_wms/stuck-orders'
     | '/_wms/table-id-master'
     | '/_wms/trends'
+    | '/_wms/universal-search'
     | '/_wms/unloading'
     | '/_wms/users-roles'
     | '/_wms/vendor-scorecards'
@@ -1349,6 +1361,13 @@ declare module '@tanstack/react-router' {
       path: '/unloading'
       fullPath: '/unloading'
       preLoaderRoute: typeof WmsUnloadingRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/universal-search': {
+      id: '/_wms/universal-search'
+      path: '/universal-search'
+      fullPath: '/universal-search'
+      preLoaderRoute: typeof WmsUniversalSearchRouteImport
       parentRoute: typeof WmsRoute
     }
     '/_wms/trends': {
@@ -2083,6 +2102,7 @@ interface WmsRouteChildren {
   WmsStuckOrdersRoute: typeof WmsStuckOrdersRoute
   WmsTableIdMasterRoute: typeof WmsTableIdMasterRoute
   WmsTrendsRoute: typeof WmsTrendsRoute
+  WmsUniversalSearchRoute: typeof WmsUniversalSearchRoute
   WmsUnloadingRoute: typeof WmsUnloadingRoute
   WmsUsersRolesRoute: typeof WmsUsersRolesRoute
   WmsVendorScorecardsRoute: typeof WmsVendorScorecardsRoute
@@ -2188,6 +2208,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsStuckOrdersRoute: WmsStuckOrdersRoute,
   WmsTableIdMasterRoute: WmsTableIdMasterRoute,
   WmsTrendsRoute: WmsTrendsRoute,
+  WmsUniversalSearchRoute: WmsUniversalSearchRoute,
   WmsUnloadingRoute: WmsUnloadingRoute,
   WmsUsersRolesRoute: WmsUsersRolesRoute,
   WmsVendorScorecardsRoute: WmsVendorScorecardsRoute,

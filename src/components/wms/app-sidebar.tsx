@@ -61,6 +61,7 @@ import {
   Star,
   LogIn,
   ScanBarcode,
+  Search,
   Sheet,
   ShieldCheck,
   Smartphone,
@@ -111,6 +112,10 @@ const sections: NavSection[] = [
   {
     label: "Guided Demos",
     items: [{ title: "Run Demo", url: "/run-demo", icon: PlayCircle }],
+  },
+  {
+    label: "Search",
+    items: [{ title: "Universal Search", url: "/universal-search", icon: Search }],
   },
   {
     label: "Resources",
