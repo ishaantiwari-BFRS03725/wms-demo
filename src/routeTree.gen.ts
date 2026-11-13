@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WmsRouteImport } from './routes/_wms'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WmsWhManagerAgenticDashboardRouteImport } from './routes/_wms.wh-manager-agentic-dashboard'
 import { Route as WmsWaveCreationRouteImport } from './routes/_wms.wave-creation'
 import { Route as WmsWarehouseSettingsRouteImport } from './routes/_wms.warehouse-settings'
 import { Route as WmsViewManifestRouteImport } from './routes/_wms.view-manifest'
@@ -80,6 +81,7 @@ import { Route as WmsCycleCountConfigRouteImport } from './routes/_wms.cycle-cou
 import { Route as WmsCustomerDisputesRouteImport } from './routes/_wms.customer-disputes'
 import { Route as WmsControlTowerRouteImport } from './routes/_wms.control-tower'
 import { Route as WmsCarrierScorecardsRouteImport } from './routes/_wms.carrier-scorecards'
+import { Route as WmsBoxIdRegisterRouteImport } from './routes/_wms.box-id-register'
 import { Route as WmsBillingLeakageRouteImport } from './routes/_wms.billing-leakage'
 import { Route as WmsAuditLogRouteImport } from './routes/_wms.audit-log'
 import { Route as WmsApprovalsRouteImport } from './routes/_wms.approvals'
@@ -93,6 +95,7 @@ import { Route as WmsViewPackIndexRouteImport } from './routes/_wms.view-pack.in
 import { Route as WmsViewGrnIndexRouteImport } from './routes/_wms.view-grn.index'
 import { Route as WmsSortIndexRouteImport } from './routes/_wms.sort.index'
 import { Route as WmsPurchaseReturnIndexRouteImport } from './routes/_wms.purchase-return.index'
+import { Route as WmsPreGrnIndexRouteImport } from './routes/_wms.pre-grn.index'
 import { Route as WmsPickIndexRouteImport } from './routes/_wms.pick.index'
 import { Route as WmsOrdersIndexRouteImport } from './routes/_wms.orders.index'
 import { Route as WmsCycleCountIndexRouteImport } from './routes/_wms.cycle-count.index'
@@ -103,6 +106,8 @@ import { Route as WmsViewGrnGrnIdRouteImport } from './routes/_wms.view-grn.$grn
 import { Route as WmsSortEmptyRouteImport } from './routes/_wms.sort.empty'
 import { Route as WmsSortTaskIdRouteImport } from './routes/_wms.sort.$taskId'
 import { Route as WmsPurchaseReturnRtvNoRouteImport } from './routes/_wms.purchase-return.$rtvNo'
+import { Route as WmsPreGrnNewRouteImport } from './routes/_wms.pre-grn.new'
+import { Route as WmsPreGrnPreGrnIdRouteImport } from './routes/_wms.pre-grn.$preGrnId'
 import { Route as WmsPickPicklistIdRouteImport } from './routes/_wms.pick.$picklistId'
 import { Route as WmsOrdersOrderNoRouteImport } from './routes/_wms.orders.$orderNo'
 import { Route as WmsCycleCountSupervisorReviewRouteImport } from './routes/_wms.cycle-count.supervisor-review'
@@ -118,6 +123,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WmsWhManagerAgenticDashboardRoute =
+  WmsWhManagerAgenticDashboardRouteImport.update({
+    id: '/wh-manager-agentic-dashboard',
+    path: '/wh-manager-agentic-dashboard',
+    getParentRoute: () => WmsRoute,
+  } as any)
 const WmsWaveCreationRoute = WmsWaveCreationRouteImport.update({
   id: '/wave-creation',
   path: '/wave-creation',
@@ -464,6 +475,11 @@ const WmsCarrierScorecardsRoute = WmsCarrierScorecardsRouteImport.update({
   path: '/carrier-scorecards',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsBoxIdRegisterRoute = WmsBoxIdRegisterRouteImport.update({
+  id: '/box-id-register',
+  path: '/box-id-register',
+  getParentRoute: () => WmsRoute,
+} as any)
 const WmsBillingLeakageRoute = WmsBillingLeakageRouteImport.update({
   id: '/billing-leakage',
   path: '/billing-leakage',
@@ -529,6 +545,11 @@ const WmsPurchaseReturnIndexRoute = WmsPurchaseReturnIndexRouteImport.update({
   path: '/purchase-return/',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsPreGrnIndexRoute = WmsPreGrnIndexRouteImport.update({
+  id: '/pre-grn/',
+  path: '/pre-grn/',
+  getParentRoute: () => WmsRoute,
+} as any)
 const WmsPickIndexRoute = WmsPickIndexRouteImport.update({
   id: '/pick/',
   path: '/pick/',
@@ -580,6 +601,16 @@ const WmsPurchaseReturnRtvNoRoute = WmsPurchaseReturnRtvNoRouteImport.update({
   path: '/purchase-return/$rtvNo',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsPreGrnNewRoute = WmsPreGrnNewRouteImport.update({
+  id: '/pre-grn/new',
+  path: '/pre-grn/new',
+  getParentRoute: () => WmsRoute,
+} as any)
+const WmsPreGrnPreGrnIdRoute = WmsPreGrnPreGrnIdRouteImport.update({
+  id: '/pre-grn/$preGrnId',
+  path: '/pre-grn/$preGrnId',
+  getParentRoute: () => WmsRoute,
+} as any)
 const WmsPickPicklistIdRoute = WmsPickPicklistIdRouteImport.update({
   id: '/pick/$picklistId',
   path: '/pick/$picklistId',
@@ -616,6 +647,7 @@ export interface FileRoutesByFullPath {
   '/approvals': typeof WmsApprovalsRoute
   '/audit-log': typeof WmsAuditLogRoute
   '/billing-leakage': typeof WmsBillingLeakageRoute
+  '/box-id-register': typeof WmsBoxIdRegisterRoute
   '/carrier-scorecards': typeof WmsCarrierScorecardsRoute
   '/control-tower': typeof WmsControlTowerRoute
   '/customer-disputes': typeof WmsCustomerDisputesRoute
@@ -685,11 +717,14 @@ export interface FileRoutesByFullPath {
   '/view-manifest': typeof WmsViewManifestRoute
   '/warehouse-settings': typeof WmsWarehouseSettingsRoute
   '/wave-creation': typeof WmsWaveCreationRoute
+  '/wh-manager-agentic-dashboard': typeof WmsWhManagerAgenticDashboardRoute
   '/cycle-count/$taskId': typeof WmsCycleCountTaskIdRoute
   '/cycle-count/ledger': typeof WmsCycleCountLedgerRoute
   '/cycle-count/supervisor-review': typeof WmsCycleCountSupervisorReviewRoute
   '/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/pick/$picklistId': typeof WmsPickPicklistIdRoute
+  '/pre-grn/$preGrnId': typeof WmsPreGrnPreGrnIdRoute
+  '/pre-grn/new': typeof WmsPreGrnNewRoute
   '/purchase-return/$rtvNo': typeof WmsPurchaseReturnRtvNoRoute
   '/sort/$taskId': typeof WmsSortTaskIdRoute
   '/sort/empty': typeof WmsSortEmptyRoute
@@ -700,6 +735,7 @@ export interface FileRoutesByFullPath {
   '/cycle-count/': typeof WmsCycleCountIndexRoute
   '/orders/': typeof WmsOrdersIndexRoute
   '/pick/': typeof WmsPickIndexRoute
+  '/pre-grn/': typeof WmsPreGrnIndexRoute
   '/purchase-return/': typeof WmsPurchaseReturnIndexRoute
   '/sort/': typeof WmsSortIndexRoute
   '/view-grn/': typeof WmsViewGrnIndexRoute
@@ -716,6 +752,7 @@ export interface FileRoutesByTo {
   '/approvals': typeof WmsApprovalsRoute
   '/audit-log': typeof WmsAuditLogRoute
   '/billing-leakage': typeof WmsBillingLeakageRoute
+  '/box-id-register': typeof WmsBoxIdRegisterRoute
   '/carrier-scorecards': typeof WmsCarrierScorecardsRoute
   '/control-tower': typeof WmsControlTowerRoute
   '/customer-disputes': typeof WmsCustomerDisputesRoute
@@ -785,11 +822,14 @@ export interface FileRoutesByTo {
   '/view-manifest': typeof WmsViewManifestRoute
   '/warehouse-settings': typeof WmsWarehouseSettingsRoute
   '/wave-creation': typeof WmsWaveCreationRoute
+  '/wh-manager-agentic-dashboard': typeof WmsWhManagerAgenticDashboardRoute
   '/cycle-count/$taskId': typeof WmsCycleCountTaskIdRoute
   '/cycle-count/ledger': typeof WmsCycleCountLedgerRoute
   '/cycle-count/supervisor-review': typeof WmsCycleCountSupervisorReviewRoute
   '/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/pick/$picklistId': typeof WmsPickPicklistIdRoute
+  '/pre-grn/$preGrnId': typeof WmsPreGrnPreGrnIdRoute
+  '/pre-grn/new': typeof WmsPreGrnNewRoute
   '/purchase-return/$rtvNo': typeof WmsPurchaseReturnRtvNoRoute
   '/sort/$taskId': typeof WmsSortTaskIdRoute
   '/sort/empty': typeof WmsSortEmptyRoute
@@ -800,6 +840,7 @@ export interface FileRoutesByTo {
   '/cycle-count': typeof WmsCycleCountIndexRoute
   '/orders': typeof WmsOrdersIndexRoute
   '/pick': typeof WmsPickIndexRoute
+  '/pre-grn': typeof WmsPreGrnIndexRoute
   '/purchase-return': typeof WmsPurchaseReturnIndexRoute
   '/sort': typeof WmsSortIndexRoute
   '/view-grn': typeof WmsViewGrnIndexRoute
@@ -818,6 +859,7 @@ export interface FileRoutesById {
   '/_wms/approvals': typeof WmsApprovalsRoute
   '/_wms/audit-log': typeof WmsAuditLogRoute
   '/_wms/billing-leakage': typeof WmsBillingLeakageRoute
+  '/_wms/box-id-register': typeof WmsBoxIdRegisterRoute
   '/_wms/carrier-scorecards': typeof WmsCarrierScorecardsRoute
   '/_wms/control-tower': typeof WmsControlTowerRoute
   '/_wms/customer-disputes': typeof WmsCustomerDisputesRoute
@@ -887,11 +929,14 @@ export interface FileRoutesById {
   '/_wms/view-manifest': typeof WmsViewManifestRoute
   '/_wms/warehouse-settings': typeof WmsWarehouseSettingsRoute
   '/_wms/wave-creation': typeof WmsWaveCreationRoute
+  '/_wms/wh-manager-agentic-dashboard': typeof WmsWhManagerAgenticDashboardRoute
   '/_wms/cycle-count/$taskId': typeof WmsCycleCountTaskIdRoute
   '/_wms/cycle-count/ledger': typeof WmsCycleCountLedgerRoute
   '/_wms/cycle-count/supervisor-review': typeof WmsCycleCountSupervisorReviewRoute
   '/_wms/orders/$orderNo': typeof WmsOrdersOrderNoRoute
   '/_wms/pick/$picklistId': typeof WmsPickPicklistIdRoute
+  '/_wms/pre-grn/$preGrnId': typeof WmsPreGrnPreGrnIdRoute
+  '/_wms/pre-grn/new': typeof WmsPreGrnNewRoute
   '/_wms/purchase-return/$rtvNo': typeof WmsPurchaseReturnRtvNoRoute
   '/_wms/sort/$taskId': typeof WmsSortTaskIdRoute
   '/_wms/sort/empty': typeof WmsSortEmptyRoute
@@ -902,6 +947,7 @@ export interface FileRoutesById {
   '/_wms/cycle-count/': typeof WmsCycleCountIndexRoute
   '/_wms/orders/': typeof WmsOrdersIndexRoute
   '/_wms/pick/': typeof WmsPickIndexRoute
+  '/_wms/pre-grn/': typeof WmsPreGrnIndexRoute
   '/_wms/purchase-return/': typeof WmsPurchaseReturnIndexRoute
   '/_wms/sort/': typeof WmsSortIndexRoute
   '/_wms/view-grn/': typeof WmsViewGrnIndexRoute
@@ -920,6 +966,7 @@ export interface FileRouteTypes {
     | '/approvals'
     | '/audit-log'
     | '/billing-leakage'
+    | '/box-id-register'
     | '/carrier-scorecards'
     | '/control-tower'
     | '/customer-disputes'
@@ -989,11 +1036,14 @@ export interface FileRouteTypes {
     | '/view-manifest'
     | '/warehouse-settings'
     | '/wave-creation'
+    | '/wh-manager-agentic-dashboard'
     | '/cycle-count/$taskId'
     | '/cycle-count/ledger'
     | '/cycle-count/supervisor-review'
     | '/orders/$orderNo'
     | '/pick/$picklistId'
+    | '/pre-grn/$preGrnId'
+    | '/pre-grn/new'
     | '/purchase-return/$rtvNo'
     | '/sort/$taskId'
     | '/sort/empty'
@@ -1004,6 +1054,7 @@ export interface FileRouteTypes {
     | '/cycle-count/'
     | '/orders/'
     | '/pick/'
+    | '/pre-grn/'
     | '/purchase-return/'
     | '/sort/'
     | '/view-grn/'
@@ -1020,6 +1071,7 @@ export interface FileRouteTypes {
     | '/approvals'
     | '/audit-log'
     | '/billing-leakage'
+    | '/box-id-register'
     | '/carrier-scorecards'
     | '/control-tower'
     | '/customer-disputes'
@@ -1089,11 +1141,14 @@ export interface FileRouteTypes {
     | '/view-manifest'
     | '/warehouse-settings'
     | '/wave-creation'
+    | '/wh-manager-agentic-dashboard'
     | '/cycle-count/$taskId'
     | '/cycle-count/ledger'
     | '/cycle-count/supervisor-review'
     | '/orders/$orderNo'
     | '/pick/$picklistId'
+    | '/pre-grn/$preGrnId'
+    | '/pre-grn/new'
     | '/purchase-return/$rtvNo'
     | '/sort/$taskId'
     | '/sort/empty'
@@ -1104,6 +1159,7 @@ export interface FileRouteTypes {
     | '/cycle-count'
     | '/orders'
     | '/pick'
+    | '/pre-grn'
     | '/purchase-return'
     | '/sort'
     | '/view-grn'
@@ -1121,6 +1177,7 @@ export interface FileRouteTypes {
     | '/_wms/approvals'
     | '/_wms/audit-log'
     | '/_wms/billing-leakage'
+    | '/_wms/box-id-register'
     | '/_wms/carrier-scorecards'
     | '/_wms/control-tower'
     | '/_wms/customer-disputes'
@@ -1190,11 +1247,14 @@ export interface FileRouteTypes {
     | '/_wms/view-manifest'
     | '/_wms/warehouse-settings'
     | '/_wms/wave-creation'
+    | '/_wms/wh-manager-agentic-dashboard'
     | '/_wms/cycle-count/$taskId'
     | '/_wms/cycle-count/ledger'
     | '/_wms/cycle-count/supervisor-review'
     | '/_wms/orders/$orderNo'
     | '/_wms/pick/$picklistId'
+    | '/_wms/pre-grn/$preGrnId'
+    | '/_wms/pre-grn/new'
     | '/_wms/purchase-return/$rtvNo'
     | '/_wms/sort/$taskId'
     | '/_wms/sort/empty'
@@ -1205,6 +1265,7 @@ export interface FileRouteTypes {
     | '/_wms/cycle-count/'
     | '/_wms/orders/'
     | '/_wms/pick/'
+    | '/_wms/pre-grn/'
     | '/_wms/purchase-return/'
     | '/_wms/sort/'
     | '/_wms/view-grn/'
@@ -1233,6 +1294,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_wms/wh-manager-agentic-dashboard': {
+      id: '/_wms/wh-manager-agentic-dashboard'
+      path: '/wh-manager-agentic-dashboard'
+      fullPath: '/wh-manager-agentic-dashboard'
+      preLoaderRoute: typeof WmsWhManagerAgenticDashboardRouteImport
+      parentRoute: typeof WmsRoute
     }
     '/_wms/wave-creation': {
       id: '/_wms/wave-creation'
@@ -1717,6 +1785,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsCarrierScorecardsRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/box-id-register': {
+      id: '/_wms/box-id-register'
+      path: '/box-id-register'
+      fullPath: '/box-id-register'
+      preLoaderRoute: typeof WmsBoxIdRegisterRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/billing-leakage': {
       id: '/_wms/billing-leakage'
       path: '/billing-leakage'
@@ -1808,6 +1883,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsPurchaseReturnIndexRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/pre-grn/': {
+      id: '/_wms/pre-grn/'
+      path: '/pre-grn'
+      fullPath: '/pre-grn/'
+      preLoaderRoute: typeof WmsPreGrnIndexRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/pick/': {
       id: '/_wms/pick/'
       path: '/pick'
@@ -1878,6 +1960,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsPurchaseReturnRtvNoRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/pre-grn/new': {
+      id: '/_wms/pre-grn/new'
+      path: '/pre-grn/new'
+      fullPath: '/pre-grn/new'
+      preLoaderRoute: typeof WmsPreGrnNewRouteImport
+      parentRoute: typeof WmsRoute
+    }
+    '/_wms/pre-grn/$preGrnId': {
+      id: '/_wms/pre-grn/$preGrnId'
+      path: '/pre-grn/$preGrnId'
+      fullPath: '/pre-grn/$preGrnId'
+      preLoaderRoute: typeof WmsPreGrnPreGrnIdRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/pick/$picklistId': {
       id: '/_wms/pick/$picklistId'
       path: '/pick/$picklistId'
@@ -1924,6 +2020,7 @@ interface WmsRouteChildren {
   WmsApprovalsRoute: typeof WmsApprovalsRoute
   WmsAuditLogRoute: typeof WmsAuditLogRoute
   WmsBillingLeakageRoute: typeof WmsBillingLeakageRoute
+  WmsBoxIdRegisterRoute: typeof WmsBoxIdRegisterRoute
   WmsCarrierScorecardsRoute: typeof WmsCarrierScorecardsRoute
   WmsControlTowerRoute: typeof WmsControlTowerRoute
   WmsCustomerDisputesRoute: typeof WmsCustomerDisputesRoute
@@ -1993,11 +2090,14 @@ interface WmsRouteChildren {
   WmsViewManifestRoute: typeof WmsViewManifestRoute
   WmsWarehouseSettingsRoute: typeof WmsWarehouseSettingsRoute
   WmsWaveCreationRoute: typeof WmsWaveCreationRoute
+  WmsWhManagerAgenticDashboardRoute: typeof WmsWhManagerAgenticDashboardRoute
   WmsCycleCountTaskIdRoute: typeof WmsCycleCountTaskIdRoute
   WmsCycleCountLedgerRoute: typeof WmsCycleCountLedgerRoute
   WmsCycleCountSupervisorReviewRoute: typeof WmsCycleCountSupervisorReviewRoute
   WmsOrdersOrderNoRoute: typeof WmsOrdersOrderNoRoute
   WmsPickPicklistIdRoute: typeof WmsPickPicklistIdRoute
+  WmsPreGrnPreGrnIdRoute: typeof WmsPreGrnPreGrnIdRoute
+  WmsPreGrnNewRoute: typeof WmsPreGrnNewRoute
   WmsPurchaseReturnRtvNoRoute: typeof WmsPurchaseReturnRtvNoRoute
   WmsSortTaskIdRoute: typeof WmsSortTaskIdRoute
   WmsSortEmptyRoute: typeof WmsSortEmptyRoute
@@ -2008,6 +2108,7 @@ interface WmsRouteChildren {
   WmsCycleCountIndexRoute: typeof WmsCycleCountIndexRoute
   WmsOrdersIndexRoute: typeof WmsOrdersIndexRoute
   WmsPickIndexRoute: typeof WmsPickIndexRoute
+  WmsPreGrnIndexRoute: typeof WmsPreGrnIndexRoute
   WmsPurchaseReturnIndexRoute: typeof WmsPurchaseReturnIndexRoute
   WmsSortIndexRoute: typeof WmsSortIndexRoute
   WmsViewGrnIndexRoute: typeof WmsViewGrnIndexRoute
@@ -2024,6 +2125,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsApprovalsRoute: WmsApprovalsRoute,
   WmsAuditLogRoute: WmsAuditLogRoute,
   WmsBillingLeakageRoute: WmsBillingLeakageRoute,
+  WmsBoxIdRegisterRoute: WmsBoxIdRegisterRoute,
   WmsCarrierScorecardsRoute: WmsCarrierScorecardsRoute,
   WmsControlTowerRoute: WmsControlTowerRoute,
   WmsCustomerDisputesRoute: WmsCustomerDisputesRoute,
@@ -2093,11 +2195,14 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsViewManifestRoute: WmsViewManifestRoute,
   WmsWarehouseSettingsRoute: WmsWarehouseSettingsRoute,
   WmsWaveCreationRoute: WmsWaveCreationRoute,
+  WmsWhManagerAgenticDashboardRoute: WmsWhManagerAgenticDashboardRoute,
   WmsCycleCountTaskIdRoute: WmsCycleCountTaskIdRoute,
   WmsCycleCountLedgerRoute: WmsCycleCountLedgerRoute,
   WmsCycleCountSupervisorReviewRoute: WmsCycleCountSupervisorReviewRoute,
   WmsOrdersOrderNoRoute: WmsOrdersOrderNoRoute,
   WmsPickPicklistIdRoute: WmsPickPicklistIdRoute,
+  WmsPreGrnPreGrnIdRoute: WmsPreGrnPreGrnIdRoute,
+  WmsPreGrnNewRoute: WmsPreGrnNewRoute,
   WmsPurchaseReturnRtvNoRoute: WmsPurchaseReturnRtvNoRoute,
   WmsSortTaskIdRoute: WmsSortTaskIdRoute,
   WmsSortEmptyRoute: WmsSortEmptyRoute,
@@ -2108,6 +2213,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsCycleCountIndexRoute: WmsCycleCountIndexRoute,
   WmsOrdersIndexRoute: WmsOrdersIndexRoute,
   WmsPickIndexRoute: WmsPickIndexRoute,
+  WmsPreGrnIndexRoute: WmsPreGrnIndexRoute,
   WmsPurchaseReturnIndexRoute: WmsPurchaseReturnIndexRoute,
   WmsSortIndexRoute: WmsSortIndexRoute,
   WmsViewGrnIndexRoute: WmsViewGrnIndexRoute,
