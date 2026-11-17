@@ -60,6 +60,7 @@ import { Route as WmsKitOrderRouteImport } from './routes/_wms.kit-order'
 import { Route as WmsKitMappingRouteImport } from './routes/_wms.kit-mapping'
 import { Route as WmsItemMovementRouteImport } from './routes/_wms.item-movement'
 import { Route as WmsItemInfoUpdateRouteImport } from './routes/_wms.item-info-update'
+import { Route as WmsItemAliasRouteImport } from './routes/_wms.item-alias'
 import { Route as WmsInventoryViewRouteImport } from './routes/_wms.inventory-view'
 import { Route as WmsInventoryDashboardRouteImport } from './routes/_wms.inventory-dashboard'
 import { Route as WmsIncidentsRouteImport } from './routes/_wms.incidents'
@@ -100,6 +101,7 @@ import { Route as WmsPreGrnIndexRouteImport } from './routes/_wms.pre-grn.index'
 import { Route as WmsPickIndexRouteImport } from './routes/_wms.pick.index'
 import { Route as WmsOrdersIndexRouteImport } from './routes/_wms.orders.index'
 import { Route as WmsCycleCountIndexRouteImport } from './routes/_wms.cycle-count.index'
+import { Route as WmsB2bGrnIndexRouteImport } from './routes/_wms.b2b-grn.index'
 import { Route as WmsViewPutawayPutawayIdRouteImport } from './routes/_wms.view-putaway.$putawayId'
 import { Route as WmsViewPicklistPicklistIdRouteImport } from './routes/_wms.view-picklist.$picklistId'
 import { Route as WmsViewPackPacklistIdRouteImport } from './routes/_wms.view-pack.$packlistId'
@@ -114,6 +116,7 @@ import { Route as WmsOrdersOrderNoRouteImport } from './routes/_wms.orders.$orde
 import { Route as WmsCycleCountSupervisorReviewRouteImport } from './routes/_wms.cycle-count.supervisor-review'
 import { Route as WmsCycleCountLedgerRouteImport } from './routes/_wms.cycle-count.ledger'
 import { Route as WmsCycleCountTaskIdRouteImport } from './routes/_wms.cycle-count.$taskId'
+import { Route as WmsB2bGrnNewRouteImport } from './routes/_wms.b2b-grn.new'
 
 const WmsRoute = WmsRouteImport.update({
   id: '/_wms',
@@ -370,6 +373,11 @@ const WmsItemInfoUpdateRoute = WmsItemInfoUpdateRouteImport.update({
   path: '/item-info-update',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsItemAliasRoute = WmsItemAliasRouteImport.update({
+  id: '/item-alias',
+  path: '/item-alias',
+  getParentRoute: () => WmsRoute,
+} as any)
 const WmsInventoryViewRoute = WmsInventoryViewRouteImport.update({
   id: '/inventory-view',
   path: '/inventory-view',
@@ -571,6 +579,11 @@ const WmsCycleCountIndexRoute = WmsCycleCountIndexRouteImport.update({
   path: '/cycle-count/',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsB2bGrnIndexRoute = WmsB2bGrnIndexRouteImport.update({
+  id: '/b2b-grn/',
+  path: '/b2b-grn/',
+  getParentRoute: () => WmsRoute,
+} as any)
 const WmsViewPutawayPutawayIdRoute = WmsViewPutawayPutawayIdRouteImport.update({
   id: '/view-putaway/$putawayId',
   path: '/view-putaway/$putawayId',
@@ -643,6 +656,11 @@ const WmsCycleCountTaskIdRoute = WmsCycleCountTaskIdRouteImport.update({
   path: '/cycle-count/$taskId',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsB2bGrnNewRoute = WmsB2bGrnNewRouteImport.update({
+  id: '/b2b-grn/new',
+  path: '/b2b-grn/new',
+  getParentRoute: () => WmsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -676,6 +694,7 @@ export interface FileRoutesByFullPath {
   '/incidents': typeof WmsIncidentsRoute
   '/inventory-dashboard': typeof WmsInventoryDashboardRoute
   '/inventory-view': typeof WmsInventoryViewRoute
+  '/item-alias': typeof WmsItemAliasRoute
   '/item-info-update': typeof WmsItemInfoUpdateRoute
   '/item-movement': typeof WmsItemMovementRoute
   '/kit-mapping': typeof WmsKitMappingRoute
@@ -725,6 +744,7 @@ export interface FileRoutesByFullPath {
   '/warehouse-settings': typeof WmsWarehouseSettingsRoute
   '/wave-creation': typeof WmsWaveCreationRoute
   '/wh-manager-agentic-dashboard': typeof WmsWhManagerAgenticDashboardRoute
+  '/b2b-grn/new': typeof WmsB2bGrnNewRoute
   '/cycle-count/$taskId': typeof WmsCycleCountTaskIdRoute
   '/cycle-count/ledger': typeof WmsCycleCountLedgerRoute
   '/cycle-count/supervisor-review': typeof WmsCycleCountSupervisorReviewRoute
@@ -739,6 +759,7 @@ export interface FileRoutesByFullPath {
   '/view-pack/$packlistId': typeof WmsViewPackPacklistIdRoute
   '/view-picklist/$picklistId': typeof WmsViewPicklistPicklistIdRoute
   '/view-putaway/$putawayId': typeof WmsViewPutawayPutawayIdRoute
+  '/b2b-grn/': typeof WmsB2bGrnIndexRoute
   '/cycle-count/': typeof WmsCycleCountIndexRoute
   '/orders/': typeof WmsOrdersIndexRoute
   '/pick/': typeof WmsPickIndexRoute
@@ -782,6 +803,7 @@ export interface FileRoutesByTo {
   '/incidents': typeof WmsIncidentsRoute
   '/inventory-dashboard': typeof WmsInventoryDashboardRoute
   '/inventory-view': typeof WmsInventoryViewRoute
+  '/item-alias': typeof WmsItemAliasRoute
   '/item-info-update': typeof WmsItemInfoUpdateRoute
   '/item-movement': typeof WmsItemMovementRoute
   '/kit-mapping': typeof WmsKitMappingRoute
@@ -831,6 +853,7 @@ export interface FileRoutesByTo {
   '/warehouse-settings': typeof WmsWarehouseSettingsRoute
   '/wave-creation': typeof WmsWaveCreationRoute
   '/wh-manager-agentic-dashboard': typeof WmsWhManagerAgenticDashboardRoute
+  '/b2b-grn/new': typeof WmsB2bGrnNewRoute
   '/cycle-count/$taskId': typeof WmsCycleCountTaskIdRoute
   '/cycle-count/ledger': typeof WmsCycleCountLedgerRoute
   '/cycle-count/supervisor-review': typeof WmsCycleCountSupervisorReviewRoute
@@ -845,6 +868,7 @@ export interface FileRoutesByTo {
   '/view-pack/$packlistId': typeof WmsViewPackPacklistIdRoute
   '/view-picklist/$picklistId': typeof WmsViewPicklistPicklistIdRoute
   '/view-putaway/$putawayId': typeof WmsViewPutawayPutawayIdRoute
+  '/b2b-grn': typeof WmsB2bGrnIndexRoute
   '/cycle-count': typeof WmsCycleCountIndexRoute
   '/orders': typeof WmsOrdersIndexRoute
   '/pick': typeof WmsPickIndexRoute
@@ -890,6 +914,7 @@ export interface FileRoutesById {
   '/_wms/incidents': typeof WmsIncidentsRoute
   '/_wms/inventory-dashboard': typeof WmsInventoryDashboardRoute
   '/_wms/inventory-view': typeof WmsInventoryViewRoute
+  '/_wms/item-alias': typeof WmsItemAliasRoute
   '/_wms/item-info-update': typeof WmsItemInfoUpdateRoute
   '/_wms/item-movement': typeof WmsItemMovementRoute
   '/_wms/kit-mapping': typeof WmsKitMappingRoute
@@ -939,6 +964,7 @@ export interface FileRoutesById {
   '/_wms/warehouse-settings': typeof WmsWarehouseSettingsRoute
   '/_wms/wave-creation': typeof WmsWaveCreationRoute
   '/_wms/wh-manager-agentic-dashboard': typeof WmsWhManagerAgenticDashboardRoute
+  '/_wms/b2b-grn/new': typeof WmsB2bGrnNewRoute
   '/_wms/cycle-count/$taskId': typeof WmsCycleCountTaskIdRoute
   '/_wms/cycle-count/ledger': typeof WmsCycleCountLedgerRoute
   '/_wms/cycle-count/supervisor-review': typeof WmsCycleCountSupervisorReviewRoute
@@ -953,6 +979,7 @@ export interface FileRoutesById {
   '/_wms/view-pack/$packlistId': typeof WmsViewPackPacklistIdRoute
   '/_wms/view-picklist/$picklistId': typeof WmsViewPicklistPicklistIdRoute
   '/_wms/view-putaway/$putawayId': typeof WmsViewPutawayPutawayIdRoute
+  '/_wms/b2b-grn/': typeof WmsB2bGrnIndexRoute
   '/_wms/cycle-count/': typeof WmsCycleCountIndexRoute
   '/_wms/orders/': typeof WmsOrdersIndexRoute
   '/_wms/pick/': typeof WmsPickIndexRoute
@@ -998,6 +1025,7 @@ export interface FileRouteTypes {
     | '/incidents'
     | '/inventory-dashboard'
     | '/inventory-view'
+    | '/item-alias'
     | '/item-info-update'
     | '/item-movement'
     | '/kit-mapping'
@@ -1047,6 +1075,7 @@ export interface FileRouteTypes {
     | '/warehouse-settings'
     | '/wave-creation'
     | '/wh-manager-agentic-dashboard'
+    | '/b2b-grn/new'
     | '/cycle-count/$taskId'
     | '/cycle-count/ledger'
     | '/cycle-count/supervisor-review'
@@ -1061,6 +1090,7 @@ export interface FileRouteTypes {
     | '/view-pack/$packlistId'
     | '/view-picklist/$picklistId'
     | '/view-putaway/$putawayId'
+    | '/b2b-grn/'
     | '/cycle-count/'
     | '/orders/'
     | '/pick/'
@@ -1104,6 +1134,7 @@ export interface FileRouteTypes {
     | '/incidents'
     | '/inventory-dashboard'
     | '/inventory-view'
+    | '/item-alias'
     | '/item-info-update'
     | '/item-movement'
     | '/kit-mapping'
@@ -1153,6 +1184,7 @@ export interface FileRouteTypes {
     | '/warehouse-settings'
     | '/wave-creation'
     | '/wh-manager-agentic-dashboard'
+    | '/b2b-grn/new'
     | '/cycle-count/$taskId'
     | '/cycle-count/ledger'
     | '/cycle-count/supervisor-review'
@@ -1167,6 +1199,7 @@ export interface FileRouteTypes {
     | '/view-pack/$packlistId'
     | '/view-picklist/$picklistId'
     | '/view-putaway/$putawayId'
+    | '/b2b-grn'
     | '/cycle-count'
     | '/orders'
     | '/pick'
@@ -1211,6 +1244,7 @@ export interface FileRouteTypes {
     | '/_wms/incidents'
     | '/_wms/inventory-dashboard'
     | '/_wms/inventory-view'
+    | '/_wms/item-alias'
     | '/_wms/item-info-update'
     | '/_wms/item-movement'
     | '/_wms/kit-mapping'
@@ -1260,6 +1294,7 @@ export interface FileRouteTypes {
     | '/_wms/warehouse-settings'
     | '/_wms/wave-creation'
     | '/_wms/wh-manager-agentic-dashboard'
+    | '/_wms/b2b-grn/new'
     | '/_wms/cycle-count/$taskId'
     | '/_wms/cycle-count/ledger'
     | '/_wms/cycle-count/supervisor-review'
@@ -1274,6 +1309,7 @@ export interface FileRouteTypes {
     | '/_wms/view-pack/$packlistId'
     | '/_wms/view-picklist/$picklistId'
     | '/_wms/view-putaway/$putawayId'
+    | '/_wms/b2b-grn/'
     | '/_wms/cycle-count/'
     | '/_wms/orders/'
     | '/_wms/pick/'
@@ -1650,6 +1686,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsItemInfoUpdateRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/item-alias': {
+      id: '/_wms/item-alias'
+      path: '/item-alias'
+      fullPath: '/item-alias'
+      preLoaderRoute: typeof WmsItemAliasRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/inventory-view': {
       id: '/_wms/inventory-view'
       path: '/inventory-view'
@@ -1930,6 +1973,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsCycleCountIndexRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/b2b-grn/': {
+      id: '/_wms/b2b-grn/'
+      path: '/b2b-grn'
+      fullPath: '/b2b-grn/'
+      preLoaderRoute: typeof WmsB2bGrnIndexRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/view-putaway/$putawayId': {
       id: '/_wms/view-putaway/$putawayId'
       path: '/view-putaway/$putawayId'
@@ -2028,6 +2078,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsCycleCountTaskIdRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/b2b-grn/new': {
+      id: '/_wms/b2b-grn/new'
+      path: '/b2b-grn/new'
+      fullPath: '/b2b-grn/new'
+      preLoaderRoute: typeof WmsB2bGrnNewRouteImport
+      parentRoute: typeof WmsRoute
+    }
   }
 }
 
@@ -2062,6 +2119,7 @@ interface WmsRouteChildren {
   WmsIncidentsRoute: typeof WmsIncidentsRoute
   WmsInventoryDashboardRoute: typeof WmsInventoryDashboardRoute
   WmsInventoryViewRoute: typeof WmsInventoryViewRoute
+  WmsItemAliasRoute: typeof WmsItemAliasRoute
   WmsItemInfoUpdateRoute: typeof WmsItemInfoUpdateRoute
   WmsItemMovementRoute: typeof WmsItemMovementRoute
   WmsKitMappingRoute: typeof WmsKitMappingRoute
@@ -2111,6 +2169,7 @@ interface WmsRouteChildren {
   WmsWarehouseSettingsRoute: typeof WmsWarehouseSettingsRoute
   WmsWaveCreationRoute: typeof WmsWaveCreationRoute
   WmsWhManagerAgenticDashboardRoute: typeof WmsWhManagerAgenticDashboardRoute
+  WmsB2bGrnNewRoute: typeof WmsB2bGrnNewRoute
   WmsCycleCountTaskIdRoute: typeof WmsCycleCountTaskIdRoute
   WmsCycleCountLedgerRoute: typeof WmsCycleCountLedgerRoute
   WmsCycleCountSupervisorReviewRoute: typeof WmsCycleCountSupervisorReviewRoute
@@ -2125,6 +2184,7 @@ interface WmsRouteChildren {
   WmsViewPackPacklistIdRoute: typeof WmsViewPackPacklistIdRoute
   WmsViewPicklistPicklistIdRoute: typeof WmsViewPicklistPicklistIdRoute
   WmsViewPutawayPutawayIdRoute: typeof WmsViewPutawayPutawayIdRoute
+  WmsB2bGrnIndexRoute: typeof WmsB2bGrnIndexRoute
   WmsCycleCountIndexRoute: typeof WmsCycleCountIndexRoute
   WmsOrdersIndexRoute: typeof WmsOrdersIndexRoute
   WmsPickIndexRoute: typeof WmsPickIndexRoute
@@ -2168,6 +2228,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsIncidentsRoute: WmsIncidentsRoute,
   WmsInventoryDashboardRoute: WmsInventoryDashboardRoute,
   WmsInventoryViewRoute: WmsInventoryViewRoute,
+  WmsItemAliasRoute: WmsItemAliasRoute,
   WmsItemInfoUpdateRoute: WmsItemInfoUpdateRoute,
   WmsItemMovementRoute: WmsItemMovementRoute,
   WmsKitMappingRoute: WmsKitMappingRoute,
@@ -2217,6 +2278,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsWarehouseSettingsRoute: WmsWarehouseSettingsRoute,
   WmsWaveCreationRoute: WmsWaveCreationRoute,
   WmsWhManagerAgenticDashboardRoute: WmsWhManagerAgenticDashboardRoute,
+  WmsB2bGrnNewRoute: WmsB2bGrnNewRoute,
   WmsCycleCountTaskIdRoute: WmsCycleCountTaskIdRoute,
   WmsCycleCountLedgerRoute: WmsCycleCountLedgerRoute,
   WmsCycleCountSupervisorReviewRoute: WmsCycleCountSupervisorReviewRoute,
@@ -2231,6 +2293,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsViewPackPacklistIdRoute: WmsViewPackPacklistIdRoute,
   WmsViewPicklistPicklistIdRoute: WmsViewPicklistPicklistIdRoute,
   WmsViewPutawayPutawayIdRoute: WmsViewPutawayPutawayIdRoute,
+  WmsB2bGrnIndexRoute: WmsB2bGrnIndexRoute,
   WmsCycleCountIndexRoute: WmsCycleCountIndexRoute,
   WmsOrdersIndexRoute: WmsOrdersIndexRoute,
   WmsPickIndexRoute: WmsPickIndexRoute,
