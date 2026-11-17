@@ -255,6 +255,7 @@ const sections: NavSection[] = [
         icon: Ticket,
       },
       { title: "Unloading", url: "/unloading", icon: PackageOpen },
+      { title: "B2B Unloading", url: "/b2b-unloading", icon: PackageOpen },
       {
         title: "GRN",
         icon: ClipboardCheck,

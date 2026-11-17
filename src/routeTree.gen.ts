@@ -85,6 +85,7 @@ import { Route as WmsControlTowerRouteImport } from './routes/_wms.control-tower
 import { Route as WmsCarrierScorecardsRouteImport } from './routes/_wms.carrier-scorecards'
 import { Route as WmsBoxIdRegisterRouteImport } from './routes/_wms.box-id-register'
 import { Route as WmsBillingLeakageRouteImport } from './routes/_wms.billing-leakage'
+import { Route as WmsB2bUnloadingRouteImport } from './routes/_wms.b2b-unloading'
 import { Route as WmsAuditLogRouteImport } from './routes/_wms.audit-log'
 import { Route as WmsApprovalsRouteImport } from './routes/_wms.approvals'
 import { Route as WmsAlertsRouteImport } from './routes/_wms.alerts'
@@ -499,6 +500,11 @@ const WmsBillingLeakageRoute = WmsBillingLeakageRouteImport.update({
   path: '/billing-leakage',
   getParentRoute: () => WmsRoute,
 } as any)
+const WmsB2bUnloadingRoute = WmsB2bUnloadingRouteImport.update({
+  id: '/b2b-unloading',
+  path: '/b2b-unloading',
+  getParentRoute: () => WmsRoute,
+} as any)
 const WmsAuditLogRoute = WmsAuditLogRouteImport.update({
   id: '/audit-log',
   path: '/audit-log',
@@ -670,6 +676,7 @@ export interface FileRoutesByFullPath {
   '/alerts': typeof WmsAlertsRoute
   '/approvals': typeof WmsApprovalsRoute
   '/audit-log': typeof WmsAuditLogRoute
+  '/b2b-unloading': typeof WmsB2bUnloadingRoute
   '/billing-leakage': typeof WmsBillingLeakageRoute
   '/box-id-register': typeof WmsBoxIdRegisterRoute
   '/carrier-scorecards': typeof WmsCarrierScorecardsRoute
@@ -779,6 +786,7 @@ export interface FileRoutesByTo {
   '/alerts': typeof WmsAlertsRoute
   '/approvals': typeof WmsApprovalsRoute
   '/audit-log': typeof WmsAuditLogRoute
+  '/b2b-unloading': typeof WmsB2bUnloadingRoute
   '/billing-leakage': typeof WmsBillingLeakageRoute
   '/box-id-register': typeof WmsBoxIdRegisterRoute
   '/carrier-scorecards': typeof WmsCarrierScorecardsRoute
@@ -890,6 +898,7 @@ export interface FileRoutesById {
   '/_wms/alerts': typeof WmsAlertsRoute
   '/_wms/approvals': typeof WmsApprovalsRoute
   '/_wms/audit-log': typeof WmsAuditLogRoute
+  '/_wms/b2b-unloading': typeof WmsB2bUnloadingRoute
   '/_wms/billing-leakage': typeof WmsBillingLeakageRoute
   '/_wms/box-id-register': typeof WmsBoxIdRegisterRoute
   '/_wms/carrier-scorecards': typeof WmsCarrierScorecardsRoute
@@ -1001,6 +1010,7 @@ export interface FileRouteTypes {
     | '/alerts'
     | '/approvals'
     | '/audit-log'
+    | '/b2b-unloading'
     | '/billing-leakage'
     | '/box-id-register'
     | '/carrier-scorecards'
@@ -1110,6 +1120,7 @@ export interface FileRouteTypes {
     | '/alerts'
     | '/approvals'
     | '/audit-log'
+    | '/b2b-unloading'
     | '/billing-leakage'
     | '/box-id-register'
     | '/carrier-scorecards'
@@ -1220,6 +1231,7 @@ export interface FileRouteTypes {
     | '/_wms/alerts'
     | '/_wms/approvals'
     | '/_wms/audit-log'
+    | '/_wms/b2b-unloading'
     | '/_wms/billing-leakage'
     | '/_wms/box-id-register'
     | '/_wms/carrier-scorecards'
@@ -1861,6 +1873,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WmsBillingLeakageRouteImport
       parentRoute: typeof WmsRoute
     }
+    '/_wms/b2b-unloading': {
+      id: '/_wms/b2b-unloading'
+      path: '/b2b-unloading'
+      fullPath: '/b2b-unloading'
+      preLoaderRoute: typeof WmsB2bUnloadingRouteImport
+      parentRoute: typeof WmsRoute
+    }
     '/_wms/audit-log': {
       id: '/_wms/audit-log'
       path: '/audit-log'
@@ -2095,6 +2114,7 @@ interface WmsRouteChildren {
   WmsAlertsRoute: typeof WmsAlertsRoute
   WmsApprovalsRoute: typeof WmsApprovalsRoute
   WmsAuditLogRoute: typeof WmsAuditLogRoute
+  WmsB2bUnloadingRoute: typeof WmsB2bUnloadingRoute
   WmsBillingLeakageRoute: typeof WmsBillingLeakageRoute
   WmsBoxIdRegisterRoute: typeof WmsBoxIdRegisterRoute
   WmsCarrierScorecardsRoute: typeof WmsCarrierScorecardsRoute
@@ -2204,6 +2224,7 @@ const WmsRouteChildren: WmsRouteChildren = {
   WmsAlertsRoute: WmsAlertsRoute,
   WmsApprovalsRoute: WmsApprovalsRoute,
   WmsAuditLogRoute: WmsAuditLogRoute,
+  WmsB2bUnloadingRoute: WmsB2bUnloadingRoute,
   WmsBillingLeakageRoute: WmsBillingLeakageRoute,
   WmsBoxIdRegisterRoute: WmsBoxIdRegisterRoute,
   WmsCarrierScorecardsRoute: WmsCarrierScorecardsRoute,
