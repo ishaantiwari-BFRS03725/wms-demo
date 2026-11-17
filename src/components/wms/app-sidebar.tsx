@@ -28,7 +28,6 @@ import {
   LayoutGrid,
   LifeBuoy,
   MessagesSquare,
-  Monitor,
   MoveDown,
   Network,
   Package,
@@ -257,21 +256,14 @@ const sections: NavSection[] = [
       },
       { title: "Unloading", url: "/unloading", icon: PackageOpen },
       {
-        title: "Pre-GRN",
-        icon: ClipboardList,
-        children: [
-          { title: "Pre-GRN", url: "/pre-grn", icon: ClipboardList },
-          { title: "Box ID Register", url: "/box-id-register", icon: Boxes },
-        ],
-      },
-      {
         title: "GRN",
         icon: ClipboardCheck,
         children: [
           { title: "GRN", url: "/grn", icon: ClipboardCheck },
+          { title: "B2B GRN", url: "/b2b-grn", icon: Container },
+          { title: "Box ID Register", url: "/box-id-register", icon: Boxes },
           { title: "GRN — USN Tracking", url: "/grn-usn", icon: Fingerprint },
           { title: "View GRNs", url: "/view-grn", icon: ClipboardList },
-          { title: "GRN Compact", url: "/grn-compact", icon: Monitor },
         ],
       },
       {
@@ -342,6 +334,7 @@ const sections: NavSection[] = [
       { title: "Dock Management", url: "/dock-management", icon: Warehouse },
       { title: "Table ID Master", url: "/table-id-master", icon: Table2 },
       { title: "Reject Reason Master", url: "/reject-reason-master", icon: Ban },
+      { title: "Item Alias", url: "/item-alias", icon: ScanLine },
     ],
   },
   {
